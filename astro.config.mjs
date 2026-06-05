@@ -1,5 +1,12 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
+import markdoc from '@astrojs/markdoc';
+
+import sitemap from '@astrojs/sitemap';
+
 // https://astro.build/config
-export default defineConfig({});
+export default defineConfig({
+  site: 'https://pierrickbignet.com',
+  integrations: [markdoc(), sitemap()]
+});
