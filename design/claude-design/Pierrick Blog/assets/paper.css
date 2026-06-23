@@ -15,12 +15,12 @@ button { font: inherit; color: inherit; }
   --paper-2: #e5dfd3;
   --ink: #1b1a16;
   --ink-2: #4c483d;
-  --ink-3: #8a8674;
+  --ink-3: #696551;
   --line: rgba(27, 26, 22, 0.20);
   --line-soft: rgba(27, 26, 22, 0.12);
   --accent: #3d491d;
   --accent-ink: #ffffff;
-  --topo: rgba(42, 40, 33, 0.085);
+  --topo: rgba(61, 73, 29, 0.06);
 
   --display: 'Anton', 'Archivo', sans-serif;
   --sans: 'Archivo', system-ui, sans-serif;
@@ -181,9 +181,9 @@ image-slot::part(ring) {
   padding: 22px 0;
   border-top: 1px solid var(--line);
   position: relative;
-  transition: padding-left 0.25s ease;
+  transition: transform 0.25s ease;
 }
-.post:hover { padding-left: 14px; }
+.post:hover { transform: translateX(14px); }
 .post:last-child { border-bottom: 1px solid var(--line); }
 .post .idx { font-family: var(--mono); font-size: 12px; color: var(--ink-3); padding-top: 6px; }
 .post .ptitle {

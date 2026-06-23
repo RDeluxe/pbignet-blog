@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>On taste as a competitive advantage — dot·paper</title>
+<meta name="description" content="Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity. A field essay by Pierrick Bignet.">
+<link rel="canonical" href="https://dotpaper.bignet.studio/articles/taste">
+<meta property="og:type" content="article">
+<meta property="og:title" content="On taste as a competitive advantage">
+<meta property="og:description" content="Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity.">
+<meta property="og:url" content="https://dotpaper.bignet.studio/articles/taste">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="On taste as a competitive advantage">
+<meta name="twitter:description" content="Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/paper.css">
+<style>
+  /* ====== ONE INK PER PAGE — SEPIA #9a7838 ====== */
+  :root {
+    --paper: #ece7dd;
+    --paper-2: #e3dccd;
+    --ink: #1b1a16;
+    --ink-2: #4c483d;
+    --ink-3: #696551;
+    --accent: #9a7838;                 /* sepia — the page's single ink */
+    --line: rgba(27,26,22,.20);
+    --line-soft: rgba(27,26,22,.12);
+    --topo: rgba(154,120,56,.06);      /* accent @ ~6% */
+    --maxw: 1180px;
+    --post-hero-h: 100vh;              /* reduce for a short note, e.g. 64vh */
+  }
+
+  /* ====== sticky reading bar — present by default, scroll only enriches ====== */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    transition: background .3s ease, border-color .3s ease, color .3s ease;
+  }
+  .topbar .progress {
+    position: absolute;
+    left: 0; top: 0;
+    height: 2px;
+    width: 0;
+    background: var(--accent);
+    transition: width .12s linear;
+  }
+  .topbar .tb-in {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 13px var(--gutter);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 18px;
+  }
+  .topbar .brand { font-family: var(--display); font-size: 20px; letter-spacing: .02em; line-height: 1; }
+  .topbar .brand .dot { color: var(--accent); }
+  .topbar .tb-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .topbar .tb-back {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .topbar .tb-back:hover { color: var(--accent); }
+  /* immersive state — JS adds this only while the cover is on screen */
+  .topbar.over-hero { background: transparent; border-color: transparent; }
+  .topbar.over-hero .brand,
+  .topbar.over-hero .tb-back { color: #f1ebdd; text-shadow: 0 1px 14px rgba(0,0,0,.5); }
+  .topbar.over-hero .tb-title { color: rgba(241,235,221,.0); }
+  .topbar.over-hero .progress { opacity: 0; }
+
+  /* ====== HERO — full-screen cover, type-on-photo (Study 01 gesture) ====== */
+  .post-hero {
+    position: relative;
+    width: 100%;
+    height: var(--post-hero-h);
+    min-height: 520px;
+    margin-top: calc(-1 * (48px + 2px));   /* slide under the sticky bar */
+    overflow: hidden;
+    background: #14110a;
+  }
+  .post-hero .dsrc { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+  /* the dither + contours dissolve the TOP of the frame (sky), masked to fade out by ~42% */
+  .post-hero .dither-canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    image-rendering: pixelated; display: block; z-index: 2;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 20%, transparent 42%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 20%, transparent 42%);
+  }
+  .post-hero .topo-on {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 3;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 38%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 38%);
+  }
+  .post-hero .grain-on {
+    position: absolute; inset: 0; z-index: 4; pointer-events: none;
+    background-image: var(--grain); mix-blend-mode: overlay; opacity: .45;
+  }
+  /* legibility scrims: faint at top for metadata, deeper at the bottom for the credit */
+  .post-hero .scrim {
+    position: absolute; inset: 0; z-index: 5; pointer-events: none;
+    background:
+      linear-gradient(to bottom, rgba(18,14,8,.42) 0%, transparent 22%),
+      linear-gradient(to top, rgba(18,14,8,.5) 0%, transparent 30%);
+  }
+
+  /* cover word — placed PER IMAGE: here, low-left in the open sky, clear of the arch */
+  .ph-word {
+    position: absolute; left: var(--gutter); top: 28%; z-index: 7;
+    text-align: left; max-width: calc(100% - 2 * var(--gutter));
+    font-family: var(--display); font-weight: 400; text-transform: uppercase;
+    font-size: clamp(52px, 17vw, 176px); line-height: .8; letter-spacing: .03em;
+    color: #f1ebdd; margin: 0;
+    text-shadow: 0 3px 34px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.4);
+  }
+  /* bottom-left place + method/credit, like Study 01's Kawaguchiko block */
+  .ph-sub {
+    position: absolute; left: var(--gutter); bottom: 9%; z-index: 7;
+    font-family: var(--mono); color: #e9e3d6;
+  }
+  .ph-sub .big { font-family: var(--display); font-weight: 400; font-size: clamp(20px, 2.6vw, 34px); letter-spacing: .04em; text-transform: uppercase; line-height: 1; text-shadow: 0 1px 12px rgba(0,0,0,.5); }
+  .ph-sub .sm { font-size: 12px; letter-spacing: .1em; color: #cfc9bb; margin-top: 6px; text-shadow: 0 1px 10px rgba(0,0,0,.5); }
+
+  .ph-vcap {
+    position: absolute; right: max(18px, 3vw); bottom: 9%; z-index: 7;
+    writing-mode: vertical-rl;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .24em; text-transform: uppercase;
+    color: #ece6d8; text-shadow: 0 1px 10px rgba(0,0,0,.5);
+  }
+
+  /* scroll cue */
+  .ph-cue {
+    position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 7;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .3em; text-transform: uppercase;
+    color: rgba(241,235,221,.7);
+  }
+
+  /* ====== ARTICLE BODY ====== */
+  .article { max-width: 66ch; margin: 0 auto; padding: clamp(40px,6vw,76px) var(--gutter) 0; }
+
+  /* stat row — instrument strip at the head of the piece */
+  .statrow {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line);
+    margin-bottom: clamp(30px, 4vw, 44px);
+  }
+  .statrow .st { padding: 14px 16px 14px 0; }
+  .statrow .st .k { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+  .statrow .st .v { font-family: var(--mono); font-size: 13px; letter-spacing: .03em; color: var(--ink); margin-top: 5px; }
+  .statrow .st .v b { color: var(--accent); font-weight: 700; }
+
+  .art-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+
+  .art-title {
+    font-family: var(--sans); font-weight: 600; letter-spacing: -.01em;
+    font-size: clamp(31px, 5vw, 52px); line-height: 1.04; text-wrap: balance;
+    color: var(--ink); margin: 0 0 22px;
+  }
+  .art-dek {
+    font-family: var(--serif); font-size: clamp(19px, 2.4vw, 24px); line-height: 1.4;
+    color: var(--ink-2); text-wrap: pretty; margin: 0 0 14px; font-style: italic;
+  }
+  .art-byline {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 16px; margin-top: 26px;
+  }
+  .art-byline b { color: var(--ink-2); }
+
+  .prose { margin-top: clamp(30px, 4vw, 44px); }
+  .prose > p {
+    font-family: var(--serif); font-size: 16.5px; line-height: 1.55; color: var(--ink-2);
+    text-wrap: pretty; margin: 0 0 1.45em;
+  }
+  .prose > p b, .prose > p strong { color: var(--ink); font-weight: 600; }
+  /* drop the first paragraph's lead-in slightly larger */
+  .prose > p.lede { font-size: 18.5px; line-height: 1.5; color: var(--ink); }
+  .prose > p.lede::first-letter {
+    font-family: var(--display); font-weight: 400; float: left;
+    font-size: 3.1em; line-height: .74; padding: 6px 12px 0 0; color: var(--accent);
+  }
+
+  h2.sub {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink); margin: 2.4em 0 1.1em; padding-bottom: 10px; border-bottom: 1px solid var(--line);
+  }
+  h2.sub .n { color: var(--accent); margin-right: 12px; }
+
+  /* pull quote — mono, instrument voice */
+  .pull {
+    margin: 2.2em 0; padding: 4px 0 4px 24px;
+    border-left: 3px solid var(--accent);
+    font-family: var(--serif); font-style: italic; font-weight: 500;
+    font-size: clamp(21px, 2.8vw, 27px); line-height: 1.32; color: var(--ink); text-wrap: balance;
+  }
+  .pull .src { display: block; font-family: var(--mono); font-style: normal; font-weight: 400; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-top: 14px; }
+
+  /* ====== body photo — dithered film frame, gentle boil ====== */
+  .figure { margin: clamp(36px,5vw,56px) 0; }
+  .figure.wide {
+    width: min(100vw, calc(var(--maxw) - 2 * var(--gutter) + 220px));
+    margin-left: 50%; transform: translateX(-50%);
+    max-width: 1080px;
+  }
+  .frame {
+    position: relative; overflow: hidden; background: #14110a;
+    aspect-ratio: 1066/1422;
+  }
+  .figure.wide .frame { aspect-ratio: 1066/720; }
+  .frame .dsrc { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+  .frame .dither-canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    image-rendering: pixelated; display: block; z-index: 2;
+  }
+  .frame .grain-on { position: absolute; inset: 0; z-index: 3; pointer-events: none; background-image: var(--grain); mix-blend-mode: overlay; opacity: .4; }
+  .figcap {
+    display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap;
+    margin-top: 12px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .figcap .r { color: var(--accent); }
+
+  /* end mark */
+  .art-end {
+    max-width: 66ch; margin: clamp(40px,6vw,72px) auto 0; padding: 0 var(--gutter);
+  }
+  .art-end .em {
+    border-top: 2px solid var(--ink); padding-top: 18px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--ink-2); line-height: 1.6;
+  }
+  .art-end .em .dot { color: var(--accent); }
+  .art-end .em b { color: var(--ink); }
+
+  /* ====== footer — barcode lives here, once ====== */
+  footer.site { margin-top: clamp(60px,8vw,110px); border-top: 2px solid var(--ink); }
+  footer.site .fin {
+    max-width: var(--maxw); margin: 0 auto; padding: 34px var(--gutter) 56px;
+    display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 30px; align-items: start;
+  }
+  footer.site .f-brand { font-family: var(--display); font-size: 30px; line-height: 1; }
+  footer.site .f-brand .dot { color: var(--accent); }
+  footer.site .f-sub { font-family: var(--serif); font-size: 14px; line-height: 1.5; color: var(--ink-2); margin-top: 12px; max-width: 34ch; }
+  footer.site .f-col h4 { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; }
+  footer.site .f-col a { display: block; font-family: var(--mono); font-size: 12px; color: var(--ink-2); padding: 5px 0; letter-spacing: .04em; }
+  footer.site .f-col a:hover { color: var(--accent); }
+  footer.site .f-mark { text-align: right; }
+  footer.site .f-mark .barcode { margin-left: auto; }
+  footer.site .f-credit { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: var(--ink-3); margin-top: 16px; line-height: 1.7; }
+
+  @media (max-width: 720px) {
+    .ph-word { top: 23%; }
+    .statrow { grid-template-columns: 1fr 1fr; }
+    .statrow .st { border-bottom: 1px solid var(--line-soft); }
+    footer.site .fin { grid-template-columns: 1fr 1fr; }
+    footer.site .f-mark { grid-column: 1 / -1; text-align: left; }
+    footer.site .f-mark .barcode { margin-left: 0; }
+    .ph-vcap { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .topbar, .topbar .progress, .frame .dither-canvas { transition: none; }
+  }
+
+  @media print {
+    .topo-layer, .grain-layer, .vignette, .ph-cue, .topbar .progress { display: none !important; }
+    body { background: #fff; }
+    .post-hero { height: 70vh; }
+    .article, .prose > p, .figure, .pull { break-inside: avoid; }
+    a { color: inherit; }
+  }
+</style>
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+
+  <!-- sticky reading bar — solid + reachable by default; JS only adds the immersive state -->
+  <header class="topbar" id="topbar">
+    <div class="progress" id="progress"></div>
+    <div class="tb-in">
+      <a class="brand" href="Home.html" aria-label="dot·paper home"><span class="dot">●</span>paper</a>
+      <div class="tb-title" id="tbTitle">On taste as a competitive advantage</div>
+      <a class="tb-back" href="#" aria-label="Back to Writing">← Writing</a>
+    </div>
+  </header>
+
+  <!-- ===================== COVER ===================== -->
+  <section class="post-hero" id="hero" data-screen-label="Cover">
+    <img class="dsrc" src="assets/photos/arc.jpg" alt="A steel arch sculpture on the Setouchi coast, Naoshima">
+    <canvas class="dither-canvas"></canvas>
+    <canvas class="topo-on" id="topoHero"></canvas>
+    <div class="grain-on"></div>
+    <div class="scrim"></div>
+
+    <h1 class="ph-word">Taste</h1>
+
+    <div class="ph-sub">
+      <div class="big">Naoshima</div>
+      <div class="sm">SETOUCHI · PANASONIC GX80 · DITHERED 8×8 · ⓒ P. BIGNET</div>
+    </div>
+    <div class="ph-vcap">DOT · PAPER / FIELD ESSAY Nº 014</div>
+    <div class="ph-cue">SCROLL ↓</div>
+  </section>
+
+  <!-- ===================== ARTICLE ===================== -->
+  <article>
+    <div class="article">
+      <div class="statrow">
+        <div class="st"><div class="k">Reading</div><div class="v"><b>8</b> MIN</div></div>
+        <div class="st"><div class="k">Date</div><div class="v">MAY 2026</div></div>
+        <div class="st"><div class="k">Place</div><div class="v">NAOSHIMA, JP</div></div>
+        <div class="st"><div class="k">Edition</div><div class="v">Nº 014</div></div>
+      </div>
+
+      <div class="art-tags"><span class="tag tag-accent">Essay</span><span class="tag">Craft</span><span class="tag">Building</span></div>
+
+      <h1 class="art-title">On taste as a competitive advantage</h1>
+      <p class="art-dek">Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity.</p>
+      <div class="art-byline">Filed by <b>Pierrick Bignet</b> · Engineer by trade, artist by default</div>
+
+      <div class="prose">
+        <p class="lede">Taste is the thing teams praise after the fact and never budget for in advance. A product ships. It feels right. Someone calls it tasteful, as if taste were weather. It is not weather. It is a sequence of small refusals, made by someone who was paying attention when it was cheaper not to.</p>
+
+        <p>We talk about it like a gift because that lets us off the hook. If taste is innate, it cannot be a line item. It cannot be reviewed, scheduled, or defended in a planning meeting. Convenient. It is also wrong.</p>
+
+        <h2 class="sub"><span class="n">01</span>What taste actually is</h2>
+
+        <p>Taste is the ability to notice a wrong detail before a user does, and to care enough to fix it when no one is watching. It is mostly subtraction. The tasteful version of anything is usually the version with fewer apologies in it.</p>
+
+        <p>This is unglamorous work. You remove a gradient. You align a baseline that was off by two pixels. You delete the third call to action because two were already one too many. None of it photographs well. All of it compounds.</p>
+
+        <div class="pull">Craft is not a finish you apply at the end. It is a set of decisions you refuse to defer.</div>
+
+        <p>The refusal is the expensive part. Deferring is free and feels productive. You ship the adequate thing, on time, and promise to revisit it. The revisit never comes, because the next adequate thing is already due.</p>
+
+        <h2 class="sub"><span class="n">02</span>Why it wins</h2>
+
+        <p>Features get copied in a quarter. Pricing gets matched in a week. The accumulated weight of a thousand correct small decisions does not transfer. A competitor can read your changelog. They cannot read the meetings where you said no.</p>
+      </div>
+
+      <figure class="figure wide">
+        <div class="frame frame-marks" id="fig1">
+          <span class="fm1"></span><span class="fm2"></span>
+          <img class="dsrc" src="assets/photos/pier.jpg" alt="A jetty reaching into the calm Setouchi sea">
+          <canvas class="dither-canvas"></canvas>
+          <div class="grain-on"></div>
+        </div>
+        <figcaption class="figcap">
+          <span>Naoshima, Setouchi inland sea. The work is mostly in what was left out.</span>
+          <span class="r">PLATE 01 · DUOTONE SEPIA</span>
+        </figcaption>
+      </figure>
+
+      <div class="prose" style="margin-top:0;">
+        <p>That is the moat. Not the taste itself, which is cheap to admire, but the operating cost of maintaining it. Most organisations will not pay it. They will ship the adequate thing and call the difference subjective, because subjective things do not appear in the quarterly review.</p>
+
+        <h2 class="sub"><span class="n">03</span>The catch</h2>
+
+        <p>Taste resists measurement, so it loses every argument against a metric. You cannot A/B test the feeling of coherence. You can only protect the people who have it, and give them the authority to remove things.</p>
+
+        <p>That authority is the actual competitive advantage. The taste is just what it looks like from the outside. Hire for it, shield it from the roadmap, and let it cut. Then watch how long it takes anyone to copy the result without copying the cost.</p>
+      </div>
+    </div>
+
+    <div class="art-end">
+      <div class="em"><span class="dot">●</span> File under: <b>things that are obvious in hindsight and impossible to schedule.</b><br>Next: <b>Field Notes on Game Direction</b>. Pillars, vibe, scope, and the art of saying no.</div>
+    </div>
+  </article>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="site">
+    <div class="fin">
+      <div>
+        <div class="f-brand"><span class="dot">●</span>paper</div>
+        <div class="f-sub">The personal index of Pierrick Bignet. Engineer by trade, artist by default. Built on paper, light and dots.</div>
+      </div>
+      <div class="f-col">
+        <h4>Read</h4>
+        <a href="Home.html">Index</a>
+        <a href="#">Writing</a>
+        <a href="#">Field Guides</a>
+        <a href="#">Now</a>
+      </div>
+      <div class="f-mark">
+        <div class="barcode"></div>
+        <div class="barcode-num">PB · 2026 · 34.46N 133.99E · ∞</div>
+        <div class="f-credit">SET IN ANTON · ARCHIVO<br>SPACE MONO · NEWSREADER</div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script src="assets/texture.js"></script>
+<script src="assets/dither.js"></script>
+<script>
+  // --- texture: page contours, sepia-tinted ---
+  Grain.apply(20);
+  Topo.mount(document.getElementById('topo'), {
+    color: getComputedStyle(document.documentElement).getPropertyValue('--topo').trim() || 'rgba(154,120,56,0.06)',
+    levels: 15, cell: 26, scale: 0.0020, seed: 14, emphasizeEvery: 5
+  });
+
+  // --- HERO: sepia duotone dither dissolving the sky + contours over it ---
+  // darker bias so the bright sky resolves to a dense sepia halftone the light title can sit on
+  // duotone tuned PER IMAGE — deep navy dots on a pale-sky tone, keyed to this
+  // coastal frame, at Study 01's density (contrast 1.45 / brightness 0 / fps 12)
+  Dither.photo(document.querySelector('.post-hero'), {
+    cell: 3, ink: '22,46,74', paper: '203,217,225',
+    contrast: 1.45, brightness: 0.0, boil: 0.05, fps: 12
+  });
+  Topo.mount(document.getElementById('topoHero'), {
+    color: 'rgba(24,46,72,0.26)', levels: 16, cell: 18, scale: 0.0030, seed: 9, emphasizeEvery: 4
+  });
+
+  // --- BODY photo: gentle sepia duotone, slow boil (engine freezes under reduced-motion) ---
+  Dither.photo(document.getElementById('fig1'), {
+    cell: 3, ink: '70,52,22', paper: '233,226,212',
+    contrast: 1.26, brightness: 0.04, boil: 0.04, fps: 10
+  });
+
+  // --- reading progress + immersive nav reveal (enrichment only; nav is usable without JS) ---
+  (function () {
+    var bar = document.getElementById('progress');
+    var topbar = document.getElementById('topbar');
+    var hero = document.getElementById('hero');
+
+    function onScroll() {
+      var h = document.documentElement;
+      var max = (h.scrollHeight - h.clientHeight) || 1;
+      var p = Math.min(1, Math.max(0, (window.scrollY || h.scrollTop) / max));
+      bar.style.width = (p * 100).toFixed(2) + '%';
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+
+    // sticky bar floats transparent while the cover is on screen, solidifies over the body
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && e.intersectionRatio > 0.35) topbar.classList.add('over-hero');
+          else topbar.classList.remove('over-hero');
+        });
+      }, { threshold: [0, 0.35, 0.6] });
+      io.observe(hero);
+    }
+  })();
+</script>
+</body>
+</html>

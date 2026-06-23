@@ -10,8 +10,7 @@ Avant de toucher à quoi que ce soit (composant, style, layout, animation), cher
 design/
   claude-design/Pierrick Blog/   ← MIROIR 100% Claude Design (écrasé à chaque sync, ne rien y éditer à la main)
     dot·paper - NORTHSTAR.html   ← ★ SOURCE DE VÉRITÉ : northstar specimen, à lire en premier
-    RETRO Home v2.html           ← direction hero lockée, HTML de référence complet
-    RETRO Home v3.html           ← itération hero la plus récente
+    Home.html                    ← direction hero lockée, HTML de référence complet (ex-« RETRO Home v2/v3 », consolidés côté Claude Design le 2026-06-23)
     assets/paper.css             ← tokens + composants (SOURCE des valeurs concrètes : couleurs, accent…)
     assets/texture.js            ← Grain + Topo originaux
     assets/dither.js · assets/diagram.js · assets/image-slot.js
@@ -72,7 +71,7 @@ racine ni ailleurs dans l'arbre. Ne pas laisser de `homepage-*.png` & co traîne
 
 ## Direction design lockée
 
-Détails complets dans **`NORTHSTAR.html`** (north star, color, type, page anatomy, guardrails). En une phrase : index personnel sur papier chaud, hero RETRO Home v2 (la photo **traverse les lettres**, `background-clip: text`), dithering Bayer riso, un seul accent par page, mobilier d'impression (repères, code-barre, coords), typo Anton · Archivo · Space Mono · Newsreader.
+Détails complets dans **`NORTHSTAR.html`** (north star, color, type, page anatomy, guardrails). En une phrase : index personnel sur papier chaud, hero `Home.html` (ex-RETRO Home v2 ; la photo **traverse les lettres**, `background-clip: text`), dithering Bayer riso, un seul accent par page, mobilier d'impression (repères, code-barre, coords), typo Anton · Archivo · Space Mono · Newsreader.
 
 **Valeurs concrètes (couleurs, tokens) : ne pas les recopier — lire la source.** `NORTHSTAR.html` (section Color) pour la doctrine ; `assets/paper.css` (`:root`) + le `<style>` des pages pour les hex exacts.
 
