@@ -1,0 +1,39 @@
+---
+interface Props {
+  title: string
+  meta?: string
+}
+
+const { title, meta } = Astro.props
+---
+
+<div class="shead">
+  <h2>{title}</h2>
+  {meta && <div class="shead-meta">{meta}</div>}
+</div>
+
+<style>
+  .shead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  h2 {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(28px, 5vw, 56px);
+    line-height: 0.94;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+  }
+  .shead-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+</style>

@@ -1,0 +1,53 @@
+---
+interface Props {
+  number: string
+  name: string
+  meta: string
+  href: string
+}
+
+const { number, name, meta, href } = Astro.props
+---
+
+<a class="gear" href={href}>
+  <div>
+    <div class="gnum">{number}</div>
+    <div class="gname">{name}</div>
+  </div>
+  <div class="gmeta">{meta}</div>
+</a>
+
+<style>
+  .gear {
+    border: 1px solid var(--line);
+    padding: 16px;
+    min-height: 116px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .gear:hover {
+    background: var(--paper-2);
+    border-color: var(--ink-2);
+  }
+
+  .gnum {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.12em;
+  }
+  .gname {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 17px;
+    margin-top: 8px;
+  }
+  .gmeta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-2);
+    margin-top: 6px;
+  }
+</style>

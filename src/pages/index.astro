@@ -1,17 +1,176 @@
 ---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Metabar from '../components/Metabar.astro'
+import MainNav from '../components/MainNav.astro'
+import Hero from '../components/Hero.astro'
+import SectionHead from '../components/SectionHead.astro'
+import PostRow from '../components/PostRow.astro'
+import CollCard from '../components/CollCard.astro'
+import FeaturedEssay from '../components/FeaturedEssay.astro'
+import PhotoFrame from '../components/PhotoFrame.astro'
+import GearCard from '../components/GearCard.astro'
+import SiteFooter from '../components/SiteFooter.astro'
 
+const allPosts = await getCollection('writing')
+const posts = allPosts
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+  .slice(0, 4)
+
+const allGuides = await getCollection('guides')
+
+const gear = [
+  { number: 'SET·01', name: 'The Desk', meta: 'Linux · 2×27" · split kbd', href: '/setup#desk' },
+  { number: 'SET·02', name: 'Camera Bag', meta: 'Contax T2 · X100V', href: '/setup#camera' },
+  { number: 'SET·03', name: 'Software', meta: 'nvim · Figma · DaVinci', href: '/setup#software' },
+  { number: 'SET·04', name: 'Home Lab', meta: '12TB · self-hosted', href: '/setup#homelab' },
+]
+
+const photos = [
+  { src: '/photos/street-dither.png', alt: 'Tokyo backstreet', caption: 'Tokyo · sakura', number: '№012', ratio: 'tall' as const },
+  { src: '/photos/fuji-dither.png', alt: 'Kawaguchiko, Fuji', caption: 'Kawaguchiko', number: '№001', ratio: 'wide' as const },
+  { src: '/photos/torii-red.png', alt: 'Torii, Miyajima', caption: 'Miyajima', number: '№014', ratio: 'wide' as const },
+]
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Astro</title>
-  </head>
-  <body>
-    <h1>Astro</h1>
-  </body>
-</html>
+<BaseLayout>
+  <header class="wrap">
+    <Metabar />
+    <MainNav currentPath="/" />
+    <Hero photoSrc="/photos/arc-cdither.png" />
+  </header>
+
+  <main>
+    <!-- WRITING -->
+    <section class="block wrap">
+      <SectionHead title="Writing" meta="[ OPINIONS · NOTES ]" />
+      <p class="lead-serif">
+        Short essays and unfiled opinions: taste, building things, and the gap between.
+      </p>
+      <div class="post-list">
+        {posts.map((post, i) => (
+          <PostRow
+            index={String(i + 1).padStart(3, '0')}
+            tag={post.data.tag}
+            tagAccent={post.data.tag === 'Essay'}
+            title={post.data.title}
+            description={post.data.description}
+            readTime={post.data.readTime}
+            pubDate={post.data.pubDate}
+            href={`/writing/${post.id}`}
+          />
+        ))}
+      </div>
+    </section>
+
+    <!-- FEATURED FIELD NOTE -->
+    <section class="block wrap">
+      <SectionHead title="Latest&nbsp;Field&nbsp;Note" meta="[ PHOTO-ESSAY · TRAVEL ]" />
+    </section>
+    <FeaturedEssay
+      number="014"
+      location="Itsukushima, Miyajima"
+      src="/photos/torii-red.png"
+      alt="Itsukushima torii, riso dither"
+      word="torii"
+      shotOn="X100V"
+      readTime="09"
+      href="/writing/miyajima"
+    />
+
+    <!-- FIELD GUIDES -->
+    <section class="block wrap">
+      <SectionHead title="Field&nbsp;Guides" meta="[ EVERGREEN · MAINTAINED ]" />
+      <div class="coll-grid">
+        {allGuides.map(guide => (
+          <CollCard
+            tag={guide.data.tag}
+            tagAccent={guide.data.tag === 'Guide'}
+            title={guide.data.title}
+            description={guide.data.description}
+            footer={guide.data.chapters}
+            href={`/guides/${guide.id}`}
+          />
+        ))}
+      </div>
+    </section>
+
+    <!-- PHOTOGRAPHS -->
+    <section class="block wrap">
+      <SectionHead title="Photographs" meta="[ 35MM · DITHERED · 2024–26 ]" />
+      <div class="photos-grid">
+        {photos.map(p => (
+          <PhotoFrame
+            src={p.src}
+            alt={p.alt}
+            caption={p.caption}
+            number={p.number}
+            ratio={p.ratio}
+          />
+        ))}
+      </div>
+    </section>
+
+    <!-- SETUP -->
+    <section class="block wrap">
+      <SectionHead title="The&nbsp;Setup" />
+      <div class="gear-grid">
+        {gear.map(g => (
+          <GearCard
+            number={g.number}
+            name={g.name}
+            meta={g.meta}
+            href={g.href}
+          />
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .block { margin-top: clamp(64px, 8vw, 110px); }
+
+  .lead-serif {
+    font-family: var(--serif);
+    font-size: clamp(20px, 2.4vw, 28px);
+    line-height: 1.32;
+    max-width: 24ch;
+    margin: 0 0 28px;
+  }
+
+  .post-list { margin-top: 28px; }
+
+  .coll-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  /* les cards dans la grille n'ont pas leur propre bordure */
+  .coll-grid > :global(.coll) {
+    border: none;
+    background: var(--paper);
+  }
+
+  .photos-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 12px;
+  }
+
+  .gear-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  @media (max-width: 880px) {
+    .coll-grid,
+    .gear-grid { grid-template-columns: 1fr 1fr; }
+    .photos-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>

@@ -1,0 +1,73 @@
+---
+interface Props {
+  tag: string
+  tagAccent?: boolean
+  title: string
+  description: string
+  footer: string
+  href: string
+}
+
+const { tag, tagAccent = false, title, description, footer, href } = Astro.props
+---
+
+<a class="coll" href={href}>
+  <span class:list={['tag', { 'tag-accent': tagAccent }]}>{tag}</span>
+  <h3>{title}</h3>
+  <p>{description}</p>
+  <span class="coll-foot">{footer} →</span>
+</a>
+
+<style>
+  .coll {
+    border: 1px solid var(--line);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: color-mix(in srgb, var(--ink) 2%, transparent);
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+  }
+  .coll:hover { transform: translateY(-3px); border-color: var(--ink-2); }
+
+  h3 {
+    margin: 0;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  .coll-foot {
+    margin-top: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    border-radius: 2px;
+    align-self: flex-start;
+  }
+  .tag-accent {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+</style>

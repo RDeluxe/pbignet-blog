@@ -1,0 +1,52 @@
+---
+interface Props {
+  src: string
+  alt: string
+  caption: string
+  number: string
+  ratio?: 'tall' | 'wide'
+}
+
+const { src, alt, caption, number, ratio = 'tall' } = Astro.props
+---
+
+<div class:list={['pframe', ratio]}>
+  <img src={src} alt={alt} loading="lazy" decoding="async" />
+  <div class="pc">
+    <span>{caption}</span>
+    <span>{number}</span>
+  </div>
+</div>
+
+<style>
+  .pframe {
+    position: relative;
+    overflow: hidden;
+    background: #2a2620;
+    border: 1px solid var(--line);
+  }
+  .pframe.tall { aspect-ratio: 3 / 4; }
+  .pframe.wide { aspect-ratio: 4 / 5; }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pc {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #f0e9d8;
+    background: linear-gradient(transparent, rgba(20, 18, 12, 0.7));
+    padding: 18px 10px 8px;
+  }
+</style>

@@ -1,0 +1,195 @@
+---
+interface Props {
+  photoSrc: string
+  coords?: string
+  location?: string
+}
+
+const {
+  photoSrc,
+  coords = '34.46°N 133.99°E',
+  location = 'NAOSHIMA — FROM THE FIELD',
+} = Astro.props
+---
+
+<div class="hero2">
+  <div class="hero-kick">
+    <span><b>●</b> ENGINEER / ARTIST</span>
+    <span>{coords}</span>
+    <span>{location}</span>
+  </div>
+
+  <div class="hero2-stage" id="hero-stage">
+    <div class="photo-plane" style={`background-image: url('${photoSrc}')`}></div>
+    <h1
+      class="ctype"
+      id="hero-ctype"
+      style={`background-image: url('${photoSrc}')`}
+    >PIERRICK</h1>
+    <div class="hero2-role">
+      CEO &amp; FOUNDER <b>→</b> studio<br />
+      CREATIVE DIRECTOR <b>→</b> games<br />
+      PHOTOGRAPHER <b>→</b> 35mm
+    </div>
+    <p class="hero2-serif">
+      I build software, direct the art of games, and photograph everything in between.
+      The whole index lives below — written down and dithered onto paper.
+    </p>
+    <div class="hero2-credit">SETOUCHI · NAOSHIMA · DITHERED 8×8 BAYER · ⓒ P. BIGNET</div>
+    <div class="hero2-bc">
+      <div class="barcode"></div>
+      <div class="barcode-num">PB · 2026 · 34.46N 133.99E · ∞</div>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ photoSrc }}>
+  // Aligne le background-clip:text du titre avec le photo-plane du dessous
+  // pour que la photo semble traverser les lettres en continu.
+  (function () {
+    const img = new Image()
+    function align() {
+      const stage = document.getElementById('hero-stage')
+      const ct = document.getElementById('hero-ctype')
+      if (!stage || !ct || !img.naturalWidth) return
+      const W = stage.clientWidth
+      const H = stage.clientHeight
+      const nw = img.naturalWidth
+      const nh = img.naturalHeight
+      const scale = Math.max(W / nw, H / nh)
+      const cw = nw * scale
+      const ch = nh * scale
+      const offX = (W - cw) / 2
+      const offY = (H - ch) / 2
+      ct.style.backgroundSize = `${cw}px ${ch}px`
+      ct.style.backgroundPosition = `${offX - ct.offsetLeft}px ${offY - ct.offsetTop}px`
+    }
+    img.onload = align
+    img.src = photoSrc
+    window.addEventListener('resize', align)
+    if (document.fonts?.ready) document.fonts.ready.then(align)
+    setTimeout(align, 250)
+    setTimeout(align, 800)
+  })()
+</script>
+
+<style>
+  .hero2 { position: relative; margin-top: 22px; }
+
+  .hero-kick {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+    padding: 8px 0 14px;
+  }
+  .hero-kick b { color: var(--accent); }
+
+  .hero2-stage {
+    position: relative;
+    width: 100%;
+    height: min(82vh, 760px);
+    overflow: hidden;
+  }
+
+  .photo-plane {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    z-index: 1;
+    clip-path: inset(46% 0 0 0);
+  }
+
+  .ctype {
+    position: absolute;
+    z-index: 3;
+    left: -0.03em;
+    bottom: 54%;
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(96px, 17.5vw, 256px);
+    line-height: 0.8;
+    letter-spacing: 0.012em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    /* fallback si l'image ne charge pas */
+    --fallback-color: var(--ink);
+  }
+  @supports not (-webkit-background-clip: text) {
+    .ctype { color: var(--ink); -webkit-text-fill-color: var(--ink); }
+  }
+
+  .hero2-role {
+    position: absolute;
+    z-index: 4;
+    left: 2px;
+    bottom: 17%;
+    font-family: var(--mono);
+    font-size: clamp(12px, 1.3vw, 14px);
+    letter-spacing: 0.06em;
+    line-height: 1.85;
+    text-transform: uppercase;
+    color: #f3ecdb;
+    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.85);
+  }
+  .hero2-role b { color: #aeb6ff; }
+
+  .hero2-serif {
+    position: absolute;
+    z-index: 4;
+    right: 2px;
+    bottom: 18%;
+    max-width: 30ch;
+    text-align: right;
+    font-family: var(--serif);
+    font-size: clamp(15px, 1.4vw, 18px);
+    line-height: 1.55;
+    color: #f3ecdb;
+    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.9);
+  }
+
+  .hero2-credit {
+    position: absolute;
+    z-index: 4;
+    left: 2px;
+    bottom: 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: #f3ecdb;
+    text-transform: uppercase;
+    opacity: 0.9;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);
+  }
+
+  .hero2-bc {
+    position: absolute;
+    z-index: 4;
+    right: 2px;
+    bottom: 12px;
+    text-align: right;
+  }
+  /* override couleur barcode pour fond sombre */
+  .hero2-bc :global(.barcode) { --ink: #ece6da; }
+  .hero2-bc :global(.barcode-num) {
+    color: #e6dfd0;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  }
+
+  @media (max-width: 880px) {
+    .hero2-serif { display: none; }
+    .hero2-role { bottom: 20%; }
+  }
+</style>

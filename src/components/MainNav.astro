@@ -1,0 +1,66 @@
+---
+interface NavItem {
+  label: string
+  href: string
+  locked?: boolean
+}
+
+const items: NavItem[] = [
+  { label: 'Writing', href: '/writing' },
+  { label: 'Projects', href: '/projects' },
+  { label: 'Now', href: '/now' },
+  { label: 'Setup', href: '/setup' },
+  { label: 'Photos', href: '/photos' },
+]
+
+const right: NavItem[] = [
+  { label: 'About', href: '/about' },
+  { label: 'Travel ⌁', href: '/travel', locked: true },
+]
+
+const { currentPath } = Astro.props as { currentPath?: string }
+---
+
+<nav class="main" aria-label="Navigation principale">
+  {items.map(item => (
+    <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
+      {item.label}
+    </a>
+  ))}
+  <span class="sp"></span>
+  {right.map(item => (
+    <a
+      href={item.href}
+      class:list={[{ lock: item.locked }]}
+      title={item.locked ? 'Section en cours de construction' : undefined}
+    >
+      {item.label}
+    </a>
+  ))}
+</nav>
+
+<style>
+  .main {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 22px;
+    padding: 11px 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--line);
+  }
+  .main a {
+    color: var(--ink-2);
+    padding-bottom: 2px;
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .main a:hover,
+  .main a[aria-current='page'] {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .sp { flex: 1; }
+  .lock { color: var(--ink-3); }
+</style>

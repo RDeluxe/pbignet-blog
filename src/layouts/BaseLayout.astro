@@ -1,0 +1,65 @@
+---
+import 'virtual:uno.css'
+import '../styles/paper.css'
+import '@fontsource/anton/400.css'
+import '@fontsource/space-mono/400.css'
+import '@fontsource/space-mono/700.css'
+import '@fontsource-variable/archivo'
+import '@fontsource-variable/newsreader'
+import '@fontsource-variable/newsreader/wght-italic.css'
+
+interface Props {
+  title?: string
+  description?: string
+}
+
+const {
+  title = 'dot·paper — Pierrick Bignet',
+  description = 'Index personnel de Pierrick Bignet — ingénieur, directeur artistique, photographe.',
+} = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <canvas class="topo-layer" id="topo" aria-hidden="true"></canvas>
+    <div class="grain-layer" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="regmark tl" aria-hidden="true"></div>
+    <div class="regmark tr" aria-hidden="true"></div>
+    <div class="regmark bl" aria-hidden="true"></div>
+    <div class="regmark br" aria-hidden="true"></div>
+
+    <div class="page">
+      <slot />
+    </div>
+
+    <script>
+      import { Grain, Topo } from '../scripts/texture.ts'
+
+      Grain.apply(20)
+
+      const canvas = document.getElementById('topo') as HTMLCanvasElement
+      const color = getComputedStyle(document.documentElement)
+        .getPropertyValue('--topo')
+        .trim() || 'rgba(37,48,194,0.06)'
+
+      Topo.mount(canvas, {
+        color,
+        levels: 16,
+        cell: 24,
+        scale: 0.0019,
+        seed: 11,
+        emphasizeEvery: 4,
+      })
+    </script>
+  </body>
+</html>

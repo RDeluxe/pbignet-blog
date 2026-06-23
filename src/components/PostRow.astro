@@ -1,0 +1,104 @@
+---
+interface Props {
+  index: string
+  tag: string
+  tagAccent?: boolean
+  title: string
+  description: string
+  readTime: number
+  pubDate: Date
+  href: string
+}
+
+const { index, tag, tagAccent = false, title, description, readTime, pubDate, href } = Astro.props
+
+const month = pubDate.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase()
+---
+
+<a class="post" href={href}>
+  <span class="arrow" aria-hidden="true">→</span>
+  <span class="idx">{index}</span>
+  <span>
+    <span class:list={['tag', { 'tag-accent': tagAccent }]}>{tag}</span>
+    <div class="ptitle">{title}</div>
+    <div class="pdesc">{description}</div>
+  </span>
+  <span class="pmeta">{readTime} MIN<br />{month}</span>
+</a>
+
+<style>
+  .post {
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    gap: clamp(14px, 3vw, 40px);
+    align-items: baseline;
+    padding: 22px 0;
+    border-top: 1px solid var(--line);
+    position: relative;
+    transition: padding-left 0.25s ease;
+  }
+  .post:last-of-type { border-bottom: 1px solid var(--line); }
+  .post:hover { padding-left: 14px; }
+
+  .idx {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-3);
+    padding-top: 6px;
+  }
+
+  .ptitle {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(19px, 2.4vw, 27px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .pmeta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-2);
+    text-align: right;
+    white-space: nowrap;
+    line-height: 1.5;
+  }
+
+  .pdesc {
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink-2);
+    margin-top: 8px;
+    max-width: 56ch;
+    line-height: 1.5;
+  }
+
+  .arrow {
+    position: absolute;
+    left: -4px;
+    top: 24px;
+    opacity: 0;
+    color: var(--accent);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-family: var(--mono);
+  }
+  .post:hover .arrow { opacity: 1; transform: translateX(4px); }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    border-radius: 2px;
+  }
+  .tag-accent {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+</style>
