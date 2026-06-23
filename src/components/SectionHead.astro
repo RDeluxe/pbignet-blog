@@ -35,5 +35,16 @@ const { title, meta } = Astro.props
     color: var(--ink-3);
     letter-spacing: 0.1em;
     white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* en étroit : la meta passe sous le titre plutôt que de déborder le viewport */
+  @media (max-width: 560px) {
+    .shead {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .shead-meta { white-space: normal; }
   }
 </style>

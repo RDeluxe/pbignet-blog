@@ -37,6 +37,9 @@ const photos = [
   <header class="wrap">
     <Metabar />
     <MainNav currentPath="/" />
+    <p class="hero-intro">
+      I build software, direct the art of games, and photograph everything in between.
+    </p>
     <Hero photoSrc="/photos/arc-cdither.png" />
   </header>
 
@@ -80,7 +83,7 @@ const photos = [
 
     <!-- FIELD GUIDES -->
     <section class="block wrap">
-      <SectionHead title="Field&nbsp;Guides" meta="[ EVERGREEN · MAINTAINED ]" />
+      <SectionHead title="Field&nbsp;Guides" />
       <div class="coll-grid">
         {allGuides.map(guide => (
           <CollCard
@@ -131,6 +134,16 @@ const photos = [
 </BaseLayout>
 
 <style>
+  .hero-intro {
+    font-family: var(--serif);
+    font-size: clamp(21px, 2.7vw, 31px);
+    line-height: 1.34;
+    max-width: 30ch;
+    margin: 22px 0 0;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
   .block { margin-top: clamp(64px, 8vw, 110px); }
 
   .lead-serif {

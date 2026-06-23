@@ -29,13 +29,17 @@ const { currentPath } = Astro.props as { currentPath?: string }
   ))}
   <span class="sp"></span>
   {right.map(item => (
-    <a
-      href={item.href}
-      class:list={[{ lock: item.locked }]}
-      title={item.locked ? 'Section en cours de construction' : undefined}
-    >
-      {item.label}
-    </a>
+    item.locked
+      ? (
+          <span class="lock" aria-disabled="true" title="Section en cours de construction">
+            {item.label}
+          </span>
+        )
+      : (
+          <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
+            {item.label}
+          </a>
+        )
   ))}
 </nav>
 
@@ -62,5 +66,5 @@ const { currentPath } = Astro.props as { currentPath?: string }
     border-color: var(--accent);
   }
   .sp { flex: 1; }
-  .lock { color: var(--ink-3); }
+  .lock { color: var(--ink-3); cursor: default; }
 </style>

@@ -9,16 +9,19 @@ button { font: inherit; color: inherit; }
 
 /* ---- design tokens ---- */
 :root {
-  --paper: #ece6da;
-  --paper-2: #e3dccd;
-  --ink: #18170f;
-  --ink-2: #4a4636;
-  --ink-3: #8b8672;
-  --accent: #2230c2;
+  /* base alignée sur la source de vérité : design/claude-design/Pierrick Blog/assets/paper.css */
+  --paper: #ece7dd;
+  --paper-2: #e5dfd3;
+  --ink: #1b1a16;
+  --ink-2: #4c483d;
+  /* ink-3 volontairement plus foncé que la source (#8a8674 ≈ 2.9:1) pour passer WCAG AA
+     sur le mobilier print en 10–11px ; reste la teinte la plus claire du ramp. */
+  --ink-3: #696551;
+  --accent: #3d491d;
   --accent-ink: #ffffff;
-  --line: rgba(24, 23, 15, 0.22);
-  --line-soft: rgba(24, 23, 15, 0.12);
-  --topo: rgba(37, 48, 194, 0.06);
+  --line: rgba(27, 26, 22, 0.20);
+  --line-soft: rgba(27, 26, 22, 0.12);
+  --topo: rgba(61, 73, 29, 0.06);
 
   --display: 'Anton', 'Archivo', sans-serif;
   --sans: 'Archivo Variable', system-ui, sans-serif;

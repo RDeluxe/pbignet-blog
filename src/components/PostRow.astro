@@ -35,10 +35,10 @@ const month = pubDate.toLocaleDateString('en-GB', { month: 'short', year: 'numer
     padding: 22px 0;
     border-top: 1px solid var(--line);
     position: relative;
-    transition: padding-left 0.25s ease;
+    transition: transform 0.25s ease;
   }
   .post:last-of-type { border-bottom: 1px solid var(--line); }
-  .post:hover { padding-left: 14px; }
+  .post:hover { transform: translateX(14px); }
 
   .idx {
     font-family: var(--mono);

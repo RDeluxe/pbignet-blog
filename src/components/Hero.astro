@@ -1,45 +1,41 @@
 ---
 interface Props {
   photoSrc: string
-  coords?: string
-  location?: string
+  credit?: string
+  headline?: string
+  /** espace au-dessus du hero (ex: '12px', '2vw'). 0 padding par défaut, réglable. */
+  gap?: string
+  /** ligne photo : bord haut de la photo ET bas du titre (synchronisés). Plus petit = moins de vide au-dessus du titre. */
+  line?: string
+  /** hauteur de la scène — pilote l'immersion (ex: 'min(82vh, 760px)'). */
+  height?: string
 }
 
 const {
   photoSrc,
-  coords = '34.46°N 133.99°E',
-  location = 'NAOSHIMA — FROM THE FIELD',
+  // ligne d'origine dérivée des métadonnées de la photo (lieu · appareil · crédit)
+  credit = 'SETOUCHI · NAOSHIMA · PANASONIC GX80 · ⓒ P. BIGNET',
+  headline = 'PIERRICK',
+  gap = '12px',
+  line = '34%',
+  height = 'min(82vh, 760px)',
 } = Astro.props
+
+// --hero-line-base = valeur desktop (prop) ; les media queries du <style> resserrent
+// --hero-line sur petit écran. On passe par une var "base" car un style inline
+// l'emporterait sur les media queries si on posait --hero-line directement.
+const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height};`
 ---
 
-<div class="hero2">
-  <div class="hero-kick">
-    <span><b>●</b> ENGINEER / ARTIST</span>
-    <span>{coords}</span>
-    <span>{location}</span>
-  </div>
-
+<div class="hero2" style={styleVars}>
   <div class="hero2-stage" id="hero-stage">
     <div class="photo-plane" style={`background-image: url('${photoSrc}')`}></div>
     <h1
       class="ctype"
       id="hero-ctype"
       style={`background-image: url('${photoSrc}')`}
-    >PIERRICK</h1>
-    <div class="hero2-role">
-      CEO &amp; FOUNDER <b>→</b> studio<br />
-      CREATIVE DIRECTOR <b>→</b> games<br />
-      PHOTOGRAPHER <b>→</b> 35mm
-    </div>
-    <p class="hero2-serif">
-      I build software, direct the art of games, and photograph everything in between.
-      The whole index lives below — written down and dithered onto paper.
-    </p>
-    <div class="hero2-credit">SETOUCHI · NAOSHIMA · DITHERED 8×8 BAYER · ⓒ P. BIGNET</div>
-    <div class="hero2-bc">
-      <div class="barcode"></div>
-      <div class="barcode-num">PB · 2026 · 34.46N 133.99E · ∞</div>
-    </div>
+    >{headline}</h1>
+    <div class="hero2-credit">{credit}</div>
   </div>
 </div>
 
@@ -74,26 +70,19 @@ const {
 </script>
 
 <style>
-  .hero2 { position: relative; margin-top: 22px; }
-
-  .hero-kick {
+  /* composant composable : aucun padding propre, espacement piloté par --hero-gap ;
+     --hero-line synchronise le clip de la photo et le bas du titre. */
+  .hero2 {
     position: relative;
-    z-index: 5;
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    color: var(--ink-2);
-    padding: 8px 0 14px;
+    margin: var(--hero-gap, 12px) 0 0;
+    padding: 0;
+    --hero-line: var(--hero-line-base, 34%);
   }
-  .hero-kick b { color: var(--accent); }
 
   .hero2-stage {
     position: relative;
     width: 100%;
-    height: min(82vh, 760px);
+    height: var(--hero-h, min(82vh, 760px));
     overflow: hidden;
   }
 
@@ -104,14 +93,14 @@ const {
     background-position: 50% 50%;
     background-repeat: no-repeat;
     z-index: 1;
-    clip-path: inset(46% 0 0 0);
+    clip-path: inset(var(--hero-line, 34%) 0 0 0);
   }
 
   .ctype {
     position: absolute;
     z-index: 3;
     left: -0.03em;
-    bottom: 54%;
+    bottom: calc(100% - var(--hero-line, 34%));
     margin: 0;
     font-family: var(--display);
     font-size: clamp(96px, 17.5vw, 256px);
@@ -131,35 +120,6 @@ const {
     .ctype { color: var(--ink); -webkit-text-fill-color: var(--ink); }
   }
 
-  .hero2-role {
-    position: absolute;
-    z-index: 4;
-    left: 2px;
-    bottom: 17%;
-    font-family: var(--mono);
-    font-size: clamp(12px, 1.3vw, 14px);
-    letter-spacing: 0.06em;
-    line-height: 1.85;
-    text-transform: uppercase;
-    color: #f3ecdb;
-    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.85);
-  }
-  .hero2-role b { color: #aeb6ff; }
-
-  .hero2-serif {
-    position: absolute;
-    z-index: 4;
-    right: 2px;
-    bottom: 18%;
-    max-width: 30ch;
-    text-align: right;
-    font-family: var(--serif);
-    font-size: clamp(15px, 1.4vw, 18px);
-    line-height: 1.55;
-    color: #f3ecdb;
-    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.9);
-  }
-
   .hero2-credit {
     position: absolute;
     z-index: 4;
@@ -174,22 +134,12 @@ const {
     text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);
   }
 
-  .hero2-bc {
-    position: absolute;
-    z-index: 4;
-    right: 2px;
-    bottom: 12px;
-    text-align: right;
-  }
-  /* override couleur barcode pour fond sombre */
-  .hero2-bc :global(.barcode) { --ink: #ece6da; }
-  .hero2-bc :global(.barcode-num) {
-    color: #e6dfd0;
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
-  }
-
+  /* le titre rétrécit (clamp) plus vite que la scène (vh) sur petit écran :
+     on resserre --hero-line pour garder une bande constante au-dessus du titre. */
   @media (max-width: 880px) {
-    .hero2-serif { display: none; }
-    .hero2-role { bottom: 20%; }
+    .hero2 { --hero-line: 24%; }
+  }
+  @media (max-width: 560px) {
+    .hero2 { --hero-line: 16%; }
   }
 </style>
