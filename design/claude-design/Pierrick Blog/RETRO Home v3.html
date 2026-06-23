@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dot·paper — Pierrick Bignet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/paper.css">
+<style>
+  :root {
+    --paper: #ece6da;
+    --paper-2: #e3dccd;
+    --ink: #18170f;
+    --ink-2: #4a4636;
+    --ink-3: #8b8672;
+    --accent: #3d491d;          /* olive */
+    --line: rgba(24,23,15,0.22);
+    --line-soft: rgba(24,23,15,0.12);
+    --topo: rgba(61,73,29,0.06);
+  }
+  .page { padding-bottom: 0; }
+
+  /* ---------- top bar (RETRO metadata) ---------- */
+  .metabar { display: grid; grid-template-columns: repeat(5, 1fr) auto; gap: 0 18px; border-bottom: 2px solid var(--ink); padding: 14px 0 11px; align-items: end; }
+  .metabar .m .k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+  .metabar .m .v { font-family: var(--mono); font-size: 12px; color: var(--ink); margin-top: 3px; }
+  .metabar .brand { font-family: var(--display); font-size: 26px; letter-spacing: 0.02em; line-height: 1; text-align: right; }
+  .metabar .brand .dot { color: var(--accent); }
+  nav.main { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 11px 0; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; border-bottom: 1px solid var(--line); }
+  nav.main a { color: var(--ink-2); padding-bottom: 2px; border-bottom: 1px solid transparent; transition: .2s; }
+  nav.main a:hover { color: var(--accent); border-color: var(--accent); }
+  nav.main .sp { flex: 1; }
+  nav.main .lock { color: var(--ink-3); }
+
+  /* ---------- HERO v2: photo cropped at top, continues inside the type ---------- */
+  .hero2 { position: relative; margin-top: 22px; }
+  .hero-kick { position: relative; z-index: 5; display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--ink-2); padding: 8px 0 14px; }
+  .hero-kick b { color: var(--accent); }
+  .hero2-stage { position: relative; width: 100%; height: min(82vh, 760px); overflow: hidden; background: transparent; }
+  .photo-plane { position: absolute; inset: 0; background-image: url('assets/photos/arc-cdither.png'); background-size: cover; background-position: 50% 50%; background-repeat: no-repeat; z-index: 1; clip-path: inset(46% 0 0 0); }
+  .ctype { position: absolute; z-index: 3; left: -0.03em; bottom: 54%; margin: 0;
+    font-family: var(--display); font-size: clamp(96px, 17.5vw, 256px); line-height: 0.8; letter-spacing: 0.012em; text-transform: uppercase; white-space: nowrap;
+    background-image: url('assets/photos/arc-cdither.png'); background-repeat: no-repeat;
+    -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+  .hero2-role { position: absolute; z-index: 4; left: 2px; bottom: 17%; font-family: var(--mono); font-size: clamp(12px,1.3vw,14px); letter-spacing: 0.06em; line-height: 1.85; text-transform: uppercase; color: #f3ecdb; text-shadow: 0 1px 14px rgba(0,0,0,0.85); }
+  .hero2-role b { color: #c2c762; }
+  .hero2-serif { position: absolute; z-index: 4; right: 2px; bottom: 18%; max-width: 30ch; text-align: right; font-family: var(--serif); font-size: clamp(15px,1.4vw,18px); line-height: 1.55; color: #f3ecdb; text-shadow: 0 1px 14px rgba(0,0,0,0.9); }
+  .hero2-credit { position: absolute; z-index: 4; left: 2px; bottom: 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: #f3ecdb; text-transform: uppercase; opacity: 0.9; text-shadow: 0 1px 10px rgba(0,0,0,0.8); }
+  .hero2-bc { position: absolute; z-index: 4; right: 2px; bottom: 12px; text-align: right; }
+  .hero2-bc .barcode { --ink: #ece6da; margin-left: auto; }
+  .hero2-bc .barcode-num { color: #e6dfd0; text-shadow: 0 1px 8px rgba(0,0,0,0.7); }
+
+  /* ---------- generic sections ---------- */
+  section.block { margin-top: clamp(64px, 8vw, 110px); }
+  .lead-serif { font-family: var(--serif); font-size: clamp(20px,2.4vw,28px); line-height: 1.32; max-width: 24ch; }
+
+  .coll-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .coll-grid .coll { border: none; background: var(--paper); }
+
+  /* ---------- FEATURED word-over-photo (repeat of hero move) ---------- */
+  .feature { position: relative; height: min(64vh, 560px); overflow: hidden; background: #2a2620; }
+  .feature img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
+  .feature .ftag { position: absolute; z-index: 2; top: 18px; left: 18px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #f0e9d8; background: rgba(20,18,12,0.5); padding: 4px 9px; }
+  .feature .fword { position: absolute; z-index: 2; left: 3%; bottom: 4%; margin: 0; font-family: var(--display); font-size: clamp(70px,13vw,180px); line-height: 0.8; text-transform: lowercase; color: #f1ead8; text-shadow: 0.045em 0.045em 0 #7a2414; letter-spacing: 0.005em; }
+  .feature .fmeta { position: absolute; z-index: 2; right: 4%; bottom: 8%; text-align: right; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: #36281f; line-height: 1.7; }
+  .feature .fmeta b { color: #ad3318; }
+
+  /* ---------- section masthead strip (Writing) ---------- */
+  .sec-masthead { display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap; border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:9px 0; margin:2px 0 26px; font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-2); }
+  .sec-masthead .lead { color:var(--ink); }
+  .sec-masthead .r { color:var(--ink-3); }
+
+  /* ---------- field guides: book index ---------- */
+  .guides { border-top:2px solid var(--ink); }
+  .guide-primary { display:grid; grid-template-columns:1.1fr 1fr; gap:clamp(24px,5vw,64px); padding:24px 0 30px; border-bottom:1px solid var(--line); transition:padding-left .2s; }
+  .guide-primary:hover { padding-left:8px; }
+  .guide-primary .gp-kicker { font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); }
+  .guide-primary h3 { font-family:var(--sans); font-weight:900; font-size:clamp(27px,4vw,46px); line-height:0.98; letter-spacing:-0.02em; margin:10px 0 0; text-wrap:balance; }
+  .guide-primary .gp-right { display:flex; flex-direction:column; }
+  .guide-primary .gp-right p { font-family:var(--serif); font-size:16px; line-height:1.55; color:var(--ink-2); margin:0 0 16px; }
+  .guide-primary .gp-meta { margin-top:auto; display:flex; gap:20px; flex-wrap:wrap; border-top:1px solid var(--line); padding-top:12px; font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-3); }
+  .guide-primary .gp-meta b { color:var(--accent); }
+  .toc-row { display:grid; grid-template-columns:auto 1fr auto; gap:clamp(14px,3vw,32px); align-items:baseline; padding:18px 0; border-bottom:1px solid var(--line); transition:padding-left .2s; }
+  .toc-row:hover { padding-left:10px; }
+  .toc-row .tnum { font-family:var(--mono); font-size:12px; color:var(--ink-3); letter-spacing:0.04em; padding-top:3px; }
+  .toc-row .tt { display:flex; flex-direction:column; gap:3px; }
+  .toc-row .ttitle { font-family:var(--sans); font-weight:700; font-size:clamp(17px,2vw,21px); letter-spacing:-0.01em; transition:color .2s; }
+  .toc-row:hover .ttitle { color:var(--accent); }
+  .toc-row .tdesc { font-family:var(--serif); font-size:14px; color:var(--ink-2); line-height:1.45; max-width:60ch; }
+  .toc-row .tcount { font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-2); white-space:nowrap; }
+
+  /* ---------- PHOTOS strip ---------- */
+  .photos-grid { display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:12px; }
+  .pframe { position:relative; overflow:hidden; background:#2a2620; aspect-ratio:3/4; border:1px solid var(--line); }
+  .pframe.wide { aspect-ratio:4/5; }
+  .pframe img { width:100%; height:100%; object-fit:cover; }
+  .pframe .pc { position:absolute; top:8px; right:8px; font-family:var(--mono); font-size:10px; letter-spacing:0.08em; color:#f0e9d8; background:rgba(20,18,12,0.55); padding:2px 6px; }
+  .photo-coords { display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:12px; margin-top:8px; }
+  .photo-coords .pcd { display:flex; justify-content:space-between; gap:8px; border-top:1px solid var(--line); padding-top:7px; font-family:var(--mono); font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--ink-2); }
+  .photo-coords .pcd b { color:var(--ink); font-weight:700; }
+  .viewall { display:flex; justify-content:space-between; align-items:center; gap:12px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin-top:14px; padding:15px 0; font-family:var(--mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink); transition:padding-left .2s, color .2s; }
+  .viewall:hover { color:var(--accent); padding-left:8px; }
+  .viewall .va-n { color:var(--ink-3); }
+
+  /* ---------- setup: spec table ---------- */
+  .spec-table { border-top:2px solid var(--ink); }
+  .spec-row { display:grid; grid-template-columns:84px 1fr 1.15fr auto; gap:clamp(12px,3vw,40px); align-items:baseline; padding:18px 0; border-bottom:1px solid var(--line); transition:padding-left .2s; }
+  .spec-row:hover { padding-left:10px; }
+  .spec-row .snum { font-family:var(--display); font-size:clamp(26px,3.2vw,42px); line-height:0.78; color:var(--ink); transition:color .2s; }
+  .spec-row:hover .snum { color:var(--accent); }
+  .spec-row .sname { font-family:var(--sans); font-weight:800; font-size:clamp(17px,2vw,22px); letter-spacing:-0.01em; }
+  .spec-row .sspec { font-family:var(--mono); font-size:12.5px; color:var(--ink-2); letter-spacing:0.02em; line-height:1.5; }
+  .spec-row .stag { font-family:var(--mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-3); text-align:right; white-space:nowrap; }
+
+  /* ---------- footer ---------- */
+  footer.site { margin-top: clamp(70px,9vw,120px); border-top: 2px solid var(--ink); padding: 30px 0 56px; }
+  .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 30px; align-items: start; }
+  .foot-brand { font-family: var(--display); font-size: 40px; line-height: 0.9; letter-spacing: 0.02em; }
+  .foot-brand .dot { color: var(--accent); }
+  .foot-brand .fb-sub { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--ink-2); margin-top: 12px; line-height: 1.7; text-transform: none; max-width: 46ch; }
+  .foot-epigraph { font-family: var(--serif); font-style: italic; font-size: 15px; line-height: 1.5; color: var(--ink-2); margin-top: 14px; max-width: 36ch; }
+  .foot-col h4 { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; }
+  .foot-col a { display: block; font-family: var(--mono); font-size: 12px; color: var(--ink-2); padding: 3px 0; }
+  .foot-col a:hover { color: var(--accent); }
+
+  @media (max-width: 880px) {
+    .metabar { grid-template-columns: 1fr 1fr; }
+    .metabar .brand { grid-column: span 2; text-align: left; }
+    .coll-grid { grid-template-columns: 1fr 1fr; }
+    .photos-grid, .photo-coords { grid-template-columns: 1fr 1fr; }
+    .foot-grid { grid-template-columns: 1fr 1fr; }
+    .hero-serif { display: none; }
+    .hero-role { top: 58%; }
+  }
+</style>
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+  <header class="wrap">
+    <div class="metabar">
+      <div class="m"><div class="k">Title</div><div class="v">Personal Index</div></div>
+      <div class="m"><div class="k">Date</div><div class="v">02.06.26</div></div>
+      <div class="m"><div class="k">Edition</div><div class="v">Vol. ∞</div></div>
+      <div class="m"><div class="k">Filed by</div><div class="v">P. Bignet</div></div>
+      <div class="m"><div class="k">Location</div><div class="v">Lyon, FR</div></div>
+      <div class="brand"><span class="dot">●</span>paper</div>
+    </div>
+    <nav class="main">
+      <a href="#">Writing</a><a href="#">Articles</a><a href="#">Projects</a>
+      <a href="#">Now</a><a href="#">Setup</a><a href="#">Photos</a>
+      <span class="sp"></span><a href="#">About</a><a href="#" class="lock">Travel ⌁</a>
+    </nav>
+
+    <!-- HERO v2 -->
+    <div class="hero2">
+      <div class="hero-kick">
+        <span><b>●</b> ENGINEER / ARTIST</span>
+        <span>34.46°N 133.99°E</span>
+        <span>NAOSHIMA — FROM THE FIELD</span>
+      </div>
+      <div class="hero2-stage">
+        <div class="photo-plane"></div>
+        <h1 class="ctype">PIERRICK</h1>
+        <div class="hero2-role">CEO &amp; FOUNDER <b>→</b> studio<br>CREATIVE DIRECTOR <b>→</b> games<br>PHOTOGRAPHER <b>→</b> 35mm</div>
+        <p class="hero2-serif">I build software, direct the art of games, and photograph everything in between. The whole index lives below — written down and dithered onto paper.</p>
+        <div class="hero2-credit">SETOUCHI · NAOSHIMA · DITHERED 8×8 BAYER · ⓒ P. BIGNET</div>
+        <div class="hero2-bc"><div class="barcode"></div><div class="barcode-num">PB · 2026 · 34.46N 133.99E · ∞</div></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- WRITING -->
+    <section class="block">
+      <div class="shead"><h2>Writing</h2><div class="shead-meta">Opinions &amp; notes</div></div>
+      <div class="sec-masthead">
+        <span class="lead">Essays, arguments, and notes filed as they happen</span>
+        <span class="r">04 recent · updated monthly</span>
+      </div>
+      <div>
+        <a class="post" href="#"><span class="arrow">→</span><span class="idx">001</span><span><span class="tag tag-accent">Essay</span><div class="ptitle">On taste as a competitive advantage</div><div class="pdesc">Why the firms that win on craft are usually the ones who couldn't say why craft mattered, until it did.</div></span><span class="pmeta">8 MIN<br>MAY 2026</span></a>
+        <a class="post" href="#"><span class="arrow">→</span><span class="idx">002</span><span><span class="tag">Note</span><div class="ptitle">Why I still write the first draft by hand</div><div class="pdesc">The friction is the feature. A short defence of slow tools inside a fast studio.</div></span><span class="pmeta">4 MIN<br>APR 2026</span></a>
+        <a class="post" href="#"><span class="arrow">→</span><span class="idx">003</span><span><span class="tag tag-accent">Essay</span><div class="ptitle">The real cost of context-switching, measured</div><div class="pdesc">I logged every interruption for a month. The numbers came out worse than the folklore.</div></span><span class="pmeta">11 MIN<br>APR 2026</span></a>
+      </div>
+    </section>
+  </main>
+
+  <!-- FEATURED — word over dithered photo (the hero move, reprised) -->
+  <section class="block wrap">
+    <div class="shead"><h2>Latest&nbsp;Field&nbsp;Note</h2><div class="shead-meta">Photo-essay · travel</div></div>
+  </section>
+  <a class="feature" href="#" style="display:block;">
+    <img src="assets/photos/torii-red.png" alt="Itsukushima torii, riso dither">
+    <span class="ftag">№ 014 · Itsukushima, Miyajima</span>
+    <h2 class="fword">torii</h2>
+    <div class="fmeta"><b>SHOT ON</b> X100V<br>09 MIN READ → </div>
+  </a>
+
+  <main class="wrap">
+    <!-- FIELD GUIDES -->
+    <section class="block">
+      <div class="shead"><h2>Field&nbsp;Guides</h2><div class="shead-meta">Evergreen · maintained</div></div>
+      <div class="guides">
+        <a class="guide-primary" href="#">
+          <div class="gp-left">
+            <div class="gp-kicker">Primary guide · 01</div>
+            <h3>The Studio Operating Manual</h3>
+          </div>
+          <div class="gp-right">
+            <p>Everything I wish I'd known about running a profitable, humane software studio. Hiring, pricing, the pipeline, and the unglamorous parts nobody writes down. Kept current.</p>
+            <div class="gp-meta"><span><b>14</b> chapters</span><span><b>3</b> sub-sections</span><span>Updated may 2026</span><span>Read →</span></div>
+          </div>
+        </a>
+        <a class="toc-row" href="#">
+          <span class="tnum">02</span>
+          <span class="tt"><span class="ttitle">Field Notes on Game Direction</span><span class="tdesc">Creative-direction lessons from shipping games: pillars, vibe, scope, and saying no.</span></span>
+          <span class="tcount">09 entries →</span>
+        </a>
+        <a class="toc-row" href="#">
+          <span class="tnum">03</span>
+          <span class="tt"><span class="ttitle">A Photographer's Technical Notebook</span><span class="tdesc">Light, film stocks, scanning, and the dithering pipeline behind this very site.</span></span>
+          <span class="tcount">07 entries →</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- PHOTOS -->
+    <section class="block">
+      <div class="shead"><h2>Photographs</h2><div class="shead-meta">35mm · dithered · 2024–26</div></div>
+      <div class="photos-grid">
+        <div class="pframe tall"><img src="assets/photos/street-dither.png" alt="Tokyo backstreet"><div class="pc">№012</div></div>
+        <div class="pframe wide"><img src="assets/photos/fuji-dither.png" alt="Fuji"><div class="pc">№001</div></div>
+        <div class="pframe wide"><img src="assets/photos/torii-red.png" alt="Torii"><div class="pc">№014</div></div>
+      </div>
+      <div class="photo-coords">
+        <span class="pcd"><b>Tokyo · sakura</b><span>35.68N 139.76E</span></span>
+        <span class="pcd"><b>Kawaguchiko</b><span>35.51N 138.76E</span></span>
+        <span class="pcd"><b>Miyajima</b><span>34.30N 132.32E</span></span>
+      </div>
+      <a class="viewall" href="#"><span><span class="va-n">№ </span>View all photographs</span><span>128 frames →</span></a>
+    </section>
+
+    <!-- SETUP -->
+    <section class="block">
+      <div class="shead"><h2>The&nbsp;Setup</h2><div class="shead-meta">Stack · desk · bag</div></div>
+      <div class="spec-table">
+        <a class="spec-row" href="#"><span class="snum">01</span><span class="sname">The Desk</span><span class="sspec">Linux · 2×27″ · split keyboard · standing frame</span><span class="stag">Machine</span></a>
+        <a class="spec-row" href="#"><span class="snum">02</span><span class="sname">Camera Bag</span><span class="sspec">Contax T2 · Fuji X100V · Portra 400</span><span class="stag">Camera</span></a>
+        <a class="spec-row" href="#"><span class="snum">03</span><span class="sname">Software</span><span class="sspec">nvim · Figma · DaVinci Resolve · Obsidian</span><span class="stag">Software</span></a>
+        <a class="spec-row" href="#"><span class="snum">04</span><span class="sname">Home Lab</span><span class="sspec">12 TB NAS · self-hosted · Tailscale mesh</span><span class="stag">Infra</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div><div class="foot-brand"><span class="dot">●</span>paper<div class="fb-sub">The personal index of Pierrick Bignet, engineer by trade and artist by default. Written, photographed and printed to screen from Lyon. Set in Anton, Archivo, Space Mono and Newsreader; every photograph dithered by hand through an 8×8 Bayer pipeline.</div><div class="foot-epigraph">“Build it like it's going to be read in print.”</div></div></div>
+        <div class="foot-col"><h4>Read</h4><a href="#">Writing</a><a href="#">Field Guides</a><a href="#">Projects</a><a href="#">Now</a></div>
+        <div class="foot-col"><h4>Around</h4><a href="#">About</a><a href="#">Setup</a><a href="#">Photos</a><a href="#">Travel ⌁</a></div>
+        <div style="text-align:right;"><div class="barcode" style="margin-left:auto;"></div><div class="barcode-num">PB · 2026 · 45.76N 4.83E · ∞</div><div class="mono-label" style="margin-top:16px;">SET IN ANTON · ARCHIVO<br>SPACE MONO · NEWSREADER</div></div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script src="assets/texture.js"></script>
+<script>
+  Grain.apply(20);
+  Topo.mount(document.getElementById('topo'), { color: getComputedStyle(document.documentElement).getPropertyValue('--topo').trim() || 'rgba(61,73,29,0.06)', levels: 16, cell: 24, scale: 0.0019, seed: 11, emphasizeEvery: 4 });
+
+  // Align the photo INSIDE the headline with the photo plane below, so the
+  // picture reads as one continuous image flowing up through the letters.
+  (function () {
+    const SRC = 'assets/photos/arc-cdither.png';
+    const img = new Image();
+    function align() {
+      const stage = document.querySelector('.hero2-stage');
+      const ct = document.querySelector('.ctype');
+      if (!stage || !ct || !img.naturalWidth) return;
+      const W = stage.clientWidth, H = stage.clientHeight;
+      const nw = img.naturalWidth, nh = img.naturalHeight;
+      const scale = Math.max(W / nw, H / nh);     // background-size: cover
+      const cw = nw * scale, ch = nh * scale;
+      const offX = (W - cw) / 2, offY = (H - ch) / 2; // background-position: 50% 50%
+      ct.style.backgroundSize = cw + 'px ' + ch + 'px';
+      ct.style.backgroundPosition = (offX - ct.offsetLeft) + 'px ' + (offY - ct.offsetTop) + 'px';
+    }
+    img.onload = align;
+    img.src = SRC;
+    window.addEventListener('resize', align);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(align);
+    setTimeout(align, 250);
+    setTimeout(align, 800);
+  })();
+</script>
+</body>
+</html>

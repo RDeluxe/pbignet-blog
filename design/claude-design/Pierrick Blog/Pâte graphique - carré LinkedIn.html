@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dot·paper — Banc d'essai · carré LinkedIn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  :root {
+    --paper: #ece6da;
+    --card:  #f1ece2;
+    --ink: #18170f;
+    --ink-2: #4a4636;
+    --ink-3: #8b8672;
+    --accent: #1f4a37;
+    --line: rgba(24,23,15,0.22);
+    --line-soft: rgba(24,23,15,0.12);
+    --display: 'Anton', sans-serif;
+    --sans: 'Archivo', system-ui, sans-serif;
+    --mono: 'Space Mono', ui-monospace, monospace;
+    --serif: 'Newsreader', Georgia, serif;
+    --m-sonnet: #a8503a;
+    --m-opus:   #3a5a78;
+    --m-fable:  #6f5587;
+    --m-gpt:    #1f4a37;
+    --m-comp:   #b0822f;
+  }
+
+  .stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #cfc7b8; overflow: hidden; }
+
+  /* fixed 1080×1080 export canvas, scaled to fit */
+  .square {
+    width: 1080px; height: 1080px; flex: none;
+    transform-origin: center center;
+    position: relative;
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  .square .topo { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  .square .grain { position: absolute; inset: 0; z-index: 1; pointer-events: none; background-image: var(--grain); background-repeat: repeat; mix-blend-mode: multiply; opacity: 0.85; }
+  .square .vig { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(120% 100% at 50% 0%, transparent 58%, rgba(40,36,28,0.07) 100%); }
+
+  /* corner registration marks on the square edge */
+  .regmark { position: absolute; width: 22px; height: 22px; z-index: 4; opacity: 0.6; }
+  .regmark::before, .regmark::after { content: ""; position: absolute; background: var(--ink); }
+  .regmark::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+  .regmark::after { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
+  .regmark.tl { top: 26px; left: 26px; } .regmark.tr { top: 26px; right: 26px; }
+  .regmark.bl { bottom: 26px; left: 26px; } .regmark.br { bottom: 26px; right: 26px; }
+
+  /* the card sits on the topo with a padding frame */
+  .frame { position: absolute; inset: 70px; z-index: 3; }
+  .card {
+    position: relative; width: 100%; height: 100%;
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 54px 56px 46px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .corner { position: absolute; width: 14px; height: 14px; border: 1.6px solid var(--ink-2); }
+  .corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+  .corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+  .corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+  .ptag { position: absolute; top: 14px; right: 16px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; color: var(--ink-3); text-transform: uppercase; }
+
+  /* header */
+  .chead { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+  .chead .title { font-family: var(--display); font-size: 76px; line-height: 0.86; text-transform: uppercase; letter-spacing: 0.005em; }
+  .chead .title .dot { color: var(--accent); }
+  .csub { display: block; font-family: var(--serif); font-size: 33px; font-weight: 500; letter-spacing: 0; color: var(--ink); margin-top: 22px; line-height: 1.32; }
+  .chead .meta { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; color: var(--ink-2); text-align: right; line-height: 1.7; white-space: nowrap; padding-top: 8px; }
+  .chead .meta b { color: var(--accent); font-weight: 700; }
+
+  /* bars */
+  .bars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin: 0; }
+  .bcol h4 { margin: 0 0 22px; font-family: var(--mono); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); padding-bottom: 11px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: baseline; }
+  .bcol h4 .u { color: var(--ink-3); font-size: 11px; }
+  .brow { margin-bottom: 28px; }
+  .brow:last-child { margin-bottom: 0; }
+  .brow .blabel { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+  .brow .bname { font-family: var(--sans); font-weight: 600; font-size: 15.5px; color: var(--ink-2); white-space: nowrap; }
+  .brow .bval { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 10px; }
+  .brow .btrack { height: 15px; background: color-mix(in srgb, var(--ink) 7%, transparent); position: relative; overflow: hidden; }
+  .brow .bfill { position: absolute; inset: 0 auto 0 0; width: 0; }
+
+  /* footer */
+  .cfoot { display: flex; justify-content: flex-end; align-items: flex-end; gap: 16px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: 0.04em; line-height: 1.5; }
+  .cfoot .legend { max-width: 62ch; }
+  .cfoot .legend .lead { color: var(--accent); }
+  .cfoot .mark { white-space: nowrap; text-transform: uppercase; letter-spacing: 0.14em; }
+  .cfoot .mark .dot { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="square" id="square">
+    <canvas class="topo" id="topo"></canvas>
+    <div class="grain"></div>
+    <div class="vig"></div>
+    <div class="regmark tl"></div><div class="regmark tr"></div>
+    <div class="regmark bl"></div><div class="regmark br"></div>
+
+    <div class="frame">
+      <div class="card">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+
+        <div class="chead">
+          <div class="title">FABLE,<br>RENTABLE&nbsp;?</div>
+          <div class="meta">5 MODÈLES · 1 TÂCHE<br>TEMPS · COÛT · TOKENS<br><b>+ bas = mieux</b></div>
+        </div>
+        <p class="csub" style="width: 800px; max-width: none;">Petit test de debugging sur 5 modèles. Même prompt, même contexte. Tous finissent par donner une solution correcte, mais pas pour le même prix.</p>
+
+        <div class="bars-grid" id="bars"></div>
+
+        <div class="cfoot">
+          <div class="mark">dot<span class="dot">·</span>paper</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/texture.js"></script>
+<script>
+  // ----- texture on the fixed 1080 square -----
+  Grain.apply(16);
+  Topo.draw(document.getElementById('topo'), { width: 1080, height: 1080, color: 'rgba(31,74,55,0.05)', levels: 16, cell: 24, scale: 0.0021, seed: 14, emphasizeEvery: 5 });
+
+  // ----- data (ordered by cost, ascending) -----
+  const M = [
+    { name:'GPT 5.3',     color:'var(--m-gpt)',  time:1, tD:277, cost:0.24 },
+    { name:'Composer 2.5',color:'var(--m-comp)', time:2, tD:554, cost:0.90 },
+    { name:'Opus 4.8',    color:'var(--m-opus)', time:2, tD:574, cost:1.06 },
+    { name:'Sonnet 4.6',  color:'var(--m-sonnet)',time:5, tD:922, cost:1.58 },
+    { name:'Fable',       color:'var(--m-fable)',time:2, tD:405, cost:1.59 },
+  ];
+  const fr = (n,d=2) => n.toLocaleString('fr-FR',{ minimumFractionDigits:d, maximumFractionDigits:d });
+
+  const metrics = [
+    { title:'Temps',  unit:'min',      fmt:m=>`~${m.time}`, max:Math.max(...M.map(m=>m.time)), val:m=>m.time },
+    { title:'Coût',   unit:'$',        fmt:m=>fr(m.cost),   max:Math.max(...M.map(m=>m.cost)), val:m=>m.cost },
+    { title:'Tokens', unit:'k · dash.',fmt:m=>`${m.tD}`,    max:Math.max(...M.map(m=>m.tD)),   val:m=>m.tD },
+  ];
+  document.getElementById('bars').innerHTML = metrics.map(mt=>{
+    const rows = M.map(m=>{
+      const w = (mt.val(m)/mt.max*100).toFixed(1);
+      return `<div class="brow">
+        <div class="blabel"><span class="bname">${m.name}</span><span class="bval">${mt.fmt(m)}</span></div>
+        <div class="btrack"><div class="bfill" style="width:${w}%;background:${m.color}"></div></div>
+      </div>`;
+    }).join('');
+    return `<div class="bcol"><h4>${mt.title}<span class="u">${mt.unit}</span></h4>${rows}</div>`;
+  }).join('');
+
+  // ----- fit the 1080 square to the viewport -----
+  function fit(){
+    const s = document.getElementById('square');
+    const pad = 24;
+    const k = Math.min((window.innerWidth - pad*2)/1080, (window.innerHeight - pad*2)/1080);
+    s.style.transform = `scale(${k})`;
+  }
+  window.addEventListener('resize', fit);
+  fit();
+</script>
+</body>
+</html>
