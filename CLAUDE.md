@@ -39,8 +39,15 @@ Procédure (Claude la déroule quand Pierrick demande un sync) :
 
 1. **`browser_navigate`** vers l'URL du projet. Si redirection vers `/login` → demander à
    Pierrick de se connecter dans la fenêtre MCP (profil persistant : la session tient ensuite).
-2. **Export** : cliquer `Share` (barre du haut) → onglet **Export** → **Project archive `.zip`**
-   → **Download**. Le zip atterrit dans `.playwright-mcp/Pierrick-Blog.zip`.
+2. **Export** — deux voies :
+   - ✅ **Voie rapide (préférée, ~1 appel, peu de tokens, validée 2026-06-24)** : `browser_navigate`
+     directement vers l'**URL REST de download** →
+     `https://claude.ai/design/v1/design/projects/<id>/download` (id du projet ci-dessus).
+     Le navigateur MCP est déjà passé Cloudflare, donc le GET télécharge le zip dans
+     `.playwright-mcp/Pierrick-Blog.zip` sans la danse UI. (Un `curl` externe avec cookies
+     échoue : `cf_clearance` est lié à l'empreinte TLS du navigateur + cookies httpOnly.)
+   - Voie UI (fallback si l'URL change) : cliquer `Share` → onglet **Export** →
+     **Project archive `.zip`** → **Download**.
    ⚠️ Pas dans le menu projet (Rename/Duplicate/Delete) ni via `DesignSync` (pas d'export zip).
 3. **Miroir** (le dossier est 100% distant → miroir pur, pas d'`--exclude`). `ditto` gère l'UTF-8
    des noms accentués que `unzip` casse sur macOS :
