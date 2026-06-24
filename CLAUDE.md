@@ -77,6 +77,8 @@ Détails complets dans **`NORTHSTAR.html`** (north star, color, type, page anato
 
 > Au 2026-06-23 l'accent home est **olive `#3d491d`** (l'ancien bleu `#2230c2` est abandonné). `Design Notes.md` dit encore « blue accent » → périmé, les tokens font foi.
 
+> **Doctrine couleur (mise à jour 2026-06-24, NORTHSTAR §05/§08) : « one ink per page » ne régit que le MOBILIER + le TYPE** (dot, liens, topo, tags, accents ; jamais bleu, jamais deux accents ; olive=home, sépia=articles). **Le ton du dither photographique en est exempté** : il peut être keyé à l'image (ex. ciel bleu → duotone marine sur un article sépia, c'est voulu, pas une faute). Les heros d'article sont **art-directés par image** (placement titre à la main + override mobile + point focal `object-position`, contraste ≥3:1 par breakpoint). Donc : **un dither non-olive/non-sépia n'est PAS une violation.**
+
 ## Anti-patterns à éviter
 
 Voir `PRODUCT.md` pour la liste complète. En résumé :

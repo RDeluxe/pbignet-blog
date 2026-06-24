@@ -298,7 +298,8 @@
     </div>
     <div class="callout" style="margin-top:22px;">
       <h4>The one rule</h4>
-      <p class="body" style="margin:0;">Each page picks <b>one ink</b> and rides it everywhere — the dot in the mark, links, the topo tint (<code>--topo</code> ≈ accent @ 6–7%), tags. <b>Olive is the default.</b> Lime is a <b>highlight only</b>, never body or links. <b>No blue, ever</b>, and never two accents on one page.</p>
+      <p class="body" style="margin:0;">Each page picks <b>one ink</b> for its <b>furniture and type</b> and rides it everywhere — the dot in the mark, links, the topo tint (<code>--topo</code> ≈ accent @ 6–7%), tags, hover, accents. <b>Olive is the default</b> (home); <b>sepia</b> carries essays and articles. Lime is a <b>highlight only</b>, never body or links. The furniture/type ink is <b>never blue</b>, and there are <b>never two accents</b> on one page.</p>
+      <p class="body" style="margin:14px 0 0;">One exemption: the <b>photographic dither tone</b> is not bound by this rule. It can be <b>keyed to each image</b> — a coastal frame with a blue sky may be dithered in a marine duotone on a sepia-ink article, and that is intended, not a slip. The discipline lives in the <b>furniture and type</b>; the <b>photo is allowed to speak its own colour</b>.</p>
     </div>
   </section>
 
@@ -463,6 +464,15 @@
     </div>
     <p class="body" style="margin-top:16px;">The photo plane is clipped at the headline's baseline; the <b>same image fills the letterforms</b> above via <code>background-clip:text</code>, aligned by JS so it reads as one continuous picture. White overlay text gets a soft shadow for legibility. <b>This move repeats</b> at smaller scale in <code>.feature</code> blocks (a single lowercase word over a dithered photo).</p>
 
+    <h3 class="blk">Article hero — art-directed per image</h3>
+    <p class="body">The home rides the photo-through-type move; the <b>article hero is the type-on-photo variant</b>, and it is <b>composed image by image</b>, not from a fixed template:</p>
+    <table class="spec">
+      <tr><td>Dither tone</td><td><b>Keyed to the photograph</b> (the colour exemption above) — a marine duotone for a blue-sky coast, a warm one for low light. Tuned per frame, not locked to the page's ink.</td></tr>
+      <tr><td>Title placement</td><td>Set <b>by hand per image</b> into the open negative space, with a <b>distinct mobile placement</b> so it never collides with the subject when the layout reflows.</td></tr>
+      <tr><td>Focal point</td><td>Each image declares an <b>object-position</b> focal point, so the crop keeps the title's open zone intact in <b>16:9 and portrait</b> alike.</td></tr>
+      <tr><td>Legibility</td><td>The title must rest on a <b>dense dither field or scrim</b>, with measured contrast <b>≥3:1 for large text at every breakpoint</b>. Verify, don't assume.</td></tr>
+    </table>
+
     <h3 class="blk">Vertical rhythm</h3>
     <table class="spec">
       <tr><td>1 · Metabar</td><td>5-column mono data strip + <b>●</b>paper mark, under a 2px ink rule.</td></tr>
@@ -496,7 +506,7 @@
     <table class="map">
       <tr><th>Page</th><th>Accent</th><th>Notes</th></tr>
       <tr><td>Writing index</td><td>Blue</td><td><span class="badge todo">Next</span> &nbsp;<code>.post</code> rows, filters by tag</td></tr>
-      <tr><td>Article (long-form)</td><td>Sepia</td><td><span class="badge todo">Next</span> &nbsp;serif body, stat row, duotone header</td></tr>
+      <tr><td>Article (long-form)</td><td>Sepia</td><td><span class="badge todo">Next</span> &nbsp;serif body, stat row, duotone header <b>keyed per image</b> (see §08)</td></tr>
       <tr><td>Photos (grid + swatches)</td><td>Red</td><td><span class="badge todo">Next</span> &nbsp;CJK grid, hex-chip footer</td></tr>
       <tr><td>Now</td><td>Green</td><td><span class="badge todo">Next</span> &nbsp;dated log, spec-strip rhythm</td></tr>
       <tr><td>Setup</td><td>Green</td><td><span class="badge todo">Next</span> &nbsp;<code>.gear</code> grid, desk / bag / stack</td></tr>
