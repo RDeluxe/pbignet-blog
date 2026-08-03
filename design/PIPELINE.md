@@ -417,7 +417,59 @@ ils décrivent le contrat pour Claude Design. Les créer vides à l'avance n'app
 
 ---
 
-## 9. Piège d'outillage — vérifier une conversion
+## 9. La source de vérité est CD — inventaire des divergences
+
+**Aujourd'hui, Claude Design fait foi.** Le code n'a pas le droit de trancher une question de
+design : il l'implémente. Ce qui n'est pas dans CD n'est pas validé, même si c'est meilleur.
+
+D'où la distinction à tenir :
+
+| Décision de **design** | Décision de **code** |
+|---|---|
+| une couleur, une échelle de type, une forme, un espacement, une composition | une API de props, un mécanisme, une correction de performance ou d'accessibilité |
+| → doit venir de CD, ou y remonter avant d'être considérée comme acquise | → n'a pas à passer par CD |
+
+Exemple de la frontière : animer la jauge de lecture en `transform: scaleX()` au lieu de
+`width` est une décision de **code** (le rendu est identique, seul le coût change). Ramener
+trois crèmes à une seule est une décision de **design**, même si elle paraît évidente.
+
+### Divergences ANNULÉES après vérification (2026-08-03)
+
+En relisant le gold, trois de mes « normalisations » se sont révélées être des inventions :
+
+| Ce que j'avais fait | Ce que CD dit | Action |
+|---|---|---|
+| `--fs-lead: clamp(20px,2.6vw,30px)`, présenté comme l'unification de deux doublons | `01_Home.html` a **deux** échelles réelles : `.lead-serif` `clamp(20px,2.4vw,28px)` et `.hero-intro` `clamp(19px,2.2vw,26px)` — et ma valeur ne correspondait à **aucune** | **annulé** : deux tokens (`--fs-lead`, `--fs-lead-intro`), `Lede` a un variant `size` |
+| `--lh-lead: 1.33` | `1.32` | **annulé** |
+| `--fs-shead-md` + variante `size="md"` de `SectionHead` | **zéro occurrence** dans tout CD, et la variante n'était utilisée nulle part | **supprimé** (invention + code mort) |
+
+### Divergences MAINTENUES — à arbitrer avec Pierrick
+
+Elles restent en place parce que les annuler dégraderait la cohérence, mais **elles ne sont
+pas validées** : elles doivent soit être approuvées, soit remonter dans CD, soit être annulées.
+
+| Divergence | Ce que CD dit | Pourquoi c'est maintenu |
+|---|---|---|
+| Une seule encre crème sur photo (`--cover-ink-light`) | `01_Home.html` porte **trois** crèmes (`#f0e9d8`, `#f3ecdb`, `#f1ead8`) et `02_Article.html` une quatrième (`#ece6d8`) — cinq avec le `#f4efe3` du banc | Restaurer cinq crèmes pour « du texte crème sur photo » réintroduirait cinq vérités. Écart max 11/255, invisible. |
+| Mesure de lecture = 66ch de **texte** (`calc(66ch + 2*gutter)`) | `max-width: 66ch` + `padding: … var(--gutter)` en `box-sizing: border-box`, soit ~52ch de texte sur desktop | Le NORTHSTAR documente « measure 66ch » comme mesure de **lecture** ; l'implémentation du gold la contredit. |
+| Forme du `PullQuote` : deux filets | `Design Notes.md` interdit la barre d'accent à gauche mais **ne dit pas** par quoi la remplacer ; le gold porte encore la barre | Il fallait bien une forme. Deux filets = citation détachée de typographie de presse. |
+| `/writing`, `Prose` (listes, code, `hr`, `blockquote`), l'échelle `--space-*` | rien | Aucune spec n'existe. Reprend le registre du gold sans l'étendre. |
+
+### La conséquence
+
+Tant que CD est la source, **ces divergences sont une dette**, pas des acquis. Deux sorties :
+
+1. **Pierrick les tranche** — et ce qui est validé remonte dans CD (banc ou gold) ;
+2. **Le push UP (§6) est mis en place** — le projet Design System reçoit le code comme
+   référence, et la question « qui fait foi » se pose alors explicitement, composant par
+   composant, au lieu de dériver en silence.
+
+Le deuxième chemin est celui qui règle le problème de fond : aujourd'hui le code avance plus
+vite que la research, donc il produit des décisions par défaut. Un DS poussé les rend visibles.
+
+---
+
+## 10. Piège d'outillage — vérifier une conversion
 
 `pkill -f "astro dev"` **ne matche pas** le process lancé par `npm run dev` (la commande
 réelle est `node …/.pnpm/astro@…/astro.js dev`). Conséquence vécue pendant cette migration :

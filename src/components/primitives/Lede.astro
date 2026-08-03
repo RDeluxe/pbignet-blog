@@ -2,33 +2,38 @@
 /**
  * Lede — le paragraphe serif d'introduction, sous un titre ou en ouverture de page.
  *
- * Une seule échelle (`--fs-lead`) : les deux valeurs proches qui coexistaient en prod
- * (clamp(20px,2.4vw,28px) et clamp(21px,2.7vw,31px)) étaient un bug de design, pas deux
- * intentions. Ce qui varie légitimement, c'est la MESURE.
+ * DEUX échelles, parce que le gold en a deux (`01_Home.html`) et qu'il fait foi :
+ * `section` reprend `.lead-serif` (le lede sous un en-tête), `intro` reprend `.hero-intro`
+ * (l'accroche d'ouverture). J'avais cru y voir un doublon et je les avais fusionnées sur une
+ * troisième valeur inventée — décision de design non validée, annulée.
  */
 interface Props {
+  /** échelle. `section` = sous un en-tête (défaut) · `intro` = l'accroche de la home. */
+  size?: 'section' | 'intro'
   /** largeur de ligne. `tight` = un lede court sous un titre de section. */
   measure?: 'default' | 'tight'
   /** espace au-dessus (un lede d'ouverture suit un en-tête, pas un titre) */
   spaced?: boolean
 }
 
-const { measure = 'default', spaced = false } = Astro.props
+const { size = 'section', measure = 'default', spaced = false } = Astro.props
 ---
 
-<p class="lede" data-measure={measure} data-spaced={spaced ? 'on' : 'off'}>
+<p class="lede" data-size={size} data-measure={measure} data-spaced={spaced ? 'on' : 'off'}>
   <slot />
 </p>
 
 <style>
   .lede {
     font-family: var(--serif);
-    font-size: var(--fs-lead);
     line-height: var(--lh-lead);
     color: var(--ink);
     text-wrap: balance;
     margin: 0;
   }
+  .lede[data-size='section'] { font-size: var(--fs-lead); }
+  .lede[data-size='intro'] { font-size: var(--fs-lead-intro); }
+
   .lede[data-measure='default'] { max-width: var(--measure-lede); }
   .lede[data-measure='tight'] { max-width: var(--measure-lede-tight); }
 

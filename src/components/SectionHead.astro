@@ -1,17 +1,21 @@
 ---
+/**
+ * SectionHead — l'en-tête d'une section : titre display + meta mono.
+ *
+ * Une seule échelle de titre, celle du gold. J'avais ajouté une variante `size="md"` avec
+ * un `--fs-shead-md` inventé : absente de CD, et utilisée nulle part. Supprimée.
+ */
 interface Props {
   title: string
   meta?: string
-  /** échelle du titre : `lg` = ouverture de section (défaut), `md` = sous-section / index. */
-  size?: 'lg' | 'md'
   /** `row` = titre et meta sur la même ligne de base (défaut), `stack` = meta sous le titre. */
   align?: 'row' | 'stack'
 }
 
-const { title, meta, size = 'lg', align = 'row' } = Astro.props
+const { title, meta, align = 'row' } = Astro.props
 ---
 
-<div class="shead" data-size={size} data-align={align}>
+<div class="shead" data-align={align}>
   <h2>{title}</h2>
   {meta && <div class="shead-meta">{meta}</div>}
 </div>
@@ -38,12 +42,11 @@ const { title, meta, size = 'lg', align = 'row' } = Astro.props
     margin: 0;
     font-family: var(--display);
     font-weight: var(--w-regular);
+    font-size: var(--fs-shead);
     line-height: var(--lh-shead);
     letter-spacing: var(--tr-shead);
     text-transform: uppercase;
   }
-  .shead[data-size='lg'] h2 { font-size: var(--fs-shead); }
-  .shead[data-size='md'] h2 { font-size: var(--fs-shead-md); }
 
   .shead-meta {
     font-family: var(--mono);
