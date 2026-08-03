@@ -14,6 +14,7 @@
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
+import process from 'node:process'
 
 const ROOT = resolve(import.meta.dirname, '..')
 const DIST = join(ROOT, 'dist')
@@ -78,13 +79,20 @@ function selfContain(html, assets) {
 /** Extrait le bloc `interface Props { … }` d'un composant Astro, avec ses commentaires. */
 function extractProps(src) {
   const start = src.search(/(?:export )?interface Props\s*\{/)
-  if (start === -1) return null
+  if (start === -1)
+    return null
+  // parcourt les accolades pour trouver la fermeture de l'interface
   let depth = 0
   let i = src.indexOf('{', start)
-  const from = i
   for (; i < src.length; i++) {
-    if (src[i] === '{') depth++
-    else if (src[i] === '}') { depth--; if (depth === 0) break }
+    if (src[i] === '{') {
+      depth++
+    }
+    else if (src[i] === '}') {
+      depth--
+      if (depth === 0)
+        break
+    }
   }
   return src.slice(start, i + 1).replace(/^export /, '')
 }
@@ -96,7 +104,8 @@ function extractDoc(src) {
 }
 
 // ---------------------------------------------------------------- 1. reset
-if (existsSync(OUT)) rmSync(OUT, { recursive: true })
+if (existsSync(OUT))
+  rmSync(OUT, { recursive: true })
 mkdirSync(OUT, { recursive: true })
 const written = []
 
