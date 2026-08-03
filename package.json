@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "ds:build": "astro build && node scripts/ds-build.mjs"
   },
   "dependencies": {
     "@astrojs/markdoc": "^1.0.6",

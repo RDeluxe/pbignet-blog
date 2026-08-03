@@ -314,10 +314,24 @@ sur l'URL REST de download via le **MCP Playwright** (seul navigateur passé Clo
 puis `ditto` + `rsync -a --delete` vers le miroir. Le miroir est **pur** : rien ne s'y édite
 à la main.
 
-### UP — design system → Claude Design
+### UP — design system → Claude Design ✅ EN PLACE
 
-Cible : le projet Claude Design **de type Design System**. Format calqué sur
-`Muskle Design System`, qui est le pattern que Claude Design sait consommer :
+**Projet : « exhale Design System »** — `cc9e3407-7dd6-4647-bb7a-f64e48c433eb`
+(type `PROJECT_TYPE_DESIGN_SYSTEM`, créé le 2026-08-03, 40 fichiers poussés).
+
+Procédure, en trois commandes :
+
+```sh
+npm run ds:build          # astro build + scripts/ds-build.mjs → .ds-bundle/
+# puis, via l'outil DesignSync :
+#   finalize_plan  projectId + localDir=.ds-bundle + writes/deletes
+#   write_files    chaque fichier en `localPath` (le contenu ne passe pas par le modèle)
+```
+
+`scripts/ds-build.mjs` est la seule chose à connaître : il garantit les trois principes
+ci-dessous **par construction**, donc il n'y a rien à recopier à la main.
+
+Format calqué sur `Muskle Design System`, le pattern que Claude Design sait consommer :
 
 ```
 SKILL.md                       ← frontmatter name/description + les règles de marque
@@ -347,6 +361,20 @@ Trois principes :
 
 Ordre imposé par l'outil : `list_files` → `finalize_plan` → `write_files`. Les previews
 montent par `localPath` (le contenu ne transite pas par le contexte du modèle).
+
+**Ce qui est poussé aujourd'hui** : `SKILL.md` + `README.md`, les 3 fichiers de tokens et
+`base.css` (tels quels), 23 contrats `.d.ts`, 5 notices `.prompt.md` (`HeroPopColor`, `Plate`,
+`Callout`, `CollCard`, `Prose`), 3 cards autonomes (cover, tiles, boxes) et les 2 photos
+sources qu'elles utilisent. Total 1,2 Mo.
+
+**Ce qui manque encore** : les `guidelines/*.card.html` (specimens couleur / type / mobilier
+print), une card pour la page d'article complète, et les notices des composants restants. Rien
+de bloquant : le squelette est là et `ds:build` le remplit.
+
+> Au passage : `castle-blue.jpg` pesait 2,6 Mo dans `public/`. Recompressée en 2000px
+> (662 Ko) sous le nom `-web`, et la source lourde retirée du dépôt — elle reste dans le
+> miroir de la research. **Cette recompression ne vaut que pour les sources couleur** : un PNG
+> dithéré ne doit jamais être recompressé, la trame serait détruite.
 
 ---
 
