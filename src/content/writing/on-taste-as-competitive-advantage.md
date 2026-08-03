@@ -1,9 +1,56 @@
 ---
 title: On taste as a competitive advantage
 description: Why the companies that win on craft are usually the ones who couldn't articulate why craft mattered, until it did.
+dek: Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity.
 pubDate: 2026-05-01
 tag: Essay
+tags: [Craft, Building]
 readTime: 8
+place: Shimanto, JP
+edition: Nº 014
+numbered: true
+cover:
+  src: /photos/source/bridge-red-web.jpg
+  alt: A crimson suspension bridge over the Shimanto river valley, the only colour in a grey scene
+  word: Shimanto
+  kicker: Field Note · One red thing
+  place: Crimson span
+  method: KŌCHI · iPHONE 13 · SPOT COLOUR ON DITHERED GROUND · ⓒ P. BIGNET
+  vcap: FIELD NOTE / ONE RED THING
+  titleY: 11%
+  spot:
+    keepColor: '#c8321e'
+    ink: [20, 22, 15]
+    paper: [74, 78, 62]
+    contrast: 1.3
+    brightness: -0.02
+    hueLo: 34
+    hueSpan: 62
+    satBoost: 0.35
 ---
 
-Lorem ipsum article content.
+Taste is the thing teams praise after the fact and never budget for in advance. A product ships. It feels right. Someone calls it tasteful, as if taste were weather. It is not weather. It is a sequence of small refusals, made by someone who was paying attention when it was cheaper not to.
+
+We talk about it like a gift because that lets us off the hook. If taste is innate, it cannot be a line item. It cannot be reviewed, scheduled, or defended in a planning meeting. Convenient, and wrong.
+
+## What taste actually is
+
+Taste is the ability to notice a wrong detail before a user does, and to care enough to fix it when nobody is watching. It is mostly subtraction. The tasteful version of anything is usually the version with fewer apologies in it.
+
+This is unglamorous work. You remove a gradient. You align a baseline that was off by two pixels. You delete the third call to action because two were already one too many. None of it photographs well. All of it compounds.
+
+> Craft is not a finish you apply at the end. It is a set of decisions you refuse to defer.
+
+The refusal is the expensive part. Deferring is free and feels productive: you ship the adequate thing, on time, and promise to revisit it. The revisit never comes, because the next adequate thing is already due.
+
+## Why it wins
+
+Features get copied in a quarter. Pricing gets matched in a week. The accumulated weight of a thousand correct small decisions does not transfer. A competitor can read your changelog. They cannot read the meetings where you said no.
+
+That is the moat — not the taste itself, which is cheap to admire, but the operating cost of maintaining it. Most organisations will not pay it. They will ship the adequate thing and call the difference subjective, because subjective things do not appear in the quarterly review.
+
+## The catch
+
+Taste resists measurement, so it loses every argument against a metric. You cannot A/B test the feeling of coherence. You can only protect the people who have it, and give them the authority to remove things.
+
+That authority is the actual competitive advantage. The taste is just what it looks like from the outside. Hire for it, shield it from the roadmap, and let it cut. Then watch how long it takes anyone to copy the result without copying the cost.

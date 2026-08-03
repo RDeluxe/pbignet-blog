@@ -1,0 +1,169 @@
+---
+/**
+ * ArticleBar — la barre de lecture collante d'un article.
+ *
+ * Garde-fou repris du gold : la barre est **présente et utilisable sans JS**. Le script
+ * n'ajoute que deux enrichissements — l'avancement de lecture et l'état transparent
+ * au-dessus de la cover. Sans JS : barre opaque, liens fonctionnels, jauge à zéro.
+ *
+ * La jauge anime `transform: scaleX()`, pas `width` : le gold animait `width`, ce qui
+ * déclenche un layout à chaque frame de scroll (P3 de la critique Impeccable).
+ */
+interface Props {
+  /** titre courant, affiché au centre */
+  title: string
+  /** lien de retour */
+  backHref?: string
+  backLabel?: string
+  /** la barre démarre transparente si la page ouvre sur une cover pleine hauteur */
+  overCover?: boolean
+}
+
+const {
+  title,
+  backHref = '/writing',
+  backLabel = '← Writing',
+  overCover = false,
+} = Astro.props
+---
+
+<header class="topbar" data-over-cover={overCover ? 'on' : 'off'}>
+  <div class="progress" aria-hidden="true"></div>
+  <div class="tb-in">
+    <a class="brand" href="/" aria-label="exhale — accueil">exhale</a>
+    <div class="tb-title">{title}</div>
+    <a class="tb-back" href={backHref}>{backLabel}</a>
+  </div>
+</header>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('.topbar')
+  const gauge = bar?.querySelector<HTMLElement>('.progress')
+  const cover = document.querySelector<HTMLElement>('.post-hero')
+
+  // Publie la hauteur RÉELLE de la barre : c'est de cette valeur que la cover remonte pour
+  // passer dessous. Le gold hardcode `48px + 2px`, ce que la critique Impeccable relevait
+  // comme fragile (chargement de font, mobile). Un ResizeObserver suit les vraies mesures.
+  if (bar) {
+    const publish = (): void => {
+      document.documentElement.style.setProperty('--bar-h', `${Math.round(bar.offsetHeight)}px`)
+    }
+    publish()
+    new ResizeObserver(publish).observe(bar)
+    document.fonts?.ready.then(publish)
+  }
+
+  if (bar && gauge) {
+    const onScroll = (): void => {
+      const doc = document.documentElement
+      const max = doc.scrollHeight - doc.clientHeight || 1
+      const p = Math.min(1, Math.max(0, (window.scrollY || doc.scrollTop) / max))
+      gauge.style.transform = `scaleX(${p})`
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    onScroll()
+
+    // au-dessus de la cover, la barre s'efface dans l'image ; l'IO n'est qu'un confort
+    if (cover && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        entries => entries.forEach((e) => {
+          bar.dataset.overCover = e.isIntersecting && e.intersectionRatio > 0.35 ? 'on' : 'off'
+        }),
+        { threshold: [0, 0.35, 0.6] },
+      )
+      io.observe(cover)
+    }
+  }
+</script>
+
+<style>
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+
+  .progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 2px;
+    width: 100%;
+    background: var(--accent);
+    /* scaleX plutôt que width : composité, aucun layout pendant le scroll */
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 0.12s linear;
+  }
+
+  .tb-in {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 13px var(--gutter);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-head);
+  }
+
+  .brand {
+    font-family: var(--display);
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  .tb-title {
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tb-back {
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-data);
+    text-transform: uppercase;
+    color: var(--ink-2);
+    white-space: nowrap;
+    /* cible tactile ≥44px sans déplacer la ligne de base (P2 de la critique).
+       Mesuré : 45px de haut avec ces valeurs. */
+    padding: 15px 0;
+    margin: -15px 0;
+  }
+  .tb-back:hover { color: var(--accent); }
+
+  /* au-dessus de la cover : la barre disparaît dans l'image */
+  .topbar[data-over-cover='on'] {
+    background: transparent;
+    border-color: transparent;
+  }
+  .topbar[data-over-cover='on'] .brand,
+  .topbar[data-over-cover='on'] .tb-back {
+    color: var(--cover-ink-light);
+    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5);
+  }
+  .topbar[data-over-cover='on'] .tb-title { color: transparent; }
+  .topbar[data-over-cover='on'] .progress { opacity: 0; }
+
+  @media (max-width: 700px) {
+    /* le titre courant sauterait la place du retour : on le masque plutôt que de le tronquer */
+    .tb-title { display: none; }
+    .tb-in { grid-template-columns: auto auto; justify-content: space-between; }
+  }
+
+  @media print {
+    .topbar { position: static; }
+    .progress { display: none; }
+  }
+</style>

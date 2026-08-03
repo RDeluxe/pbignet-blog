@@ -1,0 +1,163 @@
+---
+/**
+ * Prose — le corps de lecture longue : mesure, rythme, hiérarchie.
+ *
+ * ⚠️ **Le seul endroit où `:global()` est légitime** (PIPELINE §4.3). Le HTML vient de
+ * Markdoc : il n'existe aucun composant à qui passer une prop. Prose **possède** son
+ * contenu, il ne va pas bidouiller l'intérieur d'un autre composant — c'est la différence
+ * avec le `:global(.coll)` qu'on a supprimé de la page d'accueil.
+ */
+interface Props {
+  /**
+   * Numérote les sous-titres 01/02/03 via un compteur CSS — le balisage reste du Markdown
+   * ordinaire. À réserver aux **vraies séquences** argumentatives : la critique Impeccable
+   * prévient que ça devient un tic si c'est un réflexe sur chaque article.
+   */
+  numbered?: boolean
+  /** lettrine sur le premier paragraphe */
+  dropCap?: boolean
+}
+
+const { numbered = false, dropCap = false } = Astro.props
+---
+
+<div
+  class="prose"
+  data-numbered={numbered ? 'on' : 'off'}
+  data-drop-cap={dropCap ? 'on' : 'off'}
+>
+  <slot />
+</div>
+
+<style>
+  .prose {
+    /* la mesure vaut pour le TEXTE : les gouttières s'ajoutent, elles ne la rognent pas.
+       Le gold écrit `max-width: 66ch` + `padding: … var(--gutter)` avec box-sizing:
+       border-box, ce qui ramène la colonne à ~52ch sur desktop — écart assumé, on suit
+       l'intention documentée du NORTHSTAR (66ch) plutôt que son implémentation. */
+    max-width: calc(var(--measure-body) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+    counter-reset: sub;
+  }
+
+  .prose :global(p) {
+    margin: 0 0 1.45em;
+    font-family: var(--serif);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+  .prose :global(p > strong),
+  .prose :global(p > b) {
+    color: var(--ink);
+    font-weight: var(--w-semibold);
+  }
+
+  /* le premier paragraphe porte la voix : plus grand, à l'encre pleine */
+  .prose :global(> p:first-child) {
+    font-size: 18.5px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .prose[data-drop-cap='on'] :global(> p:first-child::first-letter) {
+    float: left;
+    padding: 6px 12px 0 0;
+    font-family: var(--display);
+    font-weight: var(--w-regular);
+    font-size: 3.1em;
+    line-height: 0.74;
+    color: var(--accent);
+  }
+
+  /* sous-titres : mono tracké sur filet — le registre « spec sheet », pas un titre display */
+  .prose :global(h2) {
+    margin: 2.4em 0 1.1em;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    font-weight: var(--w-regular);
+    letter-spacing: var(--tr-tag);
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .prose[data-numbered='on'] :global(h2)::before {
+    counter-increment: sub;
+    content: counter(sub, decimal-leading-zero);
+    margin-right: 12px;
+    color: var(--accent);
+  }
+
+  .prose :global(h3) {
+    margin: 2em 0 0.8em;
+    font-family: var(--sans);
+    font-weight: var(--w-semibold);
+    font-size: var(--fs-card-title);
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  /* citation Markdown (`> …`) : même traitement que <PullQuote>, qui n'est pas atteignable
+     depuis un `.md`. Deux filets, JAMAIS de barre d'accent à gauche (Design Notes, juillet
+     2026 : « No left accent bar anywhere »). */
+  .prose :global(blockquote) {
+    margin: 2.2em 0;
+    padding: 22px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .prose :global(blockquote p) {
+    margin: 0;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(21px, 2.8vw, 27px);
+    line-height: 1.32;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .prose :global(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin: 0 0 1.45em;
+    padding-left: 1.4em;
+    font-family: var(--serif);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--ink-2);
+  }
+  .prose :global(li) { margin-bottom: 0.5em; }
+  .prose :global(li)::marker { color: var(--ink-3); }
+
+  .prose :global(code) {
+    font-family: var(--mono);
+    font-size: 0.92em;
+    background: var(--paper-2);
+    padding: 1px 5px;
+  }
+  .prose :global(pre) {
+    margin: 0 0 1.45em;
+    padding: var(--space-md);
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+  .prose :global(pre code) {
+    background: none;
+    padding: 0;
+  }
+
+  .prose :global(hr) {
+    margin: 2.4em 0;
+    border: none;
+    border-top: 1px solid var(--line);
+  }
+</style>

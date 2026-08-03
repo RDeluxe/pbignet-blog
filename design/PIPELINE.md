@@ -361,8 +361,19 @@ ils décrivent le contrat pour Claude Design. Les créer vides à l'avance n'app
 - [ ] Sources photo : les covers ont besoin d'images **couleur** (`public/photos/source/`),
       pas des PNG dithérés. `castle-blue.jpg` pèse 2,5 Mo → prévoir des versions `-web`
       comme `bridge-red-web.jpg` (392 Ko).
-- [ ] Route Article + les P2/P3 de la critique Impeccable (le P2 « barre d'accent à gauche »
-      est déjà tranché par la doctrine : interdite partout).
+- [x] **Route Article** (`/writing/[...slug]`) : `ArticleBar` (sticky, jauge en `scaleX`),
+      `ArticleHead`, `StatRow`, `Prose`, `PullQuote`, `ArticlePlate`. **Zéro ligne de
+      `<style>` dans la page.** Encre de page via `<BaseLayout ink="sepia">`.
+- [x] P2/P3 de la critique Impeccable sur l'article :
+      barre d'accent à gauche **supprimée** (deux filets à la place) · jauge en
+      `transform: scaleX()` au lieu de `width` · hauteur de la barre **mesurée**
+      (`--bar-h`, ResizeObserver) au lieu du `calc(-1 * (48px + 2px))` hardcodé ·
+      cible tactile du retour portée à 45px.
+- [ ] `PullQuote` n'est pas atteignable depuis un `.md` : les citations Markdown (`>`) sont
+      stylées dans `Prose`. Pour l'invoquer, il faudrait passer les articles en `.mdoc` et
+      déclarer un tag Markdoc.
+- [ ] Portage de `dither.js` en TS — les plates du corps utilisent les PNG pré-cuits, ce qui
+      suffit ; à faire si l'on veut qu'elles suivent `--paper` en direct.
 - [ ] Build `ds:build` (previews + `.d.ts` + `SKILL.md`) puis projet Design System.
 - [ ] Les 35 erreurs de lint restantes.
 

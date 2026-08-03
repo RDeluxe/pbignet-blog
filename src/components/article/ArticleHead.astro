@@ -1,0 +1,94 @@
+---
+/**
+ * ArticleHead — le bloc de tête d'un article : tags, instruments, titre, chapeau, signature.
+ * Existe pour que la page d'article n'ait **aucun** `<style>` (PIPELINE §4.1) : tout ce
+ * bloc était du CSS de page dans le gold.
+ */
+import Tag from '../Tag.astro'
+import StatRow from './StatRow.astro'
+
+interface Props {
+  /** catégorie principale — porte l'encre de la page */
+  tag: string
+  /** catégories secondaires */
+  tags?: string[]
+  stats: { key: string, value: string, accent?: boolean }[]
+  title: string
+  /** le chapeau, en serif italique */
+  dek: string
+  byline?: string
+  bylineRole?: string
+}
+
+const {
+  tag,
+  tags = [],
+  stats,
+  title,
+  dek,
+  byline = 'Pierrick Bignet',
+  bylineRole = 'Engineer by trade, artist by default',
+} = Astro.props
+---
+
+<header class="head">
+  <div class="tags">
+    <Tag accent>{tag}</Tag>
+    {tags.map(t => <Tag>{t}</Tag>)}
+  </div>
+
+  <StatRow stats={stats} />
+
+  <h1 class="art-title">{title}</h1>
+  <p class="art-dek">{dek}</p>
+  <p class="art-byline">Filed by <b>{byline}</b> · {bylineRole}</p>
+</header>
+
+<style>
+  .head {
+    /* même mesure que <Prose> : les gouttières s'ajoutent à la colonne de texte */
+    max-width: calc(var(--measure-body) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding: clamp(30px, 4vw, 52px) var(--gutter) 0;
+  }
+
+  .tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .art-title {
+    margin: 0 0 22px;
+    font-family: var(--sans);
+    font-weight: var(--w-semibold);
+    font-size: clamp(31px, 5vw, 52px);
+    line-height: 1.04;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .art-dek {
+    margin: 0 0 14px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(19px, 2.4vw, 24px);
+    line-height: 1.4;
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+
+  .art-byline {
+    margin: 26px 0 0;
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-data);
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .art-byline b { color: var(--ink-2); }
+</style>

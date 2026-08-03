@@ -52,7 +52,6 @@
    * property non enregistrée, donc une valeur calculée arriverait telle quelle au canvas.
    */
   --topo: rgba(61, 73, 29, 0.06);
-  /* pages sépia : --topo: rgba(154, 120, 56, 0.06) */
 
   /* ---- encres POSÉES SUR PHOTO (covers d'article) ----
    * Hors doctrine « one ink » : ce ne sont pas des encres de mobilier mais du type sur
@@ -62,4 +61,17 @@
   --cover-ink-light: #f4efe3;
   --cover-ink-dark: #241606;
   --cover-ink-quiet: #ded7c8;   /* lignes techniques, indices */
+}
+
+/* L'encre de la page, posée par `<BaseLayout ink="…">` sur <html>. Changer d'encre change
+ * TOUT le mobilier et le type d'un coup ; le dither photographique reste libre (keyé à
+ * l'image). `--topo` est réécrite en littéral parce qu'elle est lue en JS.
+ */
+:root[data-ink='olive'] {
+  --accent: var(--olive);
+  --topo: rgba(61, 73, 29, 0.06);
+}
+:root[data-ink='sepia'] {
+  --accent: var(--sepia);
+  --topo: rgba(154, 120, 56, 0.06);
 }

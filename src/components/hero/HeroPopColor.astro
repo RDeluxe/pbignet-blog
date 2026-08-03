@@ -66,6 +66,12 @@ interface Props {
 
   /** hauteur de la scène */
   height?: string
+  /**
+   * Remonte la cover sous la barre de lecture, pour que celle-ci flotte dans l'image.
+   * La hauteur vient de `--bar-h`, publiée par `<ArticleBar>` (mesurée, pas hardcodée) ;
+   * le fallback couvre le cas « pas encore de JS ».
+   */
+  underBar?: boolean
   /** point focal du recadrage, 0..1 — ne déforme jamais, ne fait que panner */
   focal?: { x?: number, y?: number }
   /** la recette du moteur, keyée à l'image */
@@ -84,6 +90,7 @@ const {
   titleYMobile,
   titleInk = 'light',
   height = 'min(92vh, 880px)',
+  underBar = false,
   focal = {},
   spot = {},
 } = Astro.props
@@ -114,6 +121,7 @@ const engine = {
 <section
   class="post-hero"
   data-title-ink={titleInk}
+  data-under-bar={underBar ? 'on' : 'off'}
   data-screen-label="Cover"
   data-recipe={JSON.stringify(engine)}
 >
@@ -175,6 +183,12 @@ document.querySelectorAll<HTMLElement>('.post-hero').forEach((hero) => {
     background: rgb(var(--phGround));
     /* la variable EFFECTIVE dérive de la base : les breakpoints peuvent la reprendre */
     --ph-title-y: var(--phTitleYBase);
+  }
+
+  /* la cover remonte sous la barre de lecture, qui flotte alors dans l'image.
+     --bar-h est mesurée par <ArticleBar> ; 50px n'est qu'un fallback avant JS. */
+  .post-hero[data-under-bar='on'] {
+    margin-top: calc(-1 * var(--bar-h, 50px));
   }
 
   /* le moteur lit cette image ; elle vit sous le canvas */

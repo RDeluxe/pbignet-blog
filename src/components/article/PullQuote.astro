@@ -1,0 +1,55 @@
+---
+/**
+ * PullQuote — la citation détachée du corps.
+ *
+ * ⚠️ **Aucune barre d'accent à gauche.** Le gold porte encore
+ * `border-left: 3px solid var(--accent)`, mais `Design Notes.md` (audit des boîtes,
+ * juillet 2026) tranche « No left accent bar anywhere » — et le gold note lui-même
+ * « NEXT: propagate … into gold pages (awaiting go) ». La décision datée gagne sur une page
+ * en retard (CLAUDE.md, préséance). C'était aussi le P2 de la critique Impeccable : le
+ * liseré gauche est le tell IA le plus reconnaissable.
+ *
+ * À la place : deux filets, haut et bas. C'est la citation détachée de la typographie de
+ * presse — print-native, sans ornement, et ça ne ressemble à aucun composant de framework.
+ */
+interface Props {
+  /** attribution ou référence, sous la citation */
+  source?: string
+}
+
+const { source } = Astro.props
+---
+
+<figure class="pull">
+  <blockquote><slot /></blockquote>
+  {source && <figcaption class="src">{source}</figcaption>}
+</figure>
+
+<style>
+  .pull {
+    margin: 2.2em 0;
+    padding: 22px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  blockquote {
+    margin: 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(21px, 2.8vw, 27px);
+    line-height: 1.32;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .src {
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-data);
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+</style>

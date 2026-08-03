@@ -1,0 +1,88 @@
+---
+/**
+ * ArticlePlate — une image du corps d'article.
+ *
+ * « Plate » est le mot de Claude Design pour ces images (`PLATE 01 · DUOTONE SEPIA`).
+ * Doctrine : **la couleur forte est un événement de cover** — les plates du corps restent
+ * en duotone sépia calme, c'est ce qui rend la cover exceptionnelle par contraste.
+ *
+ * Le dither est ici **pré-cuit** (PNG dithéré dans `public/photos/`), pas rendu en direct :
+ * la règle de marque est « hero dither is baked to PNG », et un moteur live par image du
+ * corps coûterait du CPU pour un gain nul. Le portage de `dither.js` reste à faire pour les
+ * cas où l'on voudrait suivre `--paper` en direct.
+ */
+interface Props {
+  src: string
+  alt: string
+  /** légende de gauche — ce que l'image apporte */
+  caption?: string
+  /** référence de droite, à l'encre de la page : « PLATE 01 · DUOTONE SEPIA » */
+  plate?: string
+  /** débord au-delà de la mesure de lecture */
+  wide?: boolean
+}
+
+const { src, alt, caption, plate, wide = false } = Astro.props
+---
+
+<figure class="figure" data-wide={wide ? 'on' : 'off'}>
+  <div class="frame">
+    <img src={src} alt={alt} loading="lazy" decoding="async" />
+    <div class="grain-on" aria-hidden="true"></div>
+  </div>
+  {(caption || plate) && (
+    <figcaption class="figcap">
+      {caption && <span>{caption}</span>}
+      {plate && <span class="r">{plate}</span>}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .figure { margin: clamp(36px, 5vw, 56px) 0; }
+
+  /* déborde la mesure de lecture, centré sur la colonne */
+  .figure[data-wide='on'] {
+    width: min(100vw, calc(var(--maxw) - 2 * var(--gutter) + 220px));
+    max-width: 1080px;
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .frame {
+    position: relative;
+    overflow: hidden;
+    background: var(--paper-2);
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* les PNG dithérés ne doivent jamais être lissés : la trame EST l'image */
+    image-rendering: pixelated;
+  }
+
+  .grain-on {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: var(--grain);
+    mix-blend-mode: overlay;
+    opacity: 0.4;
+  }
+
+  .figcap {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-head);
+    flex-wrap: wrap;
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .figcap .r { color: var(--accent); }
+</style>
