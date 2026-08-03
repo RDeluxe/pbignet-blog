@@ -155,6 +155,30 @@ et se lit dans l'inspecteur.
 la fonction arriverait telle quelle au canvas. `--topo` (lue par `Topo.mount`) est donc en
 `rgba()` littéral. Vaut pour tout token consommé par `src/lib/` ou un `<script>`.
 
+### 4.6b Le contraste sur photo se MESURE, à chaque breakpoint
+
+Le NORTHSTAR exige ≥3:1 (grand texte) pour un titre posé sur une image, **par breakpoint**.
+À l'œil, c'est impossible à trancher — et une capture rassurante ne prouve rien : sur
+`HeroPopColor`, un titre crème qui donnait 3,33:1 en large tombait à **2,28:1** à 390px,
+parce que l'override mobile le déplaçait sur une zone claire.
+
+La mesure : prendre la bbox du titre, la projeter dans le canvas basse résolution, calculer
+le ratio WCAG entre la couleur du titre et **chaque pixel** du fond, garder le **pire**.
+
+```js
+const lum = (r, g, b) => { const f = c => (c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b) }
+const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+// … échantillonner le canvas sous la bbox, retenir Math.min(ratio) sur tous les pixels
+```
+
+**Ce n'est pas la photo qui gouverne le contraste, c'est le fond dithéré** : `spot.paper`
+est la valeur la plus claire du cadre, donc le plafond. Un gris moyen (`128,132,122`)
+plafonne vers 3,4:1 et passe sous le seuil dès qu'une zone de couleur conservée est claire
+(un ciel). Garder un ground sombre (~`78,82,74`) ou basculer `titleInk`. Déplacer le titre
+ne sauve pas un ground trop clair : le scan de 10% à 75% de hauteur ne dépassait jamais
+3,33:1.
+
 ### 4.7 Une valeur de style n'apparaît qu'une fois
 
 Si un composant a besoin d'une échelle absente de `tokens/`, on **ajoute le token**. On
@@ -330,11 +354,13 @@ ils décrivent le contrat pour Claude Design. Les créer vides à l'avance n'app
 - [ ] Reste aux tokens : `Hero`, `FeaturedEssay`, `GearCard`, `PhotoFrame`, `Metabar`,
       `MainNav` (valeurs encore en dur).
 - [ ] Primitive `Stack` — dès qu'un deuxième cas type `.posts` apparaît.
-- [ ] **`HeroPopColor`** — le cover d'article qui fait popper une couleur extraite de la photo
-      (`assets/spot-hero.js`, banc `research/Article - spot colour.html`), piloté par une
-      **recipe** par image. Structure de recipe déjà arrêtée côté research :
-      `{ img, alt, bold, ink, paper, topo, titleColor, titleShadow, titleTop, obj, word,
-      place, method, vcap, stat }`.
+- [x] **`HeroPopColor`** — le cover d'article qui fait popper une couleur extraite de la photo.
+      Moteur porté en TS (`src/lib/spot-hero.ts`), composant piloté par une **recipe** par
+      image, preview à `/ds/hero-pop-color`. Contraste mesuré à 1440px et 390px : 7,47:1 et
+      6,96:1.
+- [ ] Sources photo : les covers ont besoin d'images **couleur** (`public/photos/source/`),
+      pas des PNG dithérés. `castle-blue.jpg` pèse 2,5 Mo → prévoir des versions `-web`
+      comme `bridge-red-web.jpg` (392 Ko).
 - [ ] Route Article + les P2/P3 de la critique Impeccable (le P2 « barre d'accent à gauche »
       est déjà tranché par la doctrine : interdite partout).
 - [ ] Build `ds:build` (previews + `.d.ts` + `SKILL.md`) puis projet Design System.

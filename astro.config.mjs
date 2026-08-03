@@ -8,7 +8,8 @@ export default defineConfig({
   site: 'https://exhale.blog',
   integrations: [
     markdoc(),
-    sitemap(),
+    // les pages `/ds/*` sont des previews de design system : hors sitemap
+    sitemap({ filter: page => !page.includes('/ds/') }),
     svelte(),
   ],
 })

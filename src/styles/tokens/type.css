@@ -26,6 +26,11 @@
   --lh-hero: 0.8;
   --tr-hero: 0.012em;
 
+  /* cover d'article — le mot de couverture, posé sur la photo */
+  --fs-cover: clamp(56px, 16vw, 176px);
+  --lh-cover: 0.82;
+  --tr-cover: 0.02em;
+
   --fs-shead: clamp(28px, 5vw, 56px);      /* ouverture de section */
   --lh-shead: 0.94;
   --tr-shead: 0.005em;

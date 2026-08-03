@@ -11,12 +11,15 @@ import '@fontsource-variable/newsreader/wght-italic.css'
 interface Props {
   title?: string
   description?: string
+  /** pages de design system : hors index, hors sitemap */
+  noindex?: boolean
 }
 
 const {
   title = 'exhale — Pierrick Bignet',
   // reprise telle quelle de 01_Home.html (gold) : le copy du site est en anglais
   description = 'The personal index of Pierrick Bignet — engineer, game art director, and photographer. Short essays, field notes, and dithered 35mm photography.',
+  noindex = false,
 } = Astro.props
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href
@@ -28,6 +31,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
