@@ -14,8 +14,9 @@ interface Props {
 }
 
 const {
-  title = 'dot·paper — Pierrick Bignet',
-  description = 'Index personnel de Pierrick Bignet — ingénieur, directeur artistique, photographe.',
+  title = 'exhale — Pierrick Bignet',
+  // reprise telle quelle de 01_Home.html (gold) : le copy du site est en anglais
+  description = 'The personal index of Pierrick Bignet — engineer, game art director, and photographer. Short essays, field notes, and dithered 35mm photography.',
 } = Astro.props
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href
@@ -34,7 +35,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href
 
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="dot·paper" />
+    <meta property="og:site_name" content="exhale" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />

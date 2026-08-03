@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>On taste as a competitive advantage — dot·paper</title>
+<title>On taste as a competitive advantage — exhale</title>
 <meta name="description" content="Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity. A field essay by Pierrick Bignet.">
-<link rel="canonical" href="https://dotpaper.bignet.studio/articles/taste">
+<link rel="canonical" href="https://exhale.blog/articles/taste">
 <meta property="og:type" content="article">
 <meta property="og:title" content="On taste as a competitive advantage">
 <meta property="og:description" content="Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity.">
-<meta property="og:url" content="https://dotpaper.bignet.studio/articles/taste">
+<meta property="og:url" content="https://exhale.blog/articles/taste">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="On taste as a competitive advantage">
 <meta name="twitter:description" content="Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity.">
@@ -20,8 +20,8 @@
 <style>
   /* ====== ONE INK PER PAGE — SEPIA #9a7838 ====== */
   :root {
-    --paper: #ece7dd;
-    --paper-2: #e3dccd;
+    --paper: #f6f5f1;
+    --paper-2: #edebe4;
     --ink: #1b1a16;
     --ink-2: #4c483d;
     --ink-3: #696551;
@@ -88,8 +88,11 @@
   .topbar.over-hero .tb-title { color: rgba(241,235,221,.0); }
   .topbar.over-hero .progress { opacity: 0; }
 
-  /* ====== HERO — full-screen cover, type-on-photo (Study 01 gesture) ====== */
+  /* ====== HERO "simple-dither" — full-screen cover, type-on-photo (Study 01 gesture).
+     Parameters: --post-hero-h (height) and --dither-line (how far the dither dissolve
+     reaches down from the top; the solid band is ~half of it). ====== */
   .post-hero {
+    --dither-line: 42%;
     position: relative;
     width: 100%;
     height: var(--post-hero-h);
@@ -99,18 +102,18 @@
     background: #14110a;
   }
   .post-hero .dsrc { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-  /* the dither + contours dissolve the TOP of the frame (sky), masked to fade out by ~42% */
+  /* the dither + contours dissolve the TOP of the frame (sky), fading out at --dither-line */
   .post-hero .dither-canvas {
     position: absolute; inset: 0; width: 100%; height: 100%;
     image-rendering: pixelated; display: block; z-index: 2;
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 20%, transparent 42%);
-    mask-image: linear-gradient(to bottom, #000 0%, #000 20%, transparent 42%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(var(--dither-line) * .48), transparent var(--dither-line));
+    mask-image: linear-gradient(to bottom, #000 0%, #000 calc(var(--dither-line) * .48), transparent var(--dither-line));
   }
   .post-hero .topo-on {
     position: absolute; inset: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 3;
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 38%);
-    mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 38%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(var(--dither-line) * .43), transparent calc(var(--dither-line) * .9));
+    mask-image: linear-gradient(to bottom, #000 0%, #000 calc(var(--dither-line) * .43), transparent calc(var(--dither-line) * .9));
   }
   .post-hero .grain-on {
     position: absolute; inset: 0; z-index: 4; pointer-events: none;
@@ -303,13 +306,14 @@
   <header class="topbar" id="topbar">
     <div class="progress" id="progress"></div>
     <div class="tb-in">
-      <a class="brand" href="Home.html" aria-label="dot·paper home"><span class="dot">●</span>paper</a>
+      <a class="brand" href="Home.html" aria-label="exhale home">exhale</a>
       <div class="tb-title" id="tbTitle">On taste as a competitive advantage</div>
       <a class="tb-back" href="#" aria-label="Back to Writing">← Writing</a>
     </div>
   </header>
 
   <!-- ===================== COVER ===================== -->
+  <!-- hero: simple-dither — tune --dither-line (e.g. style="--dither-line:30%") -->
   <section class="post-hero" id="hero" data-screen-label="Cover">
     <img class="dsrc" src="assets/photos/arc.jpg" alt="A steel arch sculpture on the Setouchi coast, Naoshima">
     <canvas class="dither-canvas"></canvas>
@@ -364,8 +368,7 @@
       </div>
 
       <figure class="figure wide">
-        <div class="frame frame-marks" id="fig1">
-          <span class="fm1"></span><span class="fm2"></span>
+        <div class="frame" id="fig1">
           <img class="dsrc" src="assets/photos/pier.jpg" alt="A jetty reaching into the calm Setouchi sea">
           <canvas class="dither-canvas"></canvas>
           <div class="grain-on"></div>
@@ -396,7 +399,7 @@
   <footer class="site">
     <div class="fin">
       <div>
-        <div class="f-brand"><span class="dot">●</span>paper</div>
+        <div class="f-brand">exhale</div>
         <div class="f-sub">The personal index of Pierrick Bignet. Engineer by trade, artist by default. Built on paper, light and dots.</div>
       </div>
       <div class="f-col">
@@ -440,7 +443,7 @@
 
   // --- BODY photo: gentle sepia duotone, slow boil (engine freezes under reduced-motion) ---
   Dither.photo(document.getElementById('fig1'), {
-    cell: 3, ink: '70,52,22', paper: '233,226,212',
+    cell: 3, ink: '70,52,22', paper: 'var(--paper)',
     contrast: 1.26, brightness: 0.04, boil: 0.04, fps: 10
   });
 

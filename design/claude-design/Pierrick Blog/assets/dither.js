@@ -27,6 +27,22 @@
 
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
+  // colour spec: 'r,g,b' | '#hex' | 'var(--token)' — resolved at RENDER time so the
+  // dither follows live token changes (e.g. the Paper colour bench). [r,g,b] | fallback.
+  function resolveRGB(spec, fallback = null) {
+    if (!spec) return fallback;
+    let s = String(spec).trim();
+    if (s.startsWith('var(')) {
+      s = getComputedStyle(document.documentElement).getPropertyValue(s.slice(4, -1).trim()).trim();
+    }
+    if (s[0] === '#') {
+      const h = s.length === 4 ? s.slice(1).split('').map((c) => c + c).join('') : s.slice(1);
+      return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+    }
+    const m = s.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+    return m ? [+m[1], +m[2], +m[3]] : fallback;
+  }
+
   // small seeded noise for the ambient field
   function vnoise(x, y) {
     const s = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
@@ -79,8 +95,8 @@
       const ctx = canvas.getContext('2d');
       const img = ctx.createImageData(w, h);
       const d = img.data;
-      const inkRGB = ink.split(',').map(Number);
-      const paperRGB = paper ? paper.split(',').map(Number) : null;
+      const inkRGB = resolveRGB(ink, [20, 18, 14]);
+      const paperRGB = resolveRGB(paper);
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
           const nx = x / w, ny = y / h;
@@ -123,14 +139,20 @@
     const canvas = container.querySelector('canvas.dither-canvas');
     if ((!slot && !plain) || !canvas) return () => {};
     const cell = opts.cell || 3;
-    const ink = (opts.ink || '24,22,17').split(',').map(Number);
-    const paper = (opts.paper || '236,231,221').split(',').map(Number);
+    const inkSpec = opts.ink || '24,22,17';
+    const paperSpec = opts.paper || 'var(--paper)';
     const contrast = opts.contrast || 1.25;
     const brightness = opts.brightness != null ? opts.brightness : 0.04;
     const boil = (opts.boil != null ? opts.boil : 0.05) * (REDUCED ? 0 : 1);
     const fps = opts.fps || 12;
+    // opt-in selective colour: keep saturated source pixels in their own colour and
+    // only dither the desaturated rest. Lets the IMAGE FILE carry the spot-colour
+    // (a selective-colour edit) while the page just dithers the neutral background.
+    const preserveColor = !!opts.preserveColor;
+    const satLo = opts.satLo != null ? opts.satLo : 0.14;
+    const satHi = opts.satHi != null ? opts.satHi : 0.32;
 
-    let lum = null, lw = 0, lh = 0, curSrc = null, raf = 0, last = 0, t = 0;
+    let lum = null, col = null, sat = null, lw = 0, lh = 0, curSrc = null, raf = 0, last = 0, t = 0;
     function onScreenP() {
       const r = container.getBoundingClientRect();
       const vh = window.innerHeight || 800, vw = window.innerWidth || 1200;
@@ -166,11 +188,24 @@
       let data;
       try { data = octx.getImageData(0, 0, lw, lh).data; }
       catch (e) { lum = null; return; } // tainted — skip
+      // guard: if the image was not actually decoded yet, drawImage drew nothing and
+      // the buffer is fully transparent. Bail WITHOUT caching (curSrc stays null) so the
+      // rAF loop retries next frame — otherwise a degenerate buffer caches as all-ink /
+      // a bare dot field ("que des points").
+      let anyOpaque = false;
+      for (let a = 3; a < data.length; a += 4) { if (data[a] !== 0) { anyOpaque = true; break; } }
+      if (!anyOpaque) { lum = null; curSrc = null; canvas.style.display = 'none'; return; }
       lum = new Float32Array(lw * lh);
+      col = new Uint8Array(lw * lh * 3);
+      sat = new Float32Array(lw * lh);
       for (let i = 0, p = 0; i < data.length; i += 4, p++) {
-        let l = (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]) / 255;
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        let l = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
         l = clamp((l - 0.5) * contrast + 0.5 + brightness, 0, 1);
         lum[p] = l;
+        col[p * 3] = r; col[p * 3 + 1] = g; col[p * 3 + 2] = b;
+        const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+        sat[p] = mx ? (mx - mn) / mx : 0;
       }
       canvas.width = lw; canvas.height = lh;
       canvas.style.display = 'block';
@@ -178,6 +213,8 @@
 
     function render() {
       if (!lum) return;
+      const ink = resolveRGB(inkSpec, [24, 22, 17]);
+      const paper = resolveRGB(paperSpec, [246, 245, 241]);
       const ctx = canvas.getContext('2d');
       const img = ctx.createImageData(lw, lh);
       const d = img.data;
@@ -189,8 +226,21 @@
           if (boil) thr += (vnoise(x + Math.floor(t), y - Math.floor(t * 1.3)) - 0.5) * boil;
           const on = level > thr;
           const i = p * 4;
-          if (on) { d[i] = ink[0]; d[i + 1] = ink[1]; d[i + 2] = ink[2]; d[i + 3] = 255; }
-          else { d[i] = paper[0]; d[i + 1] = paper[1]; d[i + 2] = paper[2]; d[i + 3] = 255; }
+          let R, G, B;
+          if (on) { R = ink[0]; G = ink[1]; B = ink[2]; }
+          else { R = paper[0]; G = paper[1]; B = paper[2]; }
+          // selective colour: blend the original pixel back in where it is saturated
+          if (preserveColor) {
+            let k = (sat[p] - satLo) / (satHi - satLo);
+            k = k < 0 ? 0 : k > 1 ? 1 : k;
+            k = k * k * (3 - 2 * k); // smoothstep
+            if (k > 0) {
+              R += (col[p * 3] - R) * k;
+              G += (col[p * 3 + 1] - G) * k;
+              B += (col[p * 3 + 2] - B) * k;
+            }
+          }
+          d[i] = R; d[i + 1] = G; d[i + 2] = B; d[i + 3] = 255;
         }
       }
       ctx.putImageData(img, 0, 0);

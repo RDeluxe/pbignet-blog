@@ -3,69 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>dot·paper — Spec Sheet</title>
+<title>exhale — Topographic</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/paper.css">
+<link rel="stylesheet" href="../assets/paper.css">
 <style>
   :root {
-    --paper: #e9e8df;
-    --paper-2: #e0dfd4;
-    --ink: #16181c;
-    --ink-2: #494d49;
-    --ink-3: #888d83;
-    --accent: #2c7a4c;       /* instrument green */
-    --line: rgba(22,24,28,0.20);
-    --line-soft: rgba(22,24,28,0.10);
-    --topo: rgba(22,24,28,0.055);
+    --paper: #ece5d6;
+    --paper-2: #e2dac8;
+    --ink: #221f17;
+    --ink-2: #58513f;
+    --ink-3: #948c75;
+    --accent: #9a7838;       /* sepia / contour tan */
+    --line: rgba(34,31,23,0.20);
+    --line-soft: rgba(34,31,23,0.10);
+    --topo: rgba(120,92,42,0.17);
   }
 
-  /* instrument overrides */
-  .shead h2 { font-family: var(--mono); font-weight: 700; font-size: clamp(22px, 3.4vw, 40px); letter-spacing: 0; text-transform: uppercase; line-height: 1; }
-  .post .ptitle { font-family: var(--mono); font-weight: 700; font-size: clamp(16px, 1.9vw, 21px); letter-spacing: -0.01em; }
-  .post .pdesc { font-family: var(--mono); font-size: 12.5px; line-height: 1.55; }
-  .lead-serif { font-family: var(--mono); font-size: clamp(14px,1.7vw,18px); line-height: 1.6; max-width: 64ch; }
-  .topbar .brand, .foot-brand { font-family: var(--mono) !important; font-weight: 700; letter-spacing: -0.01em; }
-  .tag, .coll p { font-family: var(--mono); }
-  .coll h3 { font-family: var(--mono); font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+  /* editorial overrides */
+  .shead h2 { font-family: var(--sans); font-weight: 900; letter-spacing: -0.03em; text-transform: none; line-height: 0.95; }
+  .post .ptitle { font-family: var(--serif); font-weight: 500; letter-spacing: 0; }
+  .topbar .brand, .foot-brand { font-family: var(--sans) !important; font-weight: 900; letter-spacing: -0.03em; }
+  .lead-serif { color: var(--ink); }
 
-  /* SPEC hero */
-  .spec { margin-top: 26px; }
-  .spec-config { font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em; color: var(--ink-2); border-bottom: 1px solid var(--line); padding-bottom: 12px; }
-  .spec-config b { color: var(--accent); }
-  .spec-head { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 24px; gap: 20px; }
-  .spec-title { font-family: var(--display); font-size: clamp(40px, 7vw, 92px); line-height: 0.86; text-transform: uppercase; letter-spacing: 0.01em; }
-  .codebox { display: inline-block; border: 1.5px solid var(--accent); color: var(--accent); font-family: var(--mono); font-size: 0.34em; letter-spacing: 0.08em; padding: 3px 8px; vertical-align: middle; transform: translateY(-0.5em); }
-  .spec-program { font-family: var(--mono); font-size: 12px; text-align: right; color: var(--ink-2); letter-spacing: 0.08em; line-height: 1.5; white-space: nowrap; }
-  .spec-program b { color: var(--accent); }
-
-  .spec-stage { position: relative; margin: 26px 0; min-height: 460px; }
-  .spec-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-  .spec-lines line, .spec-lines path { stroke: color-mix(in srgb, var(--accent) 75%, transparent); stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; }
-  .spec-specimen { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: clamp(220px, 26vw, 320px); height: 420px; background: linear-gradient(160deg,#cfd0c6,#b9bbae); overflow: hidden; z-index: 2; }
-  .spec-specimen image-slot { position: absolute; inset: 0; width:100% !important; height:100% !important; z-index: 1; }
-  .lbl { position: absolute; z-index: 3; font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; color: var(--accent); border: 1px solid color-mix(in srgb,var(--accent) 55%, transparent); background: color-mix(in srgb,var(--paper) 88%, transparent); padding: 2px 6px; white-space: nowrap; }
-  .lbl.ink { color: var(--ink-2); border-color: var(--line); }
-
-  .spec-readout { display: flex; flex-wrap: wrap; gap: 8px 40px; align-items: baseline; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 0; }
-  .spec-readout .ro { display: flex; align-items: baseline; gap: 12px; }
-  .spec-readout .k { font-family: var(--mono); font-size: 12px; color: var(--ink-2); letter-spacing: 0.04em; }
-  .spec-readout .num { font-family: var(--display); font-size: clamp(30px, 5vw, 60px); letter-spacing: 0.01em; color: var(--ink); }
-  .spec-readout .num .g { color: var(--accent); }
-
-  .spec-params { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 22px; font-family: var(--mono); font-size: 12px; }
-  .spec-params .p .k { color: var(--ink-3); letter-spacing: 0.12em; text-transform: uppercase; font-size: 10px; }
-  .spec-params .p .v { color: var(--ink); margin-top: 5px; line-height: 1.5; }
-  .spec-params .p .v b { color: var(--accent); }
-
+  /* topographic hero */
+  .hero-topo { margin-top: 30px; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 12px 38px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+  .hero-meta .hm { display: flex; flex-direction: column; gap: 3px; }
+  .hero-meta .hm.right { margin-left: auto; text-align: right; }
+  .hero-meta .k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .hero-meta .v { font-family: var(--mono); font-size: 12px; color: var(--ink); }
+  .topo-title { font-family: var(--sans); font-weight: 900; font-size: clamp(62px, 14.5vw, 200px); line-height: 0.79; letter-spacing: -0.04em; margin: 26px 0 20px; }
+  .topo-title .dot-accent { color: var(--accent); }
+  .hero-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(20px, 4vw, 56px); padding: 4px 0 34px; }
+  .hero-cols p { font-family: var(--serif); font-size: 15px; line-height: 1.62; color: var(--ink-2); margin: 0; text-align: justify; hyphens: auto; }
+  .hero-cols p:first-child { color: var(--ink); }
+  .hero-strip { position: relative; width: 100%; aspect-ratio: 23/9; background: linear-gradient(160deg,#d6cdb6 0%, #c3b693 55%, #ad9d76 100%); overflow: hidden; }
+  .hero-strip image-slot { position: absolute; inset: 0; width:100% !important; height:100% !important; z-index: 1; }
   @media (max-width: 860px) {
-    .spec-lines { display: none; }
-    .spec-stage { min-height: 0; }
-    .spec-specimen { position: relative; left: 0; top: 0; transform: none; width: 100%; height: 360px; margin: 18px 0; }
-    .lbl { display: none; }
-    .spec-params { grid-template-columns: 1fr 1fr; }
-    .spec-head { flex-direction: column; }
+    .hero-cols { grid-template-columns: 1fr; }
+    .hero-meta .hm.right { margin-left: 0; text-align: left; }
+    .hero-strip { aspect-ratio: 4/3; }
   }
 
   /* top instrument bar */
@@ -187,7 +166,7 @@
       <div class="cell"><div class="k">Edition</div><div class="v">Vol. ∞ / 2026</div></div>
       <div class="cell"><div class="k">Location</div><div class="v">Lyon, FR</div></div>
       <div class="cell"><div class="k">Filed by</div><div class="v">P. Bignet</div></div>
-      <div class="brand"><span class="dot">●</span>paper</div>
+      <div class="brand">exhale</div>
     </div>
     <nav class="main">
       <a href="#">Writing</a>
@@ -201,45 +180,27 @@
       <a href="#" class="lock">Travel ⌁</a>
     </nav>
 
-    <div class="spec">
-      <div class="spec-config">[CONFIG.SYS] /* <b>dot·paper</b> */ = { ARTIST: 'P.BIGNET' // ENGINEER: 'P.BIGNET' // DIRECTOR: 'P.BIGNET' // STATUS: <b>ONLINE</b> }</div>
-      <div class="spec-head">
-        <div class="spec-title">PERSONAL<br>SYSTEM <span class="codebox">VOL.∞ / 2026</span></div>
-        <div class="spec-program"><b>PROGRAM }</b><br>NO.∞<br>45.76N 4.83E</div>
+    <div class="hero-topo">
+      <div class="hero-meta">
+        <div class="hm"><span class="k">Latitude</span><span class="v">45.7640° N</span></div>
+        <div class="hm"><span class="k">Longitude</span><span class="v">4.8357° E</span></div>
+        <div class="hm"><span class="k">Base / Elev.</span><span class="v">Lyon · 170 m</span></div>
+        <div class="hm right"><span class="k">Edition</span><span class="v">Vol. ∞ / 2026</span></div>
+        <div class="hm right"><span class="k">Set in</span><span class="v">Archivo · Newsreader</span></div>
       </div>
-
-      <div class="spec-stage">
-        <svg class="spec-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <line x1="93" y1="5" x2="72" y2="26"></line>
-          <line x1="93" y1="5" x2="50" y2="33"></line>
-          <line x1="93" y1="5" x2="46" y2="9"></line>
-          <line x1="14" y1="16" x2="40" y2="40"></line>
-          <line x1="16" y1="54" x2="38" y2="52"></line>
-          <line x1="52" y1="88" x2="50" y2="70"></line>
-        </svg>
-        <div class="lbl" style="left:6%;top:12%;">0X·33³ ▢</div>
-        <div class="lbl" style="left:42%;top:5%;">FL·33 ▢</div>
-        <div class="lbl" style="left:70%;top:23%;">PX·333 ▢</div>
-        <div class="lbl ink" style="left:8%;top:52%;">PW·33 — DOT MATRIX</div>
-        <div class="lbl ink" style="left:46%;top:90%;">WD·03 — PAPER STOCK</div>
-        <div class="spec-specimen frame frame-marks">
-          <span class="fm1"></span><span class="fm2"></span>
-          <canvas class="ambient-canvas"></canvas>
-          <image-slot id="hero" placeholder="Drop the specimen / portrait" fit="cover"></image-slot>
-          <canvas class="dither-canvas"></canvas>
-        </div>
+      <h1 class="topo-title">Pierrick<br>Bignet<span class="dot-accent">.</span></h1>
+      <div class="hero-cols">
+        <p>Founder &amp; CEO of a web-development studio in Lyon. I turn fuzzy ideas into shipped software for a living — and spend the rest of my hours directing the art of games and making photographs.</p>
+        <p>This is the index of all of it: opinions and essays, evergreen technical field guides kept up to date, the projects I'm proud of, and a slightly obsessive log of the gear behind the work.</p>
+        <p>Built on three ideas I keep returning to — warm paper, contour lines, and dots. Everything here is textured, dithered, and a little analogue. That is entirely on purpose.</p>
       </div>
-
-      <div class="spec-readout">
-        <div class="ro"><span class="k">last_updated =</span><span class="num">2026<span class="g">.</span>06<span class="g">.</span>02</span></div>
-        <div class="ro"><span class="k">index_cycle =</span><span class="num">2014 <span class="g">→</span> ∞</span></div>
-      </div>
-
-      <div class="spec-params">
-        <div class="p"><div class="k">[ role ]</div><div class="v">CEO &amp; Founder <b>→</b> studio<br>Creative Dir. <b>→</b> games</div></div>
-        <div class="p"><div class="k">[ coords ]</div><div class="v">45.7640° N<br>4.8357° E · Lyon, FR</div></div>
-        <div class="p"><div class="k">[ pipeline ]</div><div class="v">Bayer 8×8 dither<br>contour-noise base</div></div>
-        <div class="p"><div class="k">[ contents ]</div><div class="v">essays · guides<br>projects · photos</div></div>
+      <div class="hero-strip frame frame-marks">
+        <span class="fm1"></span><span class="fm2"></span>
+        <canvas class="ambient-canvas"></canvas>
+        <image-slot id="hero" placeholder="Drop a wide landscape" fit="cover"></image-slot>
+        <canvas class="dither-canvas"></canvas>
+        <div class="anno" style="left:16px;bottom:12px;color:var(--ink-2);">FIG. 001 — FROM THE FIELD · DITHERED 8×8 BAYER</div>
+        <div class="vcap">CONTOUR / TERRAIN</div>
       </div>
     </div>
   </header>
@@ -332,7 +293,7 @@
         <div class="nlist">
           <b>READING</b> &nbsp;— Christopher Alexander<br>
           <b>SHOOTING</b> — Contax T2 · Portra 400<br>
-          <b>BUILDING</b> — dot·paper v1<br>
+          <b>BUILDING</b> — exhale v1<br>
           <b>LISTENING</b> — a lot of ambient
         </div>
       </div>
@@ -377,7 +338,7 @@
     <div class="wrap">
       <div class="foot-grid">
         <div>
-          <div class="foot-brand"><span class="dot">●</span>paper
+          <div class="foot-brand">exhale
             <div class="fb-sub">The personal index of Pierrick Bignet.<br>Engineer by trade, artist by default.<br>Built on paper, light, and dots.</div>
           </div>
         </div>
@@ -399,18 +360,18 @@
   </footer>
 </div>
 
-<script src="assets/texture.js"></script>
-<script src="assets/dither.js"></script>
-<script src="assets/image-slot.js"></script>
+<script src="../assets/texture.js"></script>
+<script src="../assets/dither.js"></script>
+<script src="../assets/image-slot.js"></script>
 <script>
   Grain.apply(20);
   Topo.mount(document.getElementById('topo'), {
-    color: getComputedStyle(document.documentElement).getPropertyValue('--topo').trim() || 'rgba(22,24,28,0.055)',
-    levels: 14, cell: 26, scale: 0.0022, seed: 23, emphasizeEvery: 5
+    color: getComputedStyle(document.documentElement).getPropertyValue('--topo').trim() || 'rgba(120,92,42,0.17)',
+    levels: 19, cell: 22, scale: 0.0016, seed: 5, emphasizeEvery: 4
   });
   // ambient dither in the hero frame (visible before a photo is dropped)
   document.querySelectorAll('.ambient-canvas').forEach((c) => {
-    Dither.ambient(c, { cell: 3, ink: '22,24,20', paper: null, bias: 0.52, contrast: 1.35, speed: 0.9, fps: 14 });
+    Dither.ambient(c, { cell: 4, ink: '34,31,23', paper: null, bias: 0.46, contrast: 1.3, speed: 0.7, fps: 12 });
   });
   // photo dither on every framed slot
   document.querySelectorAll('.frame').forEach((f) => {

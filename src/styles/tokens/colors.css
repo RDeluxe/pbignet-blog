@@ -1,53 +1,56 @@
 /* colors.css — base fixe + encres d'accent.
  *
- * SOURCE : design/claude-design/Pierrick Blog/dot·paper - NORTHSTAR.html §05 Color.
- * Le NORTHSTAR importe assets/paper.css PUIS l'override dans son <style> : ses valeurs
- * gagnent (règle CLAUDE.md « NORTHSTAR > tokens > Design Notes »).
+ * SOURCE DES VALEURS : `assets/paper.css` du miroir + le `:root` des pages **gold**
+ * (`01_Home.html`, `02_Article.html`), qui sont d'accord entre elles.
+ * SOURCE DE LA DOCTRINE : `0_NORTHSTAR.html` §05 Color.
  *
- * ÉCART ASSUMÉ, UN SEUL : --ink-3.
- *   NORTHSTAR dit #8B8672 → ≈2.9:1 sur --paper, échoue WCAG AA sur le mobilier print
- *   en 9–11px, qui est précisément son usage (mono labels, captions, hints).
- *   On garde #696551 (≈4.6:1), la valeur de assets/paper.css. Reste la teinte la plus
- *   claire du ramp, donc le rôle est préservé.
+ * ⚠️ Le NORTHSTAR porte ses PROPRES valeurs (`--ink: #18170f`, `--ink-3: #8b8672`,
+ * `--maxw: 1080px`…) : c'est un document-specimen, mis en page pour être lu. Elles ne
+ * valent pas pour le site. Il fait foi sur la doctrine, jamais sur les hex — exactement ce
+ * que dit CLAUDE.md : « NORTHSTAR pour la doctrine ; paper.css + le <style> des pages pour
+ * les hex exacts ». Aucun écart à assumer ici : les valeurs sont celles de la source.
  */
 
 :root {
-  /* ---- base fixe — ne change jamais d'une page à l'autre ---- */
-  --paper: #ece6da;      /* surface de page, off-white chaud */
-  --paper-2: #e3dccd;    /* panneaux en retrait, remplissages de hover */
-  --ink: #18170f;        /* texte primaire, filets, display */
-  --ink-2: #4a4636;      /* corps / texte secondaire */
-  --ink-3: #696551;      /* mono labels, légendes, hints — cf. écart ci-dessus */
+  /* ---- base fixe — ne change jamais d'une page à l'autre ----
+   * paper / paper-2 : « Blanc cassé · silence », retenu au banc
+   * `research/Paper - couleur.html` (décision août 2026), propagé à tout le gold.
+   */
+  --paper: #f6f5f1;
+  --paper-2: #edebe4;    /* panneaux en retrait et remplissages de hover UNIQUEMENT */
+  --ink: #1b1a16;        /* texte primaire, filets, display */
+  --ink-2: #4c483d;      /* corps / texte secondaire */
+  --ink-3: #696551;      /* mono labels, légendes, hints */
 
-  --line: rgba(24, 23, 15, 0.22);
-  --line-soft: rgba(24, 23, 15, 0.12);
+  --line: rgba(27, 26, 22, 0.2);
+  --line-soft: rgba(27, 26, 22, 0.12);
 
-  /* ---- encres d'accent — green-forward, jamais de bleu ----
+  /* ---- encres d'accent — green-forward, jamais de bleu (NORTHSTAR §05) ----
    * UNE SEULE par page, pour le MOBILIER + le TYPE (le dot, les liens, la teinte topo,
    * les tags, les titres). Le ton du dither photographique en est EXEMPTÉ : il peut être
-   * keyé à l'image (NORTHSTAR §05/§08). Un dither non-olive n'est pas une faute.
+   * keyé à l'image (§05/§08), et la couleur forte est un **événement de hero** — les
+   * plates du corps d'article restent en duotone sépia calme.
    */
   --olive: #3d491d;      /* primaire — l'encre de travail. Remplace le bleu. */
   --lime: #c2c762;       /* highlight / marqueur / remplissage SEULEMENT.
                             Trop clair pour porter du texte sur papier. */
-  --sepia: #9a7838;      /* éditorial / essais, pour la variété de section */
+  --sepia: #9a7838;      /* éditorial / essais — l'encre des articles */
   --riso-red: #d44a2c;   /* couvertures d'articles / photo, avec parcimonie */
-  --green: #2c7a4c;      /* présent dans les vars du NORTHSTAR mais absent de ses
-                            swatches — usage non documenté, à ne pas employer sans arbitrage */
+  --green: #2c7a4c;      /* dans les vars du NORTHSTAR mais absent de ses swatches
+                            documentés — usage indéfini, ne pas employer sans arbitrage */
 
   /* ---- encre active de la page ----
    * Défaut = olive (home). Une page override --accent et TOUT suit.
-   * Articles : --accent: var(--sepia).
+   * Articles : --accent: var(--sepia) + --topo sépia (cf. 02_Article.html).
    */
   --accent: var(--olive);
   --accent-ink: #ffffff;   /* texte posé SUR l'accent */
 
-  /* teinte topo = l'accent de la page à ~7%.
+  /* teinte topo = l'accent de la page à ~6%.
    * ⚠ VALEURS LITTÉRALES OBLIGATOIRES : --topo est lue en JS par le canvas topo
    * (BaseLayout → Topo.mount). getPropertyValue ne résout pas color-mix() sur une custom
    * property non enregistrée, donc une valeur calculée arriverait telle quelle au canvas.
-   * Une page qui change d'encre change AUSSI --topo.
    */
-  --topo: rgba(61, 73, 29, 0.07);   /* olive @7% — page home */
-  /* pages sépia : --topo: rgba(154, 120, 56, 0.07) */
+  --topo: rgba(61, 73, 29, 0.06);
+  /* pages sépia : --topo: rgba(154, 120, 56, 0.06) */
 }

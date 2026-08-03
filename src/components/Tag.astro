@@ -23,8 +23,9 @@ const { accent = false } = Astro.props
     text-transform: uppercase;
     padding: 3px 8px;
     border: 1px solid var(--line);
-    border-radius: 2px;
     color: var(--ink-2);
+    /* aucun arrondi : « .tag/.badge radius removed (zero rounding site-wide) »
+       — Design Notes, audit des boîtes, juillet 2026 */
   }
   .tag[data-accent='on'] {
     color: var(--accent);

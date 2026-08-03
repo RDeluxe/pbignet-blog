@@ -10,7 +10,7 @@ Peers, fellow engineers and creatives, and occasional new readers who discover t
 
 ## Product Purpose
 
-A personal index for Pierrick Bignet — engineer, creative director, photographer. Not a typical blog: a living archive of thinking, photographs, and gear, presented as a printed artifact. The site is the work as much as the writing is. Success means a visitor understands who Pierrick is within 10 seconds and wants to read further.
+**exhale** (exhale.blog) — a personal index for Pierrick Bignet: engineer, game art director, photographer. Not a typical blog: a living archive of thinking, photographs, and gear, presented as a printed artifact. The site is the work as much as the writing is. Success means a visitor understands who Pierrick is within 10 seconds and wants to read further.
 
 ## Brand Personality
 
@@ -35,4 +35,4 @@ The tone is specific and confident, never declarative or promotional. The design
 
 ## Accessibility & Inclusion
 
-WCAG AA minimum. Focus rings are already implemented in paper.css (`a:focus-visible` rule). Reduced motion handling needed for the dither canvas and hero photo-alignment script. Color should not be the sole carrier of meaning (accent blue for emphasis is supplementary to text cues).
+WCAG AA minimum. Focus rings are implemented in `src/styles/base.css` (`a:focus-visible` rule). Reduced motion handling needed for the dither canvas and hero photo-alignment script. Color should not be the sole carrier of meaning (the page accent ink — olive on the index, sepia on articles — is supplementary to text cues).

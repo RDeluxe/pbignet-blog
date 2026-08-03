@@ -3,48 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>dot·paper — Topographic</title>
+<title>exhale — Field Notes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/paper.css">
+<link rel="stylesheet" href="../assets/paper.css">
 <style>
   :root {
-    --paper: #ece5d6;
-    --paper-2: #e2dac8;
-    --ink: #221f17;
-    --ink-2: #58513f;
-    --ink-3: #948c75;
-    --accent: #9a7838;       /* sepia / contour tan */
-    --line: rgba(34,31,23,0.20);
-    --line-soft: rgba(34,31,23,0.10);
-    --topo: rgba(120,92,42,0.17);
-  }
-
-  /* editorial overrides */
-  .shead h2 { font-family: var(--sans); font-weight: 900; letter-spacing: -0.03em; text-transform: none; line-height: 0.95; }
-  .post .ptitle { font-family: var(--serif); font-weight: 500; letter-spacing: 0; }
-  .topbar .brand, .foot-brand { font-family: var(--sans) !important; font-weight: 900; letter-spacing: -0.03em; }
-  .lead-serif { color: var(--ink); }
-
-  /* topographic hero */
-  .hero-topo { margin-top: 30px; }
-  .hero-meta { display: flex; flex-wrap: wrap; gap: 12px 38px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
-  .hero-meta .hm { display: flex; flex-direction: column; gap: 3px; }
-  .hero-meta .hm.right { margin-left: auto; text-align: right; }
-  .hero-meta .k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
-  .hero-meta .v { font-family: var(--mono); font-size: 12px; color: var(--ink); }
-  .topo-title { font-family: var(--sans); font-weight: 900; font-size: clamp(62px, 14.5vw, 200px); line-height: 0.79; letter-spacing: -0.04em; margin: 26px 0 20px; }
-  .topo-title .dot-accent { color: var(--accent); }
-  .hero-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(20px, 4vw, 56px); padding: 4px 0 34px; }
-  .hero-cols p { font-family: var(--serif); font-size: 15px; line-height: 1.62; color: var(--ink-2); margin: 0; text-align: justify; hyphens: auto; }
-  .hero-cols p:first-child { color: var(--ink); }
-  .hero-strip { position: relative; width: 100%; aspect-ratio: 23/9; background: linear-gradient(160deg,#d6cdb6 0%, #c3b693 55%, #ad9d76 100%); overflow: hidden; }
-  .hero-strip image-slot { position: absolute; inset: 0; width:100% !important; height:100% !important; z-index: 1; }
-  @media (max-width: 860px) {
-    .hero-cols { grid-template-columns: 1fr; }
-    .hero-meta .hm.right { margin-left: 0; text-align: left; }
-    .hero-strip { aspect-ratio: 4/3; }
+    --paper: #ece6da;
+    --paper-2: #e4ddcf;
+    --ink: #181713;
+    --ink-2: #4b4738;
+    --ink-3: #8b8773;
+    --accent: #3d491d;       /* olive */
+    --line: rgba(24,23,19,0.22);
+    --line-soft: rgba(24,23,19,0.12);
+    --topo: rgba(61,73,29,0.07);
   }
 
   /* top instrument bar */
@@ -166,7 +140,7 @@
       <div class="cell"><div class="k">Edition</div><div class="v">Vol. ∞ / 2026</div></div>
       <div class="cell"><div class="k">Location</div><div class="v">Lyon, FR</div></div>
       <div class="cell"><div class="k">Filed by</div><div class="v">P. Bignet</div></div>
-      <div class="brand"><span class="dot">●</span>paper</div>
+      <div class="brand">exhale</div>
     </div>
     <nav class="main">
       <a href="#">Writing</a>
@@ -180,27 +154,35 @@
       <a href="#" class="lock">Travel ⌁</a>
     </nav>
 
-    <div class="hero-topo">
-      <div class="hero-meta">
-        <div class="hm"><span class="k">Latitude</span><span class="v">45.7640° N</span></div>
-        <div class="hm"><span class="k">Longitude</span><span class="v">4.8357° E</span></div>
-        <div class="hm"><span class="k">Base / Elev.</span><span class="v">Lyon · 170 m</span></div>
-        <div class="hm right"><span class="k">Edition</span><span class="v">Vol. ∞ / 2026</span></div>
-        <div class="hm right"><span class="k">Set in</span><span class="v">Archivo · Newsreader</span></div>
+    <div class="hero">
+      <div class="hero-left">
+        <div class="hero-kicker">
+          <span>45.7640°N&nbsp;&nbsp;4.8357°E</span>
+          <span><b>●</b> ENGINEER / ARTIST</span>
+          <span>EST. 2014</span>
+        </div>
+        <h1>I&nbsp;MAKE<br><span class="blue">SOFTWARE</span>,<br>PICTURES&nbsp;&amp;<br><span class="outline">ARGUMENTS</span>.</h1>
+        <p class="hero-sub">Pierrick Bignet — founder &amp; CEO of a web-development studio, creative director on a couple of games, and a person who takes far too many photographs. This is where the thinking gets written down.</p>
+        <div class="hero-roles">
+          CEO &amp; FOUNDER <span>→</span> studio<br>
+          CREATIVE DIRECTOR <span>→</span> games<br>
+          PHOTOGRAPHER <span>→</span> 35mm &amp; digital
+        </div>
+        <div class="hero-actions">
+          <a href="#" class="btn primary">Read the writing</a>
+          <a href="#" class="btn">Who I am</a>
+        </div>
       </div>
-      <h1 class="topo-title">Pierrick<br>Bignet<span class="dot-accent">.</span></h1>
-      <div class="hero-cols">
-        <p>Founder &amp; CEO of a web-development studio in Lyon. I turn fuzzy ideas into shipped software for a living — and spend the rest of my hours directing the art of games and making photographs.</p>
-        <p>This is the index of all of it: opinions and essays, evergreen technical field guides kept up to date, the projects I'm proud of, and a slightly obsessive log of the gear behind the work.</p>
-        <p>Built on three ideas I keep returning to — warm paper, contour lines, and dots. Everything here is textured, dithered, and a little analogue. That is entirely on purpose.</p>
-      </div>
-      <div class="hero-strip frame frame-marks">
-        <span class="fm1"></span><span class="fm2"></span>
-        <canvas class="ambient-canvas"></canvas>
-        <image-slot id="hero" placeholder="Drop a wide landscape" fit="cover"></image-slot>
-        <canvas class="dither-canvas"></canvas>
-        <div class="anno" style="left:16px;bottom:12px;color:var(--ink-2);">FIG. 001 — FROM THE FIELD · DITHERED 8×8 BAYER</div>
-        <div class="vcap">CONTOUR / TERRAIN</div>
+      <div class="hero-right">
+        <div class="heroshot frame frame-marks">
+          <span class="fm1"></span><span class="fm2"></span>
+          <canvas class="ambient-canvas"></canvas>
+          <image-slot id="hero" placeholder="Drop a portrait / hero photo" fit="cover"></image-slot>
+          <canvas class="dither-canvas"></canvas>
+          <div class="anno anno-box" style="top:14px;left:14px;">PX·01 / HERO</div>
+          <div class="anno" style="bottom:14px;left:16px;">⌖ ORDERED-DITHER · 8×8 BAYER</div>
+          <div class="vcap">FIG. 001 — SELF, DITHERED</div>
+        </div>
       </div>
     </div>
   </header>
@@ -293,7 +275,7 @@
         <div class="nlist">
           <b>READING</b> &nbsp;— Christopher Alexander<br>
           <b>SHOOTING</b> — Contax T2 · Portra 400<br>
-          <b>BUILDING</b> — dot·paper v1<br>
+          <b>BUILDING</b> — exhale v1<br>
           <b>LISTENING</b> — a lot of ambient
         </div>
       </div>
@@ -338,7 +320,7 @@
     <div class="wrap">
       <div class="foot-grid">
         <div>
-          <div class="foot-brand"><span class="dot">●</span>paper
+          <div class="foot-brand">exhale
             <div class="fb-sub">The personal index of Pierrick Bignet.<br>Engineer by trade, artist by default.<br>Built on paper, light, and dots.</div>
           </div>
         </div>
@@ -360,18 +342,18 @@
   </footer>
 </div>
 
-<script src="assets/texture.js"></script>
-<script src="assets/dither.js"></script>
-<script src="assets/image-slot.js"></script>
+<script src="../assets/texture.js"></script>
+<script src="../assets/dither.js"></script>
+<script src="../assets/image-slot.js"></script>
 <script>
   Grain.apply(20);
   Topo.mount(document.getElementById('topo'), {
-    color: getComputedStyle(document.documentElement).getPropertyValue('--topo').trim() || 'rgba(120,92,42,0.17)',
-    levels: 19, cell: 22, scale: 0.0016, seed: 5, emphasizeEvery: 4
+    color: getComputedStyle(document.documentElement).getPropertyValue('--topo').trim() || 'rgba(61,73,29,0.07)',
+    levels: 16, cell: 24, scale: 0.0019, seed: 11, emphasizeEvery: 4
   });
   // ambient dither in the hero frame (visible before a photo is dropped)
   document.querySelectorAll('.ambient-canvas').forEach((c) => {
-    Dither.ambient(c, { cell: 4, ink: '34,31,23', paper: null, bias: 0.46, contrast: 1.3, speed: 0.7, fps: 12 });
+    Dither.ambient(c, { cell: 4, ink: '26,24,18', paper: null, bias: 0.5, contrast: 1.3, speed: 0.8, fps: 13 });
   });
   // photo dither on every framed slot
   document.querySelectorAll('.frame').forEach((f) => {

@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>dot·paper — Schéma animé</title>
+<title>exhale — Schéma animé</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/paper.css">
 <style>
   :root {
-    --paper: #ece6da;
-    --paper-2: #e3dccd;
+    --paper: #f6f5f1;
+    --paper-2: #edebe4;
     --ink: #18170f;
     --ink-2: #4a4636;
     --ink-3: #8b8672;
@@ -30,18 +30,10 @@
   .intro { font-family: var(--serif); font-size: clamp(16px,1.7vw,20px); line-height: 1.5; color: var(--ink-2); max-width: 60ch; margin: 24px 0 28px; }
   .intro b { color: var(--ink); }
 
-  .plate { position: relative; border: 1px solid var(--line); padding: 26px 22px; background: var(--paper); }
-  .plate .corner { position: absolute; width: 12px; height: 12px; border: 1.5px solid var(--ink-2); }
-  .plate .corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
-  .plate .corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
-  .plate .corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
-  .plate .corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
   .plate svg { display: block; }
-  .plate .ptag { position: absolute; top: 10px; right: 12px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: var(--ink-3); text-transform: uppercase; }
 
   .controls { display: flex; gap: 10px; align-items: center; margin-top: 20px; }
-  .btn { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; padding: 9px 16px; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background .18s, color .18s; }
-  .btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn { font-size: 12px; letter-spacing: 0.06em; padding: 9px 16px; }
   .btn .ic { width: 14px; height: 14px; }
   .hint { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; }
 </style>
@@ -61,8 +53,7 @@
     </div>
     <p class="intro">Le schéma se <b>dessine sur le papier</b> : la grille apparaît, les trois points s'ancrent, le triangle se trace en pointillés, puis les strates s'empilent du bas vers le haut. Idéal en entrée d'article (rejoue au défilement).</p>
 
-    <div class="plate">
-      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+    <div class="plate plain">
       <span class="ptag">FIG. A · ANIMÉ</span>
       <div id="d-anim"></div>
     </div>

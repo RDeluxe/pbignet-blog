@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>dot·paper — Pierrick Bignet</title>
+<title>exhale — Pierrick Bignet</title>
 <meta name="description" content="The personal index of Pierrick Bignet — engineer, game art director, and photographer. Short essays, field notes, and dithered 35mm photography.">
-<link rel="canonical" href="https://dotpaper.bignet.studio/">
+<link rel="canonical" href="https://exhale.blog/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="dot·paper — Pierrick Bignet">
+<meta property="og:title" content="exhale — Pierrick Bignet">
 <meta property="og:description" content="The personal index of Pierrick Bignet — engineer, game art director, and photographer. Short essays, field notes, and dithered 35mm photography.">
-<meta property="og:url" content="https://dotpaper.bignet.studio/">
+<meta property="og:url" content="https://exhale.blog/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="dot·paper — Pierrick Bignet">
+<meta name="twitter:title" content="exhale — Pierrick Bignet">
 <meta name="twitter:description" content="The personal index of Pierrick Bignet — engineer, game art director, and photographer. Short essays, field notes, and dithered 35mm photography.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,8 +19,8 @@
 <link rel="stylesheet" href="assets/paper.css">
 <style>
   :root {
-    --paper: #ece7dd;
-    --paper-2: #e3dccd;
+    --paper: #f6f5f1;
+    --paper-2: #edebe4;
     --ink: #1b1a16;
     --ink-2: #4c483d;
     --ink-3: #696551;
@@ -44,7 +44,7 @@
   nav.main .lock { color: var(--ink-3); }
 
   /* ---------- intro line ---------- */
-  .hero-intro { font-family: var(--serif); font-size: clamp(21px,2.7vw,31px); line-height: 1.34; max-width: 30ch; margin: 22px 0 0; text-wrap: balance; color: var(--ink); }
+  .hero-intro { position: absolute; z-index: 0; right: 6%; top: 7.5%; font-family: var(--serif); font-size: clamp(19px,2.2vw,26px); line-height: 1.34; max-width: 22ch; margin: 0; text-wrap: balance; color: var(--ink); text-align: left; }
 
   /* ---------- HERO v2: photo cropped at top, continues inside the type ---------- */
   .hero2 { position: relative; margin: var(--hero-gap,12px) 0 0; padding: 0; --hero-line: var(--hero-line-base,34%); }
@@ -58,7 +58,7 @@
     -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
   .hero2-credit { position: absolute; z-index: 4; left: 2px; bottom: 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: #f3ecdb; text-transform: uppercase; opacity: 0.9; text-shadow: 0 1px 10px rgba(0,0,0,0.8); }
   .hero2-bc { position: absolute; z-index: 4; right: 2px; bottom: 12px; text-align: right; }
-  .hero2-bc .barcode { --ink: #ece6da; margin-left: auto; }
+  .hero2-bc .barcode { --ink: #f6f5f1; margin-left: auto; }
   .hero2-bc .barcode-num { color: #e6dfd0; text-shadow: 0 1px 8px rgba(0,0,0,0.7); }
 
   /* ---------- generic sections ---------- */
@@ -67,6 +67,7 @@
 
   .coll-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
   .coll-grid .coll { border: none; background: var(--paper); }
+  .coll-grid .coll:hover { background: var(--paper-2); }
 
   /* ---------- FEATURED word-over-photo (repeat of hero move) ---------- */
   .feature { position: relative; height: min(64vh, 560px); overflow: hidden; background: #2a2620; }
@@ -110,6 +111,7 @@
     .photos-grid { grid-template-columns: 1fr 1fr; }
     .foot-grid { grid-template-columns: 1fr 1fr; }
     .hero-serif { display: none; }
+    .hero-intro { display: none; }
     .hero-role { top: 58%; }
   }
   @media (max-width: 560px) {
@@ -132,7 +134,7 @@
       <div class="m"><div class="k">Edition</div><div class="v">Vol. ∞</div></div>
       <div class="m"><div class="k">Filed by</div><div class="v">P. Bignet</div></div>
       <div class="m"><div class="k">Location</div><div class="v">Lyon, FR</div></div>
-      <div class="brand"><span class="dot">●</span>paper</div>
+      <div class="brand">exhale</div>
     </div>
     <nav class="main">
       <a href="#">Writing</a><a href="#">Projects</a>
@@ -140,13 +142,12 @@
       <span class="sp"></span><a href="#">About</a><span class="lock" aria-disabled="true">Travel ⌁</span>
     </nav>
 
-    <p class="hero-intro">I build software, direct the art of games, and photograph everything in between.</p>
-
     <!-- HERO v2 -->
     <div class="hero2">
       <div class="hero2-stage">
+        <p class="hero-intro">I build software, direct the art of games, and photograph everything in between.</p>
         <div class="photo-plane"></div>
-        <h1 class="ctype">PIERRICK</h1>
+        <h1 class="ctype">RESPIRE</h1>
         <div class="hero2-credit">SETOUCHI · NAOSHIMA · PANASONIC GX80 · ⓒ P. BIGNET</div>
       </div>
     </div>
@@ -158,9 +159,9 @@
       <div class="shead"><h2>Writing</h2><div class="shead-meta">[ OPINIONS · NOTES ]</div></div>
       <p class="lead-serif">Short essays and unfiled opinions: taste, building things, and the gap between.</p>
       <div style="margin-top:28px;">
-        <a class="post" href="#"><span class="arrow">→</span><span class="idx">001</span><span><span class="tag tag-accent">Essay</span><div class="ptitle">On taste as a competitive advantage</div><div class="pdesc">Why the companies that win on craft are usually the ones who couldn't articulate why craft mattered — until it did.</div></span><span class="pmeta">8 MIN<br>MAY 2026</span></a>
-        <a class="post" href="#"><span class="arrow">→</span><span class="idx">002</span><span><span class="tag">Note</span><div class="ptitle">Why I still write the first draft by hand</div><div class="pdesc">The friction is the feature. A short defence of slow tools in a fast studio.</div></span><span class="pmeta">4 MIN<br>APR 2026</span></a>
-        <a class="post" href="#"><span class="arrow">→</span><span class="idx">003</span><span><span class="tag tag-accent">Essay</span><div class="ptitle">The real cost of context-switching, measured</div><div class="pdesc">I tracked every interruption for a month. The numbers were worse than the folklore.</div></span><span class="pmeta">11 MIN<br>APR 2026</span></a>
+        <a class="post" href="#"><span class="idx">001</span><span><span class="tag tag-accent">Essay</span><div class="ptitle">On taste as a competitive advantage</div><div class="pdesc">Why the companies that win on craft are usually the ones who couldn't articulate why craft mattered — until it did.</div></span><span class="pmeta">8 MIN<br>MAY 2026</span></a>
+        <a class="post" href="#"><span class="idx">002</span><span><span class="tag">Note</span><div class="ptitle">Why I still write the first draft by hand</div><div class="pdesc">The friction is the feature. A short defence of slow tools in a fast studio.</div></span><span class="pmeta">4 MIN<br>APR 2026</span></a>
+        <a class="post" href="#"><span class="idx">003</span><span><span class="tag tag-accent">Essay</span><div class="ptitle">The real cost of context-switching, measured</div><div class="pdesc">I tracked every interruption for a month. The numbers were worse than the folklore.</div></span><span class="pmeta">11 MIN<br>APR 2026</span></a>
       </div>
     </section>
   </main>
@@ -212,7 +213,7 @@
   <footer class="site">
     <div class="wrap">
       <div class="foot-grid">
-        <div><div class="foot-brand"><span class="dot">●</span>paper<div class="fb-sub">The personal index of Pierrick Bignet.<br>Engineer by trade, artist by default.<br>Built on paper, light &amp; dots.</div></div></div>
+        <div><div class="foot-brand">exhale<div class="fb-sub">The personal index of Pierrick Bignet.<br>Engineer by trade, artist by default.<br>Built on paper, light &amp; dots.</div></div></div>
         <div class="foot-col"><h4>Read</h4><a href="#">Writing</a><a href="#">Field Guides</a><a href="#">Projects</a><a href="#">Now</a></div>
         <div class="foot-col"><h4>Around</h4><a href="#">About</a><a href="#">Setup</a><a href="#">Photos</a><a href="#">Travel ⌁</a></div>
         <div style="text-align:right;"><div class="barcode" style="margin-left:auto;"></div><div class="barcode-num">PB · 2026 · 45.76N 4.83E · ∞</div><div class="mono-label" style="margin-top:16px;">SET IN ANTON · ARCHIVO<br>SPACE MONO · NEWSREADER</div></div>

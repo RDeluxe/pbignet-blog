@@ -166,23 +166,35 @@ tokens.
 
 ## 5. Conflits de sources : l'ordre de préséance
 
-`CLAUDE.md` fixe : **NORTHSTAR > `assets/paper.css` > `Design Notes.md`**. En pratique :
+1. **`Design Notes.md` pour les décisions datées** — c'est le journal de bord :
+   « DECIDED (final, July 2026) », « Couleur Paper — décision août 2026 ». Le plus récent gagne.
+2. **`assets/paper.css` + le `:root` des pages gold** (`01_Home`, `02_Article`) pour les
+   **valeurs** — hex, tailles, espacements.
+3. **`0_NORTHSTAR.html`** pour la **doctrine** — règles, anatomie, guardrails.
+4. Le reste de `Design Notes.md` (refs d'inspiration) en dernier.
 
-- **la doctrine** (quelle encre, quelle règle, quelle anatomie) → NORTHSTAR, toujours ;
-- **les valeurs** → NORTHSTAR d'abord, car il **importe** `assets/paper.css` puis l'override
-  dans son propre `<style>` : ses valeurs sont les plus récentes ;
-- un **narratif périmé** ne fait jamais foi contre les tokens (`Design Notes.md` dit encore
-  « blue accent » — mort depuis l'olive).
+> ⚠️ **L'erreur à ne pas refaire.** Le NORTHSTAR `@import`e `assets/paper.css` **puis
+> l'override** dans son propre `<style>` : `--ink: #18170f`, `--ink-3: #8b8672`,
+> `--maxw: 1080px`. J'en ai déduit que ses valeurs étaient « les plus récentes » et je les ai
+> portées en prod. C'est faux : **c'est la mise en page du specimen**, un document conçu pour
+> être lu. Les deux pages gold sont d'accord entre elles et avec `paper.css` — ce sont elles
+> qui font le site. Le NORTHSTAR fait foi sur la doctrine, **jamais** sur les hex. C'est
+> exactement ce que `CLAUDE.md` disait déjà ; j'ai sur-appliqué la règle générale de
+> préséance contre l'instruction précise.
 
-### Écarts assumés en prod — la liste exhaustive
+**Lire les dates.** Un miroir de six semaines a suffi pour manquer : le nouveau papier
+(`#f6f5f1`), le renommage de la marque en **exhale**, tout le vocabulaire de boîtes
+(plate/tile/callout), la suppression des arrondis et de la flèche de `.post`.
 
-Tout écart entre `src/styles/tokens/` et le NORTHSTAR est listé **ici** et commenté dans le
-fichier de token. Une divergence non listée est un bug.
+### Écarts assumés en prod
 
-| Token | NORTHSTAR | Prod | Pourquoi |
-|---|---|---|---|
-| `--ink-3` | `#8B8672` | `#696551` | `#8B8672` ≈ 2.9:1 sur `--paper` → échoue WCAG AA, or son usage est le mobilier print en 9–11px. Valeur reprise d'`assets/paper.css`. Reste la teinte la plus claire du ramp. |
-| `--maxw` | `1080px` | `1180px` | Le 1080 du NORTHSTAR est un override de mise en page **du specimen** (un document à lire), pas une largeur de marque. `assets/paper.css` — la base partagée des pages — dit 1180. |
+**Aucun.** Les tokens reprennent les valeurs de la source telles quelles. Si un écart devient
+nécessaire (accessibilité, contrainte technique), il se documente ici **et** dans le fichier
+de token — une divergence non listée est un bug.
+
+Un seul écart de nomenclature, sans effet sur les valeurs : `--paper-2` est nommé comme dans
+la source, et **son usage reste restreint** aux panneaux en retrait et aux remplissages de
+hover (Design Notes, juillet 2026). Ce n'est pas un fond de page alternatif.
 
 ### Normalisations sur l'échelle — valeurs absorbées
 
@@ -191,9 +203,14 @@ elle est respectée. Les écarts sont invisibles à l'œil, mais listés pour ê
 
 | Endroit | Avant | Après | Note |
 |---|---|---|---|
-| `Lede` | `clamp(20px,2.4vw,28px)` **et** `clamp(21px,2.7vw,31px)` | `--fs-lead: clamp(20px,2.6vw,30px)` | Deux valeurs pour une intention = un bug de design. Ce qui varie est la **mesure** (30ch / 24ch), pas la taille. |
-| `SectionHead` | `margin-bottom: 18px` | `--space-md` (16px) | 18 est absent de l'échelle (…10, 16, 22…). |
+| `Lede` | `clamp(20px,2.4vw,28px)` **et** `clamp(21px,2.7vw,31px)` | `--fs-lead: clamp(20px,2.6vw,30px)` | Deux valeurs pour une intention = un bug de design. Ce qui varie est la **mesure** (30ch / 24ch), pas la taille. Aucune des deux n'était dans la source. |
 | `Grid` | `gap: 12px` (photos) **et** `14px` (gear) | `--gap-grid: 12px` | Même intention, deux valeurs. |
+
+**L'échelle d'espacement est une invention locale** — la source utilise des valeurs libres.
+En cas de conflit, **la valeur de la source gagne** : on ajoute un pas plutôt que de
+« normaliser ». C'est pourquoi le `margin-bottom: 18px` de `.shead`, d'abord ramené à 16px,
+a été restauré via `--space-head` : 18px est la valeur validée par le design, mon échelle ne
+l'était pas.
 
 ### Arbitrages ouverts
 
@@ -204,6 +221,27 @@ elle est respectée. Les écarts sont invisibles à l'œil, mais listés pour ê
 - **Responsive des grilles** : à ≤880px toutes les grilles passent à 2 colonnes et n'en
   descendent jamais — comportement repris à l'identique de l'existant. Deux cartes côte à
   côte sur un écran de 380px sont étroites. → à trancher (passage à 1 colonne ≤480px ?).
+
+### Décisions de juillet–août 2026 encore à porter en prod
+
+Le miroir avait six semaines de retard ; ces décisions sont actées côté design et pas encore
+dans le code (les trois premières le sont depuis le re-base) :
+
+- [x] `--paper: #f6f5f1` / `--paper-2: #edebe4` (août 2026)
+- [x] zéro arrondi — `.tag`/`.badge` sans radius
+- [x] `.post` sans flèche au hover (le glissement de 14px reste)
+- [x] marque **exhale** + domaine **exhale.blog**
+- [ ] **plate** = B6 : cadre « grille empruntée » (lignes 1.2px dépassant ~13px des angles) +
+      grille ultra-légère (majeure 64px @.05, mineure 16px @.022), sur papier nu
+- [ ] **tile** = D2 : nu au repos → croix d'angle + bordure ink + fond `paper-2` au hover.
+      `CollCard` et `GearCard` sont des tiles et ne suivent pas encore ce contrat.
+- [ ] **callout** = E1 : note épinglée, 2 croix, tag mono « N.B. » cassant la bordure.
+      Jamais de barre d'accent à gauche (tranche le P2 de la critique Article).
+- [ ] **boutons** : hover = remplissage dither animé (reduced-motion safe)
+- [ ] aucune ombre portée nulle part (à vérifier : `index.html` de research en avait une)
+- [ ] `dither.js` accepte désormais `'var(--token)'` / `#hex` / `'r,g,b'`, **résolus à chaque
+      rendu** → les cellules claires peuvent suivre `--paper` en direct. À exploiter dans
+      notre portage TS.
 
 ---
 
@@ -287,11 +325,18 @@ ils décrivent le contrat pour Claude Design. Les créer vides à l'avance n'app
 - [x] `index.astro` : 54 lignes de CSS → 1 (`.posts`, un margin de composition).
 - [x] `:global(.coll)` éliminé → `CollCard bordered={false}`.
 - [x] `PostRow`, `CollCard`, `SiteFooter` passés aux tokens.
+- [x] Re-base sur le sync du 2026-08-03 : tokens papier, zéro arrondi, flèche retirée,
+      marque **exhale** + `exhale.blog`.
 - [ ] Reste aux tokens : `Hero`, `FeaturedEssay`, `GearCard`, `PhotoFrame`, `Metabar`,
       `MainNav` (valeurs encore en dur).
 - [ ] Primitive `Stack` — dès qu'un deuxième cas type `.posts` apparaît.
-- [ ] `Hero` polymorphe (home `clip-text` + article `plate`), art direction par image.
-- [ ] Route Article + les P2/P3 de la critique Impeccable.
+- [ ] **`HeroPopColor`** — le cover d'article qui fait popper une couleur extraite de la photo
+      (`assets/spot-hero.js`, banc `research/Article - spot colour.html`), piloté par une
+      **recipe** par image. Structure de recipe déjà arrêtée côté research :
+      `{ img, alt, bold, ink, paper, topo, titleColor, titleShadow, titleTop, obj, word,
+      place, method, vcap, stat }`.
+- [ ] Route Article + les P2/P3 de la critique Impeccable (le P2 « barre d'accent à gauche »
+      est déjà tranché par la doctrine : interdite partout).
 - [ ] Build `ds:build` (previews + `.d.ts` + `SKILL.md`) puis projet Design System.
 - [ ] Les 35 erreurs de lint restantes.
 

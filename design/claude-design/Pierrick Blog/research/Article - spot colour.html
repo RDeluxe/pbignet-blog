@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spot colour study — exhale</title>
+<meta name="description" content="A spot-colour hero treatment: the subject keeps its true colour, the rest of the frame dissolves into a dithered green-black ground.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/paper.css">
+<style>
+  /* ====== page ink: SEPIA furniture, the dither GROUND is olive-green ====== */
+  :root {
+    --paper: #f6f5f1;
+    --paper-2: #edebe4;
+    --ink: #1b1a16;
+    --ink-2: #4c483d;
+    --ink-3: #696551;
+    --accent: #9a7838;                 /* sepia furniture ink */
+    --line: rgba(27,26,22,.20);
+    --line-soft: rgba(27,26,22,.12);
+    --topo: rgba(154,120,56,.06);
+    --maxw: 1180px;
+    --post-hero-h: min(92vh, 880px);
+    --ground: 26,28,20;                /* the dithered ground colour (dark neutral-olive) */
+  }
+
+  /* ====== sticky reading bar — present by default, scroll only enriches ====== */
+  .topbar { position: sticky; top: 0; z-index: 50; background: var(--paper); border-bottom: 1px solid var(--line); transition: background .35s ease, border-color .35s ease, color .35s ease; }
+  .topbar .progress { position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--accent); transition: width .12s linear; }
+  .topbar .tb-in { max-width: var(--maxw); margin: 0 auto; padding: 13px var(--gutter); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; }
+  .topbar .brand { font-family: var(--display); font-size: 20px; letter-spacing: .02em; line-height: 1; }
+  .topbar .brand .dot { color: var(--accent); }
+  .topbar .tb-title { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topbar .tb-back { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; }
+  .topbar .tb-back:hover { color: var(--accent); }
+  .topbar.over-hero { background: transparent; border-color: transparent; }
+  .topbar.over-hero .brand, .topbar.over-hero .tb-back { color: #f4efe3; }
+  .topbar.over-hero .tb-title { color: rgba(241,235,221,0); }
+  .topbar.over-hero .progress { opacity: 0; }
+
+  /* ====== HERO "pop-color" — selective colour: one hue kept true, the rest
+     dithered into a dark ground. Parameters via SpotHero opts / Tweaks panel. ====== */
+  .post-hero {
+    position: relative; width: 100%;
+    height: var(--post-hero-h); min-height: 540px;
+    margin-top: calc(-1 * (48px + 2px));
+    overflow: hidden;
+    background: rgb(var(--ground));
+  }
+  /* engine reads this <img>; it sits under the canvas */
+  .post-hero .dsrc { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; z-index: 1; }
+  /* the dithered ground — covers the WHOLE frame. The image is a selective-colour
+     edit (red subject, neutral rest); preserveColor keeps the red, dithers the rest. */
+  .post-hero .dither-canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: block; z-index: 2; }
+  /* faint contour lines woven through the ground */
+  .post-hero .topo-on { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; opacity: .5; }
+  .post-hero .grain-on { position: absolute; inset: 0; z-index: 5; pointer-events: none; background-image: var(--grain); mix-blend-mode: overlay; opacity: .4; }
+  /* title scrim — soft dark wash top-left only, where the type lives */
+  .post-hero .scrim {
+    position: absolute; inset: 0; z-index: 6; pointer-events: none;
+    background:
+      radial-gradient(120% 90% at 8% 4%, rgba(8,14,9,.62) 0%, rgba(8,14,9,.18) 38%, transparent 64%),
+      linear-gradient(to top, rgba(8,14,9,.5) 0%, transparent 26%);
+  }
+
+  .ph-word {
+    position: absolute; left: var(--gutter); top: 11%; z-index: 7;
+    text-align: left; max-width: calc(100% - 2 * var(--gutter));
+    font-family: var(--display); font-weight: 400; text-transform: uppercase;
+    font-size: clamp(56px, 16vw, 176px); line-height: .82; letter-spacing: .02em;
+    color: #f4efe3; margin: 0;
+  }
+  .ph-kicker { position: absolute; left: var(--gutter); top: calc(11% - 30px); z-index: 7; font-family: var(--mono); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: #e9e3d6; }
+  .ph-sub { position: absolute; left: var(--gutter); bottom: 8%; z-index: 7; font-family: var(--mono); color: #efe9dc; max-width: calc(100% - 2 * var(--gutter)); }
+  .ph-sub .big { font-family: var(--display); font-weight: 400; font-size: clamp(20px, 2.6vw, 34px); letter-spacing: .04em; text-transform: uppercase; line-height: 1; }
+  .ph-sub .sm { font-size: 11.5px; letter-spacing: .1em; margin-top: 7px; color: #ded7c8; }
+  .ph-vcap { position: absolute; right: max(18px, 3vw); bottom: 8%; z-index: 7; writing-mode: vertical-rl; font-family: var(--mono); font-size: 11px; letter-spacing: .24em; text-transform: uppercase; color: #ece6d8; }
+  .ph-cue { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 7; font-family: var(--mono); font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: rgba(241,235,221,.7); }
+
+  /* ====== the glide: dithered ground settles into the paper ====== */
+  .hero-fade {
+    height: clamp(150px, 24vh, 280px); margin-top: -1px;
+    background: linear-gradient(to bottom,
+      rgb(var(--ground)) 0%,
+      rgba(var(--ground),.6) 30%,
+      rgba(var(--ground),.14) 64%,
+      var(--paper) 100%);
+  }
+
+  /* ====== ARTICLE BODY (site normal — sepia ink, serif body) ====== */
+  .article { max-width: 66ch; margin: 0 auto; padding: clamp(30px,4vw,52px) var(--gutter) 0; }
+  .statrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); margin-bottom: clamp(30px, 4vw, 44px); }
+  .statrow .st { padding: 14px 16px 14px 0; }
+  .statrow .st .k { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+  .statrow .st .v { font-family: var(--mono); font-size: 13px; letter-spacing: .03em; color: var(--ink); margin-top: 5px; }
+  .statrow .st .v b { color: var(--accent); font-weight: 700; }
+  .art-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .art-title { font-family: var(--sans); font-weight: 600; letter-spacing: -.01em; font-size: clamp(31px, 5vw, 52px); line-height: 1.04; text-wrap: balance; color: var(--ink); margin: 0 0 22px; }
+  .art-dek { font-family: var(--serif); font-size: clamp(19px, 2.4vw, 24px); line-height: 1.4; color: var(--ink-2); text-wrap: pretty; margin: 0 0 14px; font-style: italic; }
+  .art-byline { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 16px; margin-top: 26px; }
+  .art-byline b { color: var(--ink-2); }
+  .prose { margin-top: clamp(30px, 4vw, 44px); }
+  .prose > p { font-family: var(--serif); font-size: 16.5px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty; margin: 0 0 1.45em; }
+  .prose > p b, .prose > p strong { color: var(--ink); font-weight: 600; }
+  .prose > p.lede { font-size: 18.5px; line-height: 1.5; color: var(--ink); }
+  .prose > p.lede::first-letter { font-family: var(--display); font-weight: 400; float: left; font-size: 3.1em; line-height: .74; padding: 6px 12px 0 0; color: var(--accent); }
+  h2.sub { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); margin: 2.4em 0 1.1em; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  h2.sub .n { color: var(--accent); margin-right: 12px; }
+  .pull { margin: 2.2em 0; padding: 4px 0 4px 24px; border-left: 3px solid var(--accent); font-family: var(--serif); font-style: italic; font-weight: 500; font-size: clamp(21px, 2.8vw, 27px); line-height: 1.32; color: var(--ink); text-wrap: balance; }
+
+  /* method note — explains the treatment, in the brand's instrument voice */
+  .method-note { max-width: 66ch; margin: 0 auto; padding: 0 var(--gutter); }
+  .method-note .mn {
+    display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start;
+    border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    padding: 16px 18px; margin-top: 8px;
+  }
+  .method-note .mn .tag { align-self: center; }
+  .method-note .mn p { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 1.65; letter-spacing: .02em; color: var(--ink-2); }
+  .method-note .mn b { color: var(--ink); }
+
+  .art-end { max-width: 66ch; margin: clamp(40px,6vw,72px) auto 0; padding: 0 var(--gutter); }
+  .art-end .em { border-top: 2px solid var(--ink); padding-top: 18px; font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--ink-2); line-height: 1.6; }
+  .art-end .em .dot { color: var(--accent); }
+  .art-end .em b { color: var(--ink); }
+
+  footer.site { margin-top: clamp(60px,8vw,110px); border-top: 2px solid var(--ink); }
+  footer.site .fin { max-width: var(--maxw); margin: 0 auto; padding: 34px var(--gutter) 86px; display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 30px; align-items: start; }
+  footer.site .f-brand { font-family: var(--display); font-size: 30px; line-height: 1; }
+  footer.site .f-brand .dot { color: var(--accent); }
+  footer.site .f-sub { font-family: var(--serif); font-size: 14px; line-height: 1.5; color: var(--ink-2); margin-top: 12px; max-width: 34ch; }
+  footer.site .f-col h4 { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; }
+  footer.site .f-col a { display: block; font-family: var(--mono); font-size: 12px; color: var(--ink-2); padding: 5px 0; letter-spacing: .04em; }
+  footer.site .f-col a:hover { color: var(--accent); }
+  footer.site .f-mark { text-align: right; }
+  footer.site .f-mark .barcode { margin-left: auto; }
+  footer.site .f-credit { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: var(--ink-3); margin-top: 16px; line-height: 1.7; }
+
+  @media (max-width: 720px) {
+    .statrow { grid-template-columns: 1fr 1fr; }
+    .statrow .st { border-bottom: 1px solid var(--line-soft); }
+    footer.site .fin { grid-template-columns: 1fr 1fr; }
+    footer.site .f-mark { grid-column: 1 / -1; text-align: left; }
+    footer.site .f-mark .barcode { margin-left: 0; }
+    .ph-vcap { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .topbar, .topbar .progress { transition: none; }
+  }
+  @media print {
+    .topo-layer, .grain-layer, .vignette, .ph-cue, .topbar .progress { display: none !important; }
+    body { background: #fff; }
+    .post-hero { height: 70vh; }
+    .article, .prose > p, .figure, .pull { break-inside: avoid; }
+    a { color: inherit; }
+  }
+</style>
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+
+  <header class="topbar" id="topbar">
+    <div class="progress" id="progress"></div>
+    <div class="tb-in">
+      <a class="brand" href="../01_Home.html" aria-label="exhale home">exhale</a>
+      <div class="tb-title">Spot colour study</div>
+      <a class="tb-back" href="Article - hero studies.html" aria-label="Back to hero studies">← Studies</a>
+    </div>
+  </header>
+
+  <!-- ===================== COVER ===================== -->
+  <section class="post-hero" id="hero" data-screen-label="Cover">
+    <img class="dsrc" id="heroImg" src="../assets/photos/bridge-red-web.jpg" alt="A crimson suspension bridge over the Shimanto river valley, the only colour in a grey scene">
+    <canvas class="dither-canvas"></canvas>
+    <canvas class="topo-on" id="topoHero"></canvas>
+    <div class="grain-on"></div>
+    <div class="scrim"></div>
+
+    <div class="ph-kicker">Field Note · One red thing</div>
+    <h1 class="ph-word">Shimanto</h1>
+    <div class="ph-sub">
+      <div class="big">Crimson span</div>
+      <div class="sm">KŌCHI · iPHONE 13 · SPOT COLOUR ON DITHERED GROUND · ⓒ P. BIGNET</div>
+    </div>
+    <div class="ph-vcap">FIELD NOTE / ONE RED THING</div>
+    <div class="ph-cue">SCROLL ↓</div>
+  </section>
+
+  <div class="hero-fade" aria-hidden="true"></div>
+
+  <!-- ===================== ARTICLE ===================== -->
+  <article>
+    <div class="article">
+      <div class="statrow">
+        <div class="st"><div class="k">Reading</div><div class="v"><b>5</b> MIN</div></div>
+        <div class="st"><div class="k">Date</div><div class="v">JUN 2026</div></div>
+        <div class="st"><div class="k">Place</div><div class="v">SHIMANTO, JP</div></div>
+        <div class="st"><div class="k">Edition</div><div class="v">Nº 015</div></div>
+      </div>
+
+      <div class="art-tags"><span class="tag tag-accent">Field Note</span><span class="tag">Colour</span><span class="tag">Method</span></div>
+
+      <h1 class="art-title">One red thing</h1>
+      <p class="art-dek">A valley of greys and greens, and a bridge someone decided to paint the loudest red they could buy. The eye has no choice.</p>
+      <div class="art-byline">Filed by <b>Pierrick Bignet</b> · Engineer by trade, artist by default</div>
+
+      <div class="prose">
+        <p class="lede">Most of the frame is weather. Grey cloud, grey water, a wall of wet green hills. Then a steel suspension bridge in a red so saturated it looks pasted in. It is not subtle and it does not want to be.</p>
+        <p>The treatment follows the photograph. Everything that is mood gets dithered down into the ground, a textured field of dark olive. The one thing that carries the picture keeps its colour. Nothing else competes.</p>
+      </div>
+
+      <div class="method-note">
+        <div class="mn">
+          <span class="tag tag-accent">Method</span>
+          <p>Key the subject by hue, not by hand: pixels above a red threshold become a <b>rough mask</b>, dilated and feathered so it reads as a halo, not a cut-out. The whole frame is dithered into a <b>green-black ground</b>. The masked subject is composited back on top in <b>full colour</b>. No flat colour block, no second accent. One red thing.</p>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>It works because restraint is legible. A picture that is loud everywhere is loud nowhere. Take the colour out of the parts that were only ever context, and the part that mattered does the rest of the work for free.</p>
+      </div>
+
+      <div class="pull">A picture that is loud everywhere is loud nowhere.</div>
+
+      <div class="prose" style="margin-top:0;">
+        <p>The same recipe travels. A maple in autumn, a single lit window, a red umbrella on a grey street. Find the one thing. Dither the weather. Let the colour mean something.</p>
+      </div>
+    </div>
+
+    <div class="art-end">
+      <div class="em"><span class="dot">●</span> File under: <b>treatments that follow the photograph instead of the template.</b><br>Method: <b>hue-keyed spot colour</b> over a dithered ground. Subject stays true; everything else becomes texture.</div>
+    </div>
+  </article>
+
+  <footer class="site">
+    <div class="fin">
+      <div>
+        <div class="f-brand">exhale</div>
+        <div class="f-sub">The personal index of Pierrick Bignet. Engineer by trade, artist by default. Built on paper, light and dots.</div>
+      </div>
+      <div class="f-col">
+        <h4>Read</h4>
+        <a href="../01_Home.html">Index</a>
+        <a href="../02_Article.html">Article template</a>
+        <a href="Article - hero studies.html">Hero studies</a>
+      </div>
+      <div class="f-mark">
+        <div class="barcode"></div>
+        <div class="barcode-num">PB · 2026 · SPOT COLOUR · ∞</div>
+        <div class="f-credit">SET IN ANTON · ARCHIVO<br>SPACE MONO · NEWSREADER</div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<div id="tweak-root"></div>
+
+<script src="../assets/texture.js"></script>
+<script src="../assets/spot-hero.js"></script>
+<script>
+  // --- texture: page contours + grain, sepia furniture ---
+  Grain.apply(20);
+  Topo.mount(document.getElementById('topo'), {
+    color: 'rgba(154,120,56,0.06)', levels: 15, cell: 26, scale: 0.0020, seed: 14, emphasizeEvery: 5
+  });
+
+  // --- hero: LIVE selective-colour + dithered ground (every param is tweakable) ---
+  var hero = document.getElementById('hero');
+  window._spot = SpotHero.mount(hero, {
+    cell: 3, ink: [20, 22, 15], paper: [74, 78, 62],
+    contrast: 1.3, brightness: -0.02, boil: 0.05, fps: 12,
+    redLo: 34, span: 62, satBoost: 0.35
+  });
+
+  function topoTone(inkRgb) {
+    return 'rgba(' + Math.min(255, inkRgb[0] + 96) + ',' + Math.min(255, inkRgb[1] + 110) + ',' + Math.min(255, inkRgb[2] + 80) + ',0.22)';
+  }
+  function drawHeroTopo(inkRgb) {
+    Topo.draw(document.getElementById('topoHero'), {
+      color: topoTone(inkRgb), levels: 16, cell: 18, scale: 0.0030, seed: 9, emphasizeEvery: 4
+    });
+  }
+  drawHeroTopo([20, 22, 15]);
+
+  function hexToRgb(h) {
+    h = h.replace('#', '');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+
+  // bridge from the React tweaks panel back into the vanilla renderer + DOM
+  window.applySpotTweaks = function (t) {
+    var g = (t.groundMode === 'custom') ? [t.groundInk, t.groundPaper] : t.ground;
+    var ink = hexToRgb(g[0]), paper = hexToRgb(g[1]);
+    if (window._spot) window._spot.update({
+      cell: t.cell, ink: ink, paper: paper,
+      contrast: t.contrast, brightness: t.brightness, boil: t.boil,
+      keepColor: t.keepColor, redLo: t.redLo, span: t.span, satBoost: t.satBoost,
+      focalX: t.focalX / 100, focalY: t.focalY / 100
+    });
+    drawHeroTopo(ink);
+    var root = document.documentElement.style;
+    root.setProperty('--post-hero-h', t.heroH + 'vh');
+    root.setProperty('--ground', paper.join(','));
+    var word = document.querySelector('.ph-word');
+    if (word) { word.textContent = t.title; word.style.left = t.titleX + '%'; word.style.top = t.titleY + '%'; word.style.color = t.titleInk === 'dark' ? '#241606' : '#f4efe3'; }
+    var kick = document.querySelector('.ph-kicker');
+    if (kick) { kick.style.left = t.titleX + '%'; kick.style.top = 'calc(' + t.titleY + '% - 30px)'; }
+  };
+
+  // --- reading progress + immersive nav reveal (enrichment only; nav usable without JS) ---
+  (function () {
+    var bar = document.getElementById('progress');
+    var topbar = document.getElementById('topbar');
+    function onScroll() {
+      var h = document.documentElement;
+      var max = (h.scrollHeight - h.clientHeight) || 1;
+      var p = Math.min(1, Math.max(0, (window.scrollY || h.scrollTop) / max));
+      bar.style.width = (p * 100).toFixed(2) + '%';
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && e.intersectionRatio > 0.35) topbar.classList.add('over-hero');
+          else topbar.classList.remove('over-hero');
+        });
+      }, { threshold: [0, 0.35, 0.6] });
+      io.observe(hero);
+    }
+  })();
+</script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+<script type="text/babel">
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "cell": 2,
+    "keepColor": "#c0398f",
+    "redLo": 7,
+    "span": 91,
+    "satBoost": 0.75,
+    "groundMode": "preset",
+    "ground": [
+      "#14160f",
+      "#4a4e3e"
+    ],
+    "groundInk": "#14160f",
+    "groundPaper": "#4a4e3e",
+    "contrast": 1.64,
+    "brightness": 0.04,
+    "boil": 0.02,
+    "heroH": 92,
+    "focalX": 50,
+    "focalY": 50,
+    "title": "TASTE",
+    "titleX": 4,
+    "titleY": 24,
+    "titleInk": "light"
+  }/*EDITMODE-END*/;
+
+  const GROUNDS = [
+    ["#14160f", "#4a4e3e"],   // olive
+    ["#0a120b", "#36482c"],   // forest
+    ["#121212", "#454545"],   // charcoal
+    ["#1c160c", "#5a4a30"],   // sepia
+    ["#0f1722", "#3a4a5e"]    // slate
+  ];
+  const HUES = ["#c8321e", "#d2691e", "#d9a521", "#3f8f3a", "#1f8a7a", "#2f6fd0", "#7a5ae0", "#c0398f"];
+
+  function App() {
+    const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+    React.useEffect(() => { if (window.applySpotTweaks) window.applySpotTweaks(t); }, [t]);
+    return (
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Selective colour" />
+        <TweakColor label="Keep colour" value={t.keepColor} options={HUES}
+                    onChange={(v) => setTweak('keepColor', v)} />
+        <TweakSlider label="Threshold" value={t.redLo} min={-40} max={130} step={1}
+                     onChange={(v) => setTweak('redLo', v)} />
+        <TweakSlider label="Edge softness" value={t.span} min={10} max={160} step={1}
+                     onChange={(v) => setTweak('span', v)} />
+        <TweakSlider label="Colour pop" value={t.satBoost} min={0} max={1} step={0.05}
+                     onChange={(v) => setTweak('satBoost', v)} />
+
+        <TweakSection label="Dithered ground" />
+        <TweakRadio label="Mode" value={t.groundMode} options={['preset', 'custom']}
+                    onChange={(v) => setTweak('groundMode', v)} />
+        {t.groundMode === 'custom' ? (
+          <>
+            <TweakColor label="Ink (shadows)" value={t.groundInk}
+                        onChange={(v) => setTweak('groundInk', v)} />
+            <TweakColor label="Paper (lights)" value={t.groundPaper}
+                        onChange={(v) => setTweak('groundPaper', v)} />
+          </>
+        ) : (
+          <TweakColor label="Tone" value={t.ground} options={GROUNDS}
+                      onChange={(v) => setTweak('ground', v)} />
+        )}
+        <TweakSlider label="Dot size" value={t.cell} min={2} max={6} step={1} unit="px"
+                     onChange={(v) => setTweak('cell', v)} />
+        <TweakSlider label="Contrast" value={t.contrast} min={0.8} max={1.8} step={0.02}
+                     onChange={(v) => setTweak('contrast', v)} />
+        <TweakSlider label="Brightness" value={t.brightness} min={-0.25} max={0.25} step={0.01}
+                     onChange={(v) => setTweak('brightness', v)} />
+        <TweakSlider label="Shimmer" value={t.boil} min={0} max={0.18} step={0.01}
+                     onChange={(v) => setTweak('boil', v)} />
+
+        <TweakSection label="Hero & type" />
+        <TweakSlider label="Hero height" value={t.heroH} min={60} max={100} step={1} unit="vh"
+                     onChange={(v) => setTweak('heroH', v)} />
+        <TweakSlider label="Focal X" value={t.focalX} min={0} max={100} step={1} unit="%"
+                     onChange={(v) => setTweak('focalX', v)} />
+        <TweakSlider label="Focal Y" value={t.focalY} min={0} max={100} step={1} unit="%"
+                     onChange={(v) => setTweak('focalY', v)} />
+        <TweakText label="Title" value={t.title} onChange={(v) => setTweak('title', v)} />
+        <TweakSlider label="Title X" value={t.titleX} min={0} max={70} step={1} unit="%"
+                     onChange={(v) => setTweak('titleX', v)} />
+        <TweakSlider label="Title Y" value={t.titleY} min={2} max={62} step={1} unit="%"
+                     onChange={(v) => setTweak('titleY', v)} />
+        <TweakRadio label="Title ink" value={t.titleInk} options={['light', 'dark']}
+                    onChange={(v) => setTweak('titleInk', v)} />
+      </TweaksPanel>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('tweak-root')).render(<App />);
+</script>
+</body>
+</html>

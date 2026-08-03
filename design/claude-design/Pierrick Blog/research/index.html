@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>dot·paper — Style Directions</title>
+<title>exhale — Style Directions</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/paper.css">
+<link rel="stylesheet" href="../assets/paper.css">
 <style>
   :root {
     --paper: #e9e4d8;
@@ -40,8 +40,8 @@
 
   /* directions grid */
   .dirs { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 56px; }
-  .card { border: 1px solid var(--line); background: var(--paper); display: flex; flex-direction: column; transition: transform .25s ease, box-shadow .25s ease, border-color .25s; }
-  .card:hover { transform: translateY(-4px); border-color: var(--ink-2); box-shadow: 0 18px 40px rgba(30,26,18,0.10); }
+  .card { border: 1px solid var(--line); background: var(--paper); display: flex; flex-direction: column; transition: transform .25s ease, border-color .25s; }
+  .card:hover { transform: translateY(-4px); border-color: var(--ink-2); }
   .card .chead { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 18px 14px; border-bottom: 1px solid var(--line); }
   .card .chead .lab { font-family: var(--display); font-size: 24px; text-transform: uppercase; letter-spacing: 0.01em; }
   .card .chead .lab .num { color: var(--ink-3); margin-right: 10px; font-size: 0.7em; }
@@ -76,7 +76,7 @@
   <div class="wrap masthead">
     <div class="mast-bar">
       <span>Style Directions · 04</span>
-      <span class="brand"><span class="dot">●</span>paper</span>
+      <span class="brand">exhale</span>
       <span>pierrickbignet.com · 2026</span>
     </div>
 
@@ -129,12 +129,12 @@
 
     <div class="endnote">
       <span>These are <b>directions, not finals</b> — mix and match: V2's serif body in V1's poster, V3's callouts on V4's photos, etc.</span>
-      <span>·<b style="color:#d44a2c">●</b>paper — set in Anton · Archivo · Space Mono · Newsreader</span>
+      <span>exhale — set in Anton · Archivo · Space Mono · Newsreader</span>
     </div>
   </div>
 </div>
 
-<script src="assets/texture.js"></script>
+<script src="../assets/texture.js"></script>
 <script>
   Grain.apply(20);
   Topo.mount(document.getElementById('topo'), { color: 'rgba(40,38,30,0.07)', levels: 15, cell: 26, scale: 0.0020, seed: 31, emphasizeEvery: 5 });

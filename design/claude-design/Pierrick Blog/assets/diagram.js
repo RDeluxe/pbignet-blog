@@ -1,4 +1,4 @@
-/* diagram.js — "dot·paper" diagram language.
+/* diagram.js — "exhale" diagram language.
  * One generator renders the Context Pyramid in four artistic treatments that
  * all share the page palette (paper / ink / fir-green) and the paper+dither
  * motif. The triangle is *constructed on dotted paper*: a faint dot grid sits
@@ -13,7 +13,7 @@
   // ---- palette (from the page, with fallbacks) ----------------------------
   const cs = getComputedStyle(document.documentElement);
   const tok = (n, f) => (cs.getPropertyValue(n).trim() || f);
-  const PAPER = tok('--paper', '#ece6da');
+  const PAPER = tok('--paper', '#f6f5f1');
   const INK = tok('--ink', '#18170f');
   const INK2 = tok('--ink-2', '#4a4636');
   const INK3 = tok('--ink-3', '#8b8672');

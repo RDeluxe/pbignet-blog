@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>dot·paper — NORTHSTAR</title>
+<title>exhale — NORTHSTAR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/paper.css">
 <style>
   :root {
-    --paper: #ece6da;
-    --paper-2: #e3dccd;
+    --paper: #f6f5f1;
+    --paper-2: #edebe4;
     --ink: #18170f;
     --ink-2: #4a4636;
     --ink-3: #8b8672;
@@ -67,8 +67,8 @@
   .toc a .dots { flex: 1; border-bottom: 1px dotted var(--line); transform: translateY(-4px); }
 
   /* ---------- generic grids ---------- */
-  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-  .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; }
   .g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
   .g4 .cell { background: var(--paper); padding: 20px; }
   .g4 .cell .n { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--ink-3); }
@@ -105,14 +105,8 @@
   .spec td:first-child { color: var(--ink); white-space: nowrap; }
   .spec td b { color: var(--accent); }
 
-  /* ---------- demo plate (live component preview) ---------- */
-  .plate { position: relative; border: 1px solid var(--line); padding: 26px 22px; background: var(--paper-2); margin-top: 6px; }
-  .plate::before { content: attr(data-tag); position: absolute; top: 9px; right: 12px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; color: var(--ink-3); text-transform: uppercase; }
-  .corner { position: absolute; width: 12px; height: 12px; border: 1.5px solid var(--ink-2); }
-  .corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
-  .corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
-  .corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
-  .corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+  /* ---------- demo plate — canonical .plate from paper.css ---------- */
+  .plate { margin-top: 6px; }
 
   /* hero anatomy diagram */
   .anatomy { position: relative; border: 1px solid var(--line); background: #2a2620; height: 340px; overflow: hidden; }
@@ -121,14 +115,12 @@
   .anatomy .pin { position: absolute; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; color: #f3ecdb; background: rgba(20,18,12,0.62); padding: 3px 7px; white-space: nowrap; }
   .anatomy .pin::before { content: ""; position: absolute; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
 
-  /* callout boxes */
-  .callout { border: 1px solid var(--line); border-left: none; padding: 18px 20px 18px 22px; position: relative; background: var(--paper); }
-  .callout::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); }
-  .callout.do::before { background: var(--green); }
-  .callout.dont::before { background: var(--red); }
-  .callout h4 { margin: 0 0 10px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+  /* callout — canonical pinned note from paper.css; local: tag colours only */
+  .callout.do::before { color: var(--green); }
+  .callout.dont::before { color: var(--red); }
+  .callout h4 { margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); line-height: 24px; }
   .callout ul { margin: 0; padding-left: 18px; }
-  .callout li { font-family: var(--serif); font-size: 15px; line-height: 1.5; color: var(--ink-2); margin-bottom: 7px; }
+  .callout li { font-family: var(--serif); font-size: 15px; color: var(--ink-2); }
   .callout li b { color: var(--ink); }
 
   /* status sitemap */
@@ -136,7 +128,7 @@
   .map th { text-align: left; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); padding: 0 14px 11px 0; border-bottom: 1.5px solid var(--ink); }
   .map td { font-size: 12.5px; padding: 10px 14px 10px 0; border-bottom: 1px solid var(--line-soft); color: var(--ink-2); }
   .map td:first-child { color: var(--ink); }
-  .badge { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border: 1px solid var(--line); border-radius: 2px; white-space: nowrap; }
+  .badge { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border: 1px solid var(--line); white-space: nowrap; }
   .badge.live { color: var(--green); border-color: color-mix(in srgb, var(--green) 50%, transparent); }
   .badge.todo { color: var(--ink-3); }
   .badge.ref  { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
@@ -177,13 +169,13 @@
     <div class="nsbar">
       <div class="m"><div class="k">Document</div><div class="v">Northstar v1</div></div>
       <div class="m"><div class="k">Project</div><div class="v">Pierrick Blog</div></div>
-      <div class="m"><div class="k">System</div><div class="v">dot·paper</div></div>
+      <div class="m"><div class="k">System</div><div class="v">exhale</div></div>
       <div class="m"><div class="k">Updated</div><div class="v">22.06.26</div></div>
-      <div class="brand"><span class="dot">●</span>paper</div>
+      <div class="brand">exhale</div>
     </div>
 
     <h1 class="cover-title">North<br>star<span class="dot">.</span></h1>
-    <p class="cover-sub">The single source of truth for <b>dot·paper</b> — the retro, paper-pressed visual language of Pierrick Bignet's personal index.</p>
+    <p class="cover-sub">The single source of truth for <b>exhale</b> — the retro, paper-pressed visual language of Pierrick Bignet's personal index.</p>
     <div class="cover-meta">
       <span>SET IN <b>ANTON · ARCHIVO · SPACE MONO · NEWSREADER</b></span>
       <span>PAPER · GRAIN · TOPO · DITHER</span>
@@ -213,16 +205,16 @@
     <div class="sec-no">Section 00</div>
     <h2 class="sec-title">How to use<br>this document</h2>
     <hr class="sec-rule">
-    <p class="sec-intro">This is the <b>northstar</b>: when a new page, asset, or social card is made, it should be checkable against what's written here. It is also a <b>specimen</b> — this very page is built in dot·paper, so what you see is what you get.</p>
+    <p class="sec-intro">This is the <b>northstar</b>: when a new page, asset, or social card is made, it should be checkable against what's written here. It is also a <b>specimen</b> — this very page is built in exhale, so what you see is what you get.</p>
 
     <div class="g3" style="margin-top:30px;">
-      <div class="plate" data-tag="USE 01"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="plate"><span class="ptag">USE 01</span>
         <div class="mono-note"><b>Decide.</b><br>§01–04 set the non-negotiables: direction, color, type. Treat them as fixed unless we deliberately re-open them.</div>
       </div>
-      <div class="plate" data-tag="USE 02"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="plate"><span class="ptag">USE 02</span>
         <div class="mono-note"><b>Build.</b><br>§05–08 + §11 are the recipe: textures, furniture, components, and how to wire a new page from <code>paper.css</code>.</div>
       </div>
-      <div class="plate" data-tag="USE 03"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="plate"><span class="ptag">USE 03</span>
         <div class="mono-note"><b>Check.</b><br>§09 tracks what exists, §10 feeds new ideas, §12 is the do/don't to review against before shipping.</div>
       </div>
     </div>
@@ -244,7 +236,7 @@
       <tr><td>Accent</td><td>Olive green <b>#3D491D</b> — the primary ink (replaces the old RETRO blue).</td></tr>
       <tr><td>Motion</td><td>The <b>home hero</b> bakes its dither to a static PNG (calm + legible + clean in PDF). Animated dither is welcome <b>purposefully elsewhere</b> — see §05.</td></tr>
     </table>
-    <p class="mono-note" style="margin-top:16px;">REFERENCE FILE → <code>RETRO Home v2.html</code> &nbsp;·&nbsp; this is the treatment to extend, not replace.</p>
+    <p class="mono-note" style="margin-top:16px;">REFERENCE FILE → <code>01_Home.html</code> &nbsp;·&nbsp; this is the treatment to extend, not replace.</p>
   </section>
 
   <!-- ===================== 02 BRAND & VOICE ===================== -->
@@ -256,10 +248,10 @@
     <div class="g2" style="margin-top:30px; align-items:start;">
       <div>
         <h3 class="blk">The mark</h3>
-        <div class="plate" data-tag="LOGOTYPE" style="text-align:center; padding:40px 22px;"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-          <div style="font-family:var(--display); font-size:64px; line-height:1;"><span style="color:var(--accent);">●</span>paper</div>
+        <div class="plate plain" style="text-align:center; padding:40px 22px;"><span class="ptag">LOGOTYPE</span>
+          <div style="font-family:var(--display); font-size:64px; line-height:1;">exhale</div>
         </div>
-        <p class="mono-note" style="margin-top:14px;">The written system name is <b>dot·paper</b>; the logotype is the word <b>paper</b> led by a single printed dot <b>●</b>. The dot always carries the page's accent ink — here, olive. Lowercase, no space. Pair with the full name <code>Pierrick Bignet</code> in mono when context needs it.</p>
+        <p class="mono-note" style="margin-top:14px;">The system name is <b>exhale</b>, set in plain display type. There is <b>no logotype yet</b> — a mark may be designed later; until then, the name is written as text only.</p>
       </div>
       <div>
         <h3 class="blk">Voice</h3>
@@ -282,8 +274,8 @@
 
     <h3 class="blk">Core — fixed across every page</h3>
     <div class="swatches">
-      <div class="sw-tall"><div class="chip" style="background:#ece6da;"></div><div class="meta"><div class="nm">Paper</div><div class="hex">#ECE6DA</div><div class="use">Page surface. Warm off-white stock.</div></div></div>
-      <div class="sw-tall"><div class="chip" style="background:#e3dccd;"></div><div class="meta"><div class="nm">Paper 2</div><div class="hex">#E3DCCD</div><div class="use">Recessed panels, hover fills.</div></div></div>
+      <div class="sw-tall"><div class="chip" style="background:#f6f5f1;"></div><div class="meta"><div class="nm">Paper</div><div class="hex">#F6F5F1</div><div class="use">Page surface. Blanc cassé stock.</div></div></div>
+      <div class="sw-tall"><div class="chip" style="background:#edebe4;"></div><div class="meta"><div class="nm">Paper 2</div><div class="hex">#EDEBE4</div><div class="use">Recessed panels, hover fills.</div></div></div>
       <div class="sw-tall"><div class="chip" style="background:#18170f;"></div><div class="meta"><div class="nm">Ink</div><div class="hex">#18170F</div><div class="use">Primary text, rules, display.</div></div></div>
       <div class="sw-tall"><div class="chip" style="background:#4a4636;"></div><div class="meta"><div class="nm">Ink 2</div><div class="hex">#4A4636</div><div class="use">Body / secondary text.</div></div></div>
       <div class="sw-tall"><div class="chip" style="background:#8b8672;"></div><div class="meta"><div class="nm">Ink 3</div><div class="hex">#8B8672</div><div class="use">Mono labels, captions, hints.</div></div></div>
@@ -296,7 +288,7 @@
       <div class="sw-tall"><div class="chip" style="background:#9a7838;"></div><div class="meta"><div class="nm">Contour sepia</div><div class="hex">#9A7838</div><div class="use">Editorial / essays, for section variety.</div></div></div>
       <div class="sw-tall"><div class="chip" style="background:#d44a2c;"></div><div class="meta"><div class="nm">Riso red</div><div class="hex">#D44A2C</div><div class="use">Art covers / photo, used sparingly.</div></div></div>
     </div>
-    <div class="callout" style="margin-top:22px;">
+    <div class="callout" data-tag="N.B." style="margin-top:22px;">
       <h4>The one rule</h4>
       <p class="body" style="margin:0;">Each page picks <b>one ink</b> for its <b>furniture and type</b> and rides it everywhere — the dot in the mark, links, the topo tint (<code>--topo</code> ≈ accent @ 6–7%), tags, hover, accents. <b>Olive is the default</b> (home); <b>sepia</b> carries essays and articles. Lime is a <b>highlight only</b>, never body or links. The furniture/type ink is <b>never blue</b>, and there are <b>never two accents</b> on one page.</p>
       <p class="body" style="margin:14px 0 0;">One exemption: the <b>photographic dither tone</b> is not bound by this rule. It can be <b>keyed to each image</b> — a coastal frame with a blue sky may be dithered in a marine duotone on a sepia-ink article, and that is intended, not a slip. The discipline lives in the <b>furniture and type</b>; the <b>photo is allowed to speak its own colour</b>.</p>
@@ -360,7 +352,7 @@
       <tr><td><b>photo()</b></td><td>Dithers a filled <code>image-slot</code> / <code>img.dsrc</code>. Optional <code>boil</code> flips near-threshold dots. <b>Home hero → bake to static PNG.</b> Articles &amp; data-viz → a gentle live boil is welcome when it carries meaning.</td></tr>
     </table>
     <p class="mono-note" style="margin-top:14px;">DITHERED ASSETS LIVE IN <code>assets/photos/*-dither.png</code> / <code>*-cdither.png</code> (colour). The hero uses <code>arc-cdither.png</code>.</p>
-    <div class="callout" style="margin-top:20px;">
+    <div class="callout" data-tag="N.B." style="margin-top:20px;">
       <h4>On animating the dither</h4>
       <p class="body" style="margin:0;">There's no blanket ban. The <b>home hero</b> stays static for three reasons: a boiling headline fights legibility, calm is the brand, and PDF/print only capture the pre-animation frame. <b>Elsewhere it's encouraged</b> — a slow boil on an article photo or a live <code>ambient()</code> field behind a data-viz can be lovely. The rule is <b>purpose + restraint</b>: animate when it means something, keep it slow, and always honour <code>prefers-reduced-motion</code> (the engine already freezes there).</p>
     </div>
@@ -374,15 +366,15 @@
     <p class="sec-intro">The small instrument details that sell the "printed sheet". Reach for these to add rhythm — but <b>scarcely</b>; they're seasoning, not structure.</p>
 
     <div class="g3" style="margin-top:30px;">
-      <div class="plate" data-tag="REG MARKS" style="min-height:120px;"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-        <div class="mono-note"><b>Registration marks</b> — the four <code>+</code> crosses pinned to page corners (and corner ticks on plates/frames like this one). Pure print furniture.</div>
+      <div class="plate" style="min-height:120px;"><span class="ptag">REG MARKS</span>
+        <div class="mono-note"><b>Registration marks</b> — the four <code>+</code> crosses pinned to page corners. On boxes, crosses appear only as the <b>tile hover signal</b>; static plates frame with the grille empruntée instead.</div>
       </div>
-      <div class="plate" data-tag="BARCODE"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="plate plain"><span class="ptag">BARCODE</span>
         <div class="barcode" style="--ink:var(--ink);"></div>
         <div class="barcode-num">PB · 2026 · 45.76N 4.83E · ∞</div>
         <div class="mono-note" style="margin-top:12px;"><b>Barcode</b> — CSS gradient bars + a mono ident line. Footer / hero corner.</div>
       </div>
-      <div class="plate" data-tag="INDEX №"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="plate plain"><span class="ptag">INDEX №</span>
         <div style="font-family:var(--mono); font-size:13px; color:var(--ink-3); letter-spacing:0.1em;">№ 014&nbsp;&nbsp;·&nbsp;&nbsp;.049&nbsp;&nbsp;·&nbsp;&nbsp;003</div>
         <div class="mono-note" style="margin-top:12px;"><b>Index numbers</b> — top-right of features &amp; cards. Editions, issues, sequence. <code>01 / .049 / 003</code></div>
       </div>
@@ -398,7 +390,7 @@
       <tr><td>Crop crosses / grid</td><td>Graph-paper bg + small <code>+</code> ticks for cut-out subjects.</td></tr>
       <tr><td>Ghost numerals</td><td>Oversized faded index digit behind text blocks.</td></tr>
     </table>
-    <div class="callout" style="margin-top:22px;">
+    <div class="callout" data-tag="N.B." style="margin-top:22px;">
       <h4>Use with intent</h4>
       <p class="body" style="margin:0;">Furniture is <b>punctuation, not wallpaper</b>. A <b>barcode belongs once</b> — at the foot of a page or publication — never stamped on every image or card. <b>Registration marks</b> pin the <b>page</b> corners (and the odd framed plate), not every element. If a mark isn't doing a job, cut it.</p>
     </div>
@@ -411,35 +403,58 @@
     <hr class="sec-rule">
     <p class="sec-intro">The reusable blocks, all defined in <code>paper.css</code> and shared across pages. Live specimens below — these are the real classes.</p>
 
+    <h3 class="blk">Plate — <code>.plate</code> (grille empruntée)</h3>
+    <div class="plate"><span class="ptag">PLATE</span>
+      <p class="body" style="margin:0; max-width:64ch;">The static presentation box. The frame is <b>four grid lines that darken and run past the corners</b> (#) — drawn on the sheet, not laid over it — with an ultra-light grid whose cell = the body line-height (24&nbsp;px), so text sits ON the squares (this very box). <b>The grid is earned</b>: keep it only when the content holds the rhythm — text, and blocks whose heights &amp; vertical margins are multiples of the cell. Anything free-height (barcodes, logos, arbitrary demos) uses <code>plain</code>; diagram.js plates too (they draw their own dots); <code>recessed</code> = paper-2 panel for busy surroundings. Chart bars get <b>solid paper tracks</b>. Never float a photo inside a plate.</p>
+    </div>
+
     <h3 class="blk">Section header — <code>.shead</code></h3>
-    <div class="plate" data-tag="SHEAD"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+    <div class="plate plain"><span class="ptag">SHEAD</span>
       <div class="shead"><h2 style="font-family:var(--display);font-weight:400;font-size:40px;line-height:0.94;text-transform:uppercase;margin:0;">Writing</h2><div style="font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:0.1em;">[ OPINIONS · NOTES · 04 RECENT ]</div></div>
     </div>
 
     <h3 class="blk">Writing index row — <code>.post</code></h3>
-    <div class="plate" data-tag="POST"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+    <div class="plate plain"><span class="ptag">POST</span>
       <a class="post" href="#" style="border-top:none;"><span class="idx">001</span><span><span class="tag tag-accent">Essay</span><div class="ptitle">On taste as a competitive advantage</div><div class="pdesc">Why the companies that win on craft are usually the ones who couldn't articulate why craft mattered — until it did.</div></span><span class="pmeta">8 MIN<br>MAY 2026</span></a>
     </div>
 
-    <h3 class="blk">Collection cards — <code>.coll</code> in a 3-up grid</h3>
-    <div class="plate" data-tag="COLL"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);">
-        <div class="coll" style="background:var(--paper);"><span class="tag tag-accent">Guide</span><h3>The Studio Operating Manual</h3><p>Everything I wish I'd known about running a humane software studio.</p><span class="coll-foot">14 CHAPTERS →</span></div>
-        <div class="coll" style="background:var(--paper);"><span class="tag">Guide</span><h3>Field Notes on Game Direction</h3><p>Pillars, vibe, scope, and the art of saying no.</p><span class="coll-foot">09 ENTRIES →</span></div>
-        <div class="coll" style="background:var(--paper);"><span class="tag">Guide</span><h3>A Photographer's Notebook</h3><p>Light, film stocks, scanning, the dithering pipeline.</p><span class="coll-foot">07 ENTRIES →</span></div>
+    <h3 class="blk">Collection cards — <code>.coll</code> in a 3-up grid (hover: crosses + paper-2)</h3>
+    <div class="plate plain"><span class="ptag">COLL</span>
+      <div class="coll-grid">
+        <div class="coll"><span class="tag tag-accent">Guide</span><h3>The Studio Operating Manual</h3><p>Everything I wish I'd known about running a humane software studio.</p><span class="coll-foot">14 CHAPTERS →</span></div>
+        <div class="coll"><span class="tag">Guide</span><h3>Field Notes on Game Direction</h3><p>Pillars, vibe, scope, and the art of saying no.</p><span class="coll-foot">09 ENTRIES →</span></div>
+        <div class="coll"><span class="tag">Guide</span><h3>A Photographer's Notebook</h3><p>Light, film stocks, scanning, the dithering pipeline.</p><span class="coll-foot">07 ENTRIES →</span></div>
+      </div>
+    </div>
+
+    <h3 class="blk">Buttons — <code>.btn</code> (trame au survol)</h3>
+    <div class="plate plain"><span class="ptag">BTN</span>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;">
+        <button class="btn" type="button">Lire l'article →</button>
+        <button class="btn accent" type="button">Rejouer ▶</button>
+        <button class="btn invert" type="button">Mode inversion</button>
+      </div>
+      <div class="mono-note" style="margin-top:14px;">DEFAULT HOVER → a very light <b>animated dither</b> rises in the fill (ink or accent trame, steps-boil, reduced-motion safe). <code>.invert</code> is the secondary mode — solid ink inversion — for select emphatic buttons.</div>
+    </div>
+
+    <h3 class="blk">Callout — <code>.callout</code> (pinned note)</h3>
+    <div class="plate plain"><span class="ptag">CALLOUT</span>
+      <div class="callout" data-tag="N.B.">
+        <h4>Anatomy</h4>
+        <p class="body" style="margin:0;">Hairline box · faint dot grid clipped off the border, pitch = line-height so text sits on the dots · mono tag breaking the top rule · two 1px crosses (tl + br). No accent bar, ever.</p>
       </div>
     </div>
 
     <h3 class="blk">Tags · barcode · gear — supporting bits</h3>
     <div class="g3">
-      <div class="plate" data-tag="TAGS"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="plate plain"><span class="ptag">TAGS</span>
         <div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="tag tag-accent">Essay</span><span class="tag">Note</span><span class="tag">Guide</span></div>
         <div class="mono-note" style="margin-top:12px;">Mono caps, 1px border. <code>.tag-accent</code> borrows the page ink.</div>
       </div>
-      <div class="plate" data-tag="GEAR"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="plate plain"><span class="ptag">GEAR</span>
         <div style="border:1px solid var(--line);padding:16px;"><div style="font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:0.12em;">SET·02</div><div style="font-family:var(--sans);font-weight:800;font-size:17px;margin-top:8px;">Camera Bag</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:6px;">Contax T2 · X100V</div></div>
       </div>
-      <div class="plate" data-tag="PHOTO TILE"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="plate plain"><span class="ptag">PHOTO TILE</span>
         <div style="position:relative;height:96px;background:linear-gradient(135deg,#3a4a6a,#7a5a48);border:1px solid var(--line);overflow:hidden;"><div style="position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#f0e9d8;background:linear-gradient(transparent,rgba(20,18,12,0.7));padding:18px 10px 7px;"><span>Miyajima</span><span>№014</span></div></div>
       </div>
     </div>
@@ -465,7 +480,11 @@
     <p class="body" style="margin-top:16px;">The photo plane is clipped at the headline's baseline; the <b>same image fills the letterforms</b> above via <code>background-clip:text</code>, aligned by JS so it reads as one continuous picture. White overlay text gets a soft shadow for legibility. <b>This move repeats</b> at smaller scale in <code>.feature</code> blocks (a single lowercase word over a dithered photo).</p>
 
     <h3 class="blk">Article hero — art-directed per image</h3>
-    <p class="body">The home rides the photo-through-type move; the <b>article hero is the type-on-photo variant</b>, and it is <b>composed image by image</b>, not from a fixed template:</p>
+    <p class="body">The home rides the photo-through-type move; the <b>article hero is the type-on-photo variant</b>, and it is <b>composed image by image</b>, not from a fixed template. Heroes are <b>named, standardised moves</b> — pick one per page:</p>
+    <table class="spec">
+      <tr><td><code>simple-dither</code></td><td>Full-bleed photo; the top dissolves into an animated duotone dither + contours. Parameters: <code>--post-hero-h</code> (height), <code>--dither-line</code> (how far the dissolve reaches down from the top), duotone ink/paper keyed per image.</td></tr>
+      <tr><td><code>pop-color</code></td><td>Selective colour: one hue is kept true (the subject), everything else dithers into a dark duotone ground. Parameters: keep colour, threshold, edge softness, colour pop, ground ink/paper, focal X/Y, title X/Y. More heroes will join this family.</td></tr>
+    </table>
     <table class="spec">
       <tr><td>Dither tone</td><td><b>Keyed to the photograph</b> (the colour exemption above) — a marine duotone for a blue-sky coast, a warm one for low light. Tuned per frame, not locked to the page's ink.</td></tr>
       <tr><td>Title placement</td><td>Set <b>by hand per image</b> into the open negative space, with a <b>distinct mobile placement</b> so it never collides with the subject when the layout reflows.</td></tr>
@@ -475,7 +494,7 @@
 
     <h3 class="blk">Vertical rhythm</h3>
     <table class="spec">
-      <tr><td>1 · Metabar</td><td>5-column mono data strip + <b>●</b>paper mark, under a 2px ink rule.</td></tr>
+      <tr><td>1 · Metabar</td><td>5-column mono data strip + exhale mark, under a 2px ink rule.</td></tr>
       <tr><td>2 · Nav</td><td>Mono links, hairline rule, right-aligned About / Travel.</td></tr>
       <tr><td>3 · Hero</td><td>The photo-through-type move. ~82vh, capped 760px.</td></tr>
       <tr><td>4 · Sections</td><td><code>.shead</code> + lead serif + content. Spaced <code>clamp(64px,8vw,110px)</code> apart.</td></tr>
@@ -495,11 +514,11 @@
     <h3 class="blk">Built</h3>
     <table class="map">
       <tr><th>Page / file</th><th>Role</th><th>Status</th></tr>
-      <tr><td>RETRO Home v2.html</td><td>Home — locked hero treatment</td><td><span class="badge live">Locked</span></td></tr>
-      <tr><td>index.html</td><td>Style-directions chooser (4 dirs)</td><td><span class="badge ref">Reference</span></td></tr>
-      <tr><td>01 Field Notes · 02 Topographic · 03 Spec Sheet · 04 Riso</td><td>Direction explorations</td><td><span class="badge ref">Reference</span></td></tr>
-      <tr><td>Bold Studies.html</td><td>Round-2 effect studies</td><td><span class="badge ref">Reference</span></td></tr>
+      <tr><td>01_Home.html</td><td>Home — locked hero treatment</td><td><span class="badge live">Locked</span></td></tr>
+      <tr><td>02_Article.html</td><td>Long-form article template</td><td><span class="badge live">Live</span></td></tr>
+      <tr><td>Pâte graphique · — animation</td><td>House diagram language (+ animated reveal)</td><td><span class="badge live">Live</span></td></tr>
       <tr><td>Pâte graphique — carré LinkedIn / tokens</td><td>Social cards (1080²) in-system</td><td><span class="badge live">Shipped</span></td></tr>
+      <tr><td>research/</td><td>Directions 01–04 + index · Bold Studies · Article studies · benches (Boxes, Pâte graphique)</td><td><span class="badge ref">Reference</span></td></tr>
     </table>
 
     <h3 class="blk">To build</h3>
@@ -518,7 +537,7 @@
     <div class="sec-no">Section 10</div>
     <h2 class="sec-title">Inspiration motifs</h2>
     <hr class="sec-rule">
-    <p class="sec-intro">The reference library in <code>uploads/</code>, distilled into <b>reusable moves</b>. Pull from these when an inner page needs a fresh idea — but always render it in dot·paper's palette + furniture.</p>
+    <p class="sec-intro">The reference library in <code>uploads/</code>, distilled into <b>reusable moves</b>. Pull from these when an inner page needs a fresh idea — but always render it in exhale's palette + furniture.</p>
 
     <div class="g2" style="margin-top:30px;align-items:start;">
       <div>
@@ -599,7 +618,7 @@
     <p class="sec-intro">The review checklist. Before anything ships, it should pass both columns.</p>
 
     <div class="g2" style="margin-top:30px;align-items:start;">
-      <div class="callout do">
+      <div class="callout do" data-tag="DO">
         <h4>✓ Do</h4>
         <ul>
           <li>Keep the <b>warm-paper base</b> + grain + faint topo on every page.</li>
@@ -608,14 +627,16 @@
           <li>Add furniture (reg marks, barcode, index №) as <b>sparse, purposeful seasoning</b>.</li>
           <li>Bake the <b>home hero</b> dither to PNG; animate dither elsewhere only with purpose + reduced-motion.</li>
           <li>Set generous <b>negative space</b> — the calm is the point.</li>
+          <li>Think in <b>components &amp; systems</b>, not pages — every new element is designed as a reusable part of the kit, never a one-off.</li>
         </ul>
       </div>
-      <div class="callout dont">
+      <div class="callout dont" data-tag="DON'T">
         <h4>✕ Don't</h4>
         <ul>
           <li><b>No blue.</b> One accent per page; no rainbow gradients.</li>
           <li>No emoji, no exclamation-y marketing voice.</li>
-          <li>No rounded-corner "card with left accent bar" web tropes.</li>
+          <li>No rounded-corner "card with left accent bar" web tropes — the callout is a <b>pinned note</b>, the plate a <b>grille empruntée</b>.</li>
+          <li>No ⌐ corner ticks on boxes — retired. Corner crosses exist only as the <b>tile hover</b> signal.</li>
           <li>Don't let display type carry <b>body copy</b> — that's serif's job.</li>
           <li>No blinking dither <b>on the home hero</b>; no purely decorative infinite loops.</li>
           <li>No barcode / reg-mark on <b>every element</b> — once, with purpose.</li>
@@ -626,7 +647,7 @@
   </section>
 
   <div class="endmark">
-    <span><span class="dot">●</span>paper — <b>NORTHSTAR v1</b> · the personal index of Pierrick Bignet</span>
+    <span>exhale — <b>NORTHSTAR v1</b> · the personal index of Pierrick Bignet</span>
     <span>SET IN ANTON · ARCHIVO · SPACE MONO · NEWSREADER</span>
   </div>
 

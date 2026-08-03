@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>dot·paper — Bold Studies</title>
+<title>exhale — Bold Studies</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/paper.css">
+<link rel="stylesheet" href="../assets/paper.css">
 <style>
   body { background: #161512; color: #e7e2d6; }
   .wall { max-width: 1280px; margin: 0 auto; padding: 56px 28px 120px; position: relative; z-index: 2; }
@@ -73,7 +73,7 @@
     position: relative;
     font-family: 'Anton', sans-serif; text-transform: uppercase;
     font-size: clamp(70px, 15vw, 232px); line-height: 0.78; letter-spacing: -0.005em;
-    background-image: url('assets/photos/04-dither.png');
+    background-image: url('../assets/photos/04-dither.png');
     background-size: 165% auto; background-position: 50% 62%;
     -webkit-background-clip: text; background-clip: text;
     color: transparent; -webkit-text-fill-color: transparent;
@@ -109,7 +109,7 @@
       <span class="cap">sky dissolves into 1-bit dither + contours · title sits in the negative space, multiply-blended onto the mountain</span>
     </figcaption>
     <div class="study st01">
-      <img class="dsrc" src="assets/photos/01.jpg" alt="Mount Fuji at dusk">
+      <img class="dsrc" src="../assets/photos/01.jpg" alt="Mount Fuji at dusk">
       <canvas class="dither-canvas"></canvas>
       <canvas class="topo-on" id="topo01"></canvas>
       <div class="grain-on"></div>
@@ -130,7 +130,7 @@
       <span class="cap">whole frame dithered into a two-ink riso (red + slate) · heavy lowercase type in the water, misregistered</span>
     </figcaption>
     <div class="study st02">
-      <img class="dsrc" src="assets/photos/02.jpg" alt="Itsukushima torii gate">
+      <img class="dsrc" src="../assets/photos/02.jpg" alt="Itsukushima torii gate">
       <canvas class="dither-canvas"></canvas>
       <div class="grain-on"></div>
       <div class="kicker02"><span>itsukushima · miyajima</span><span>vol. ∞ — 2026 edition</span></div>
@@ -147,7 +147,7 @@
       <span class="cap">portrait frame fully dithered · stacked display type, outline + solid, difference-blended labels and kanji</span>
     </figcaption>
     <div class="study st03">
-      <img class="dsrc" src="assets/photos/03.jpg" alt="Tokyo backstreet with cherry blossom">
+      <img class="dsrc" src="../assets/photos/03.jpg" alt="Tokyo backstreet with cherry blossom">
       <canvas class="dither-canvas"></canvas>
       <div class="grain-on"></div>
       <div class="top03"><span>location · tokyo</span><span>04 / 2026</span></div>
@@ -170,13 +170,13 @@
       <div class="label04 l-tl">PHOTO-ESSAY №04</div>
       <div class="label04 l-tr">FUJI · CHURETO PAGODA<br>35.40N 138.80E</div>
       <div class="label04 l-bl">The photograph is the fill of the type — dithered, clipped, and set on bare paper. ⓒ manuel cosentino.</div>
-      <div class="inset04"><img class="dsrc" src="assets/photos/04.jpg" alt="Chureito pagoda and Fuji"><canvas class="dither-canvas"></canvas></div>
+      <div class="inset04"><img class="dsrc" src="../assets/photos/04.jpg" alt="Chureito pagoda and Fuji"><canvas class="dither-canvas"></canvas></div>
     </div>
   </figure>
 </div>
 
-<script src="assets/texture.js"></script>
-<script src="assets/dither.js"></script>
+<script src="../assets/texture.js"></script>
+<script src="../assets/dither.js"></script>
 <script>
   Grain.apply(20);
   // STUDY 01 — B&W dither of the sky region; contours over sky

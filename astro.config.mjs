@@ -5,7 +5,7 @@ import svelte from '@astrojs/svelte'
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
-  site: 'https://pierrickbignet.com',
+  site: 'https://exhale.blog',
   integrations: [
     markdoc(),
     sitemap(),
