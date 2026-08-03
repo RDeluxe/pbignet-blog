@@ -1,0 +1,60 @@
+---
+/**
+ * L'index des écrits — la liste complète de la collection `writing`, du plus récent au plus
+ * ancien. La home n'en montre que les quatre premiers ; cette page est la même ligne
+ * (`PostRow`), sans coupe.
+ *
+ * Le gold ne spécifie pas de page d'index dédiée (`Design Notes.md` la liste seulement dans
+ * « next pages »). On reprend donc à l'identique le registre de la section Writing de
+ * `01_Home.html` — même en-tête, même lede, même ligne — plutôt que d'inventer une
+ * direction. L'encre reste l'olive par défaut : sépia est réservé aux articles.
+ */
+import { getCollection } from 'astro:content'
+import MainNav from '../../components/MainNav.astro'
+import Metabar from '../../components/Metabar.astro'
+import PostRow from '../../components/PostRow.astro'
+import Lede from '../../components/primitives/Lede.astro'
+import Section from '../../components/primitives/Section.astro'
+import Stack from '../../components/primitives/Stack.astro'
+import SectionHead from '../../components/SectionHead.astro'
+import SiteFooter from '../../components/SiteFooter.astro'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+
+const posts = (await getCollection('writing'))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+---
+
+<BaseLayout
+  title="Writing — exhale"
+  description="Short essays and unfiled opinions: taste, building things, and the gap between."
+>
+  <Section as="header" rhythm="none">
+    <Metabar />
+    <MainNav currentPath="/writing" />
+  </Section>
+
+  <main>
+    <Section>
+      <SectionHead title="Writing" meta="[ OPINIONS · NOTES ]" />
+      <Lede measure="tight">
+        Short essays and unfiled opinions: taste, building things, and the gap between.
+      </Lede>
+      <Stack spaced>
+        {posts.map((post, i) => (
+          <PostRow
+            index={String(i + 1).padStart(3, '0')}
+            tag={post.data.tag}
+            tagAccent={post.data.tag === 'Essay'}
+            title={post.data.title}
+            description={post.data.description}
+            readTime={post.data.readTime}
+            pubDate={post.data.pubDate}
+            href={`/writing/${post.id}`}
+          />
+        ))}
+      </Stack>
+    </Section>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>

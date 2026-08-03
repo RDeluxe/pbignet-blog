@@ -1,0 +1,114 @@
+---
+/**
+ * Callout — la note épinglée du corps de texte.
+ *
+ * C'est la variante **E1** du banc `research/Boxes - banc d'essai.html`, tranchée dans
+ * `Design Notes.md` (« Box audit — July 2026 », DECIDED final) : boîte en filet, **deux
+ * croix de repérage** (haut-gauche + bas-droite), points estompés au pas de 16px, et une
+ * **étiquette mono qui casse le filet du haut** — comme une note punaisée sur une épreuve.
+ *
+ * ⚠️ **Aucune barre d'accent à gauche, jamais.** C'est l'interdit de marque le plus net
+ * (« No left accent bar anywhere ») : le gold portait 4px dans le NORTHSTAR et 3px dans
+ * `.method-note` de l'article, et c'était le P2 de la critique Impeccable — le liseré
+ * gauche est le tell IA le plus reconnaissable. `PullQuote` a été tranché de la même façon.
+ *
+ * Le tag et les croix sont tracés en CSS (gradients + pseudo-éléments) : aucune image, donc
+ * ils suivent l'encre de la page.
+ */
+interface Props {
+  /** l'étiquette mono qui casse le filet du haut */
+  tag?: string
+  /** titre de la note (facultatif — une note peut n'être qu'un paragraphe) */
+  title?: string
+  /** niveau du titre, à accorder à la hiérarchie de la page qui l'accueille */
+  titleAs?: 'h2' | 'h3' | 'h4'
+  as?: 'aside' | 'div'
+}
+
+const { tag = 'N.B.', title, titleAs: Title = 'h4', as: Tag = 'aside' } = Astro.props
+---
+
+<Tag class="callout">
+  <span class="nb">{tag}</span>
+  {title && <Title class="ct">{title}</Title>}
+  <div class="cbody"><slot /></div>
+</Tag>
+
+<style>
+  .callout {
+    /* Valeurs du banc (E1 : `.co` + `.co-e1` + `.fill-dots-soft` + `.cx`), absentes de
+     * `tokens/` — un seul endroit, à remonter en tokens.
+     */
+    --cross-offset: calc(-1 * var(--cross-out));
+
+    position: relative;
+    /* TODO token: pas d'espacement 18px/20px dans --space-* — valeurs du banc (`.co`) */
+    padding: 18px 20px;
+    border: 1px solid var(--line);
+
+    /* points estompés, décalés d'un demi-pas pour que la trame ne touche pas le filet */
+    background-color: var(--paper);
+    background-image: radial-gradient(var(--dot-ink) 1px, transparent 1.4px);
+    background-size: var(--dot-step) var(--dot-step);
+    background-position: calc(var(--dot-step) / 2) calc(var(--dot-step) / 2);
+  }
+
+  /* les deux croix : un seul pseudo-élément chacune, la croix étant faite de deux
+   * gradients (une barre verticale + une barre horizontale) centrés dans le carré.
+   */
+  .callout::before,
+  .callout::after {
+    content: '';
+    position: absolute;
+    width: var(--cross-size);
+    height: var(--cross-size);
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--ink-2) 0 0),
+      linear-gradient(var(--ink-2) 0 0);
+    background-size: 1px 100%, 100% 1px;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+  .callout::before { top: var(--cross-offset); left: var(--cross-offset); }
+  .callout::after { right: var(--cross-offset); bottom: var(--cross-offset); }
+
+  /* l'étiquette casse le filet du haut : elle chevauche la bordure et masque le trait
+   * avec le fond du papier. `background` opaque obligatoire, sinon le filet la traverse.
+   */
+  .nb {
+    position: absolute;
+    top: -8px;
+    left: 14px;
+    padding: 0 7px;
+    background: var(--paper);
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    letter-spacing: var(--tr-tag);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .ct {
+    margin: 0 0 8px;
+    font-family: var(--sans);
+    font-weight: var(--w-bold);
+    font-size: 15px; /* TODO token: --fs-callout-title (15px, absent de type.css) */
+  }
+
+  /* Le slot reçoit du **texte courant** (le banc n'y met qu'un paragraphe). Les marges d'un
+   * `<p>` passé par l'appelant ne sont pas atteignables d'ici sans `:global()`, qui est un
+   * aveu (PIPELINE §4.3) : la note porte sa typographie, pas la mise en page d'un corps.
+   */
+  .cbody {
+    font-family: var(--serif);
+    /* TODO token: 14.5px (banc) — entre --fs-body-xs (14px) et --fs-body-sm (15px) */
+    font-size: 14.5px;
+    line-height: var(--lh-body-tight);
+    color: var(--ink-2);
+  }
+
+  /* Aucune transition ni animation dans ce composant (la note est statique par contrat),
+   * donc rien à couper pour `prefers-reduced-motion` — `base.css` couvre le reste du site.
+   */
+</style>

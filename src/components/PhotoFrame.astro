@@ -22,7 +22,7 @@ const { src, alt, caption, number, ratio = 'tall' } = Astro.props
   .pframe {
     position: relative;
     overflow: hidden;
-    background: #2a2620;
+    background: var(--photo-ground);
     border: 1px solid var(--line);
   }
   .pframe.tall { aspect-ratio: 3 / 4; }
@@ -42,11 +42,14 @@ const { src, alt, caption, number, ratio = 'tall' } = Astro.props
     display: flex;
     justify-content: space-between;
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: var(--fs-tag);
+    /* TODO token: 0.08em → --tr-… ? (absent de l'échelle ; déjà en dur dans CollCard) */
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #f0e9d8;
-    background: linear-gradient(transparent, rgba(20, 18, 12, 0.7));
-    padding: 18px 10px 8px;
+    color: var(--cover-ink-light);
+    background: linear-gradient(transparent, rgba(var(--photo-scrim-rgb), 0.7));
+    /* TODO token: 18px (= --space-head, réservé aux en-têtes) et 8px absents de l'échelle
+       générique — seul le 10px latéral est tokenisé */
+    padding: 18px var(--space-sm) 8px;
   }
 </style>

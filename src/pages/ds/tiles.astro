@@ -1,0 +1,126 @@
+---
+/**
+ * Preview des tiles — le contrat D2 de l'audit des boîtes (Design Notes, juillet 2026).
+ * Ces pages `ds/` servent à valider un composant et deviendront les `*.card.html`
+ * poussées vers le projet Design System (cf. PIPELINE §6). Elles sont `noindex`.
+ *
+ * À juger ici : la tile est NUE au repos, et le survol comme le focus clavier font
+ * apparaître les quatre croix d'angle + la bordure encre + le fond paper-2.
+ */
+import CollCard from '../../components/CollCard.astro'
+import GearCard from '../../components/GearCard.astro'
+import Grid from '../../components/primitives/Grid.astro'
+import Section from '../../components/primitives/Section.astro'
+import MonoLabel from '../../components/print/MonoLabel.astro'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+---
+
+<BaseLayout title="Tiles (D2) — exhale DS" noindex>
+  <Section as="header" rhythm="none">
+    <MonoLabel>DS · Box · Tile D2</MonoLabel>
+  </Section>
+
+  <Section rhythm="none">
+    <MonoLabel tone="quiet">
+      Contrat D2 (Design Notes, « Box audit — July 2026 ») : nue au repos (bordure filet
+      d'1px) → croix d'angle d'1px + bordure encre + fond paper-2 au survol. Les coins
+      sont le signal de regard. Un seul état, atteint aussi bien à la souris qu'au clavier
+      (Tab) : les croix apparaissent au `:focus-visible`.
+    </MonoLabel>
+  </Section>
+
+  <!-- 1. la tile qui porte son propre cadre : le cas par défaut, dans une grille à
+       gouttière (12px) où les croix tombent dans la gouttière. -->
+  <Section>
+    <Grid cols={3}>
+      <CollCard
+        tag="Guide"
+        tagAccent
+        title="Dithering by hand"
+        description="Bayer 4×4, seuils, et pourquoi un PNG dithéré ne se recompresse jamais."
+        footer="06 chapitres"
+        href="#tile-rest"
+      />
+      <CollCard
+        tag="Note"
+        title="Papier chaud"
+        description="Le grain, le topo et la raison pour laquelle un fond crème nu ne tient pas."
+        footer="04 chapitres"
+        href="#tile-rest"
+      />
+      <CollCard
+        tag="Essay"
+        title="One ink per page"
+        description="Le mobilier et le type suivent l'encre de la page ; le dither photo, non."
+        footer="03 chapitres"
+        href="#tile-rest"
+      />
+    </Grid>
+  </Section>
+
+  <Section rhythm="none">
+    <MonoLabel tone="quiet">
+      01 — Tile au repos, cadre propre (`bordered` par défaut). Croix centrées sur
+      l'angle, donc débordant de 9px dans la gouttière.
+    </MonoLabel>
+  </Section>
+
+  <!-- 2. la même tile dans une grille filet : elle renonce à sa bordure, garde un fond
+       opaque pour masquer le filet, et rentre ses croix pour ne pas écrire sur la
+       cellule voisine (la gouttière n'y fait qu'1px). -->
+  <Section>
+    <Grid cols={3} gap="hairline">
+      <CollCard
+        tag="Guide"
+        tagAccent
+        title="Grille filet"
+        description="La grille trace, la carte se tait : pas de bordure propre, mais un fond opaque."
+        footer="06 chapitres"
+        href="#tile-hairline"
+        bordered={false}
+      />
+      <CollCard
+        tag="Note"
+        title="Croix rentrées"
+        description="Neuf pixels de débord écriraient sur la cellule d'à côté : elles rentrent."
+        footer="04 chapitres"
+        href="#tile-hairline"
+        bordered={false}
+      />
+      <CollCard
+        tag="Essay"
+        title="Un seul filet"
+        description="Jamais deux traits l'un contre l'autre — c'est la grille qui décide."
+        footer="03 chapitres"
+        href="#tile-hairline"
+        bordered={false}
+      />
+    </Grid>
+  </Section>
+
+  <Section rhythm="none">
+    <MonoLabel tone="quiet">
+      02 — Même tile en grille filet (`bordered={false}`) : la bordure disparaît, le fond
+      reste opaque, et les croix rentrent à l'intérieur du cadre. Au survol, seul le fond
+      paper-2 et les croix changent — la bordure encre appartient à la grille.
+    </MonoLabel>
+  </Section>
+
+  <!-- 3. l'autre tile du système : même contrat, contenu de spec. -->
+  <Section>
+    <Grid cols={4}>
+      <GearCard number="01" name="Fujifilm X100V" meta="23mm · f/2" href="#tile-gear" />
+      <GearCard number="02" name="iPhone 13" meta="Carnet de terrain" href="#tile-gear" />
+      <GearCard number="03" name="Space Mono" meta="Mobilier print" href="#tile-gear" />
+      <GearCard number="04" name="Anton" meta="Display · hero" href="#tile-gear" />
+    </Grid>
+  </Section>
+
+  <Section rhythm="none">
+    <MonoLabel tone="quiet">
+      03 — `GearCard`, la seconde tile : contrat identique. Sa typographie reste en
+      valeurs dures (liste « reste aux tokens », PIPELINE §8) ; seule la boîte est
+      traitée ici.
+    </MonoLabel>
+  </Section>
+</BaseLayout>

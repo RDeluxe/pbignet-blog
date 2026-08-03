@@ -61,6 +61,30 @@
   --cover-ink-light: #f4efe3;
   --cover-ink-dark: #241606;
   --cover-ink-quiet: #ded7c8;   /* lignes techniques, indices */
+
+  /* fond sombre d'un cadre photo (avant chargement, ou sous une image transparente) */
+  --photo-ground: #2a2620;
+  /* encre foncée posée sur une zone claire de photo */
+  --photo-ink-dark: #36281f;
+  /* voile sombre derrière une légende — composer l'alpha : rgba(var(--photo-scrim-rgb), .5) */
+  --photo-scrim-rgb: 20, 18, 12;
+
+  /* déclinaisons du riso red, pour le type et les ombres portées sur photo */
+  --riso-red-ink: #ad3318;
+  --riso-red-deep: #7a2414;
+
+  /* ---- filets ----
+   * `--line` (20 %) et `--line-soft` (12 %) sont les filets de mobilier. `--line-strong`
+   * est le trait de CADRE de la plate B6, qui doit lire comme un trait d'impression.
+   */
+  --line-strong: color-mix(in srgb, var(--ink) 55%, transparent);
+
+  /* ---- carreau et points (plate B6, callout E1) ----
+   * À la limite du perceptible : si la trame « se voit », elle est trop forte.
+   */
+  --plate-grid-major: color-mix(in srgb, var(--ink) 5%, transparent);
+  --plate-grid-minor: color-mix(in srgb, var(--ink) 2.2%, transparent);
+  --dot-ink: color-mix(in srgb, var(--ink) 13%, transparent);
 }
 
 /* L'encre de la page, posée par `<BaseLayout ink="…">` sur <html>. Changer d'encre change

@@ -35,4 +35,32 @@
   /* ---- mobilier print ---- */
   --regmark-size: 22px;
   --regmark-inset: 16px;
+
+  /* croix de repérage — le signal de focus des tiles (D2) ET les coins du callout (E1).
+   * Un seul jeu : deux agents les ont relevées séparément au banc avec les mêmes valeurs.
+   * `--cross-out` est le débord hors du cadre ; dans une grille filet il retombe à 0,
+   * sinon la croix s'écrirait sur la cellule voisine.
+   */
+  --cross-size: 17px;
+  --cross-weight: 1px;
+  --cross-out: 9px;
+
+  /* carreau de la plate B6 */
+  --plate-overshoot: 13px;   /* de combien le trait de cadre dépasse les angles */
+  --rule-frame: 1.2px;       /* épaisseur du trait de cadre */
+  --plate-step-major: 64px;
+  --plate-step-minor: 16px;
+
+  /* pas du carnet à points (callout E1) */
+  --dot-step: 16px;
+}
+
+/* ---- durées ----
+ * Trois paliers suffisent, et ils sont partagés : au-delà, chaque composant réinvente son
+ * timing. `base.css` les neutralise déjà globalement en `prefers-reduced-motion`.
+ */
+:root {
+  --dur-fast: 0.18s;   /* apparition des croix de repérage */
+  --dur-base: 0.2s;    /* fond, bordure, couleur */
+  --dur-slow: 0.25s;   /* déplacement (glissement d'une ligne de post) */
 }

@@ -74,6 +74,8 @@ const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height}
      --hero-line synchronise le clip de la photo et le bas du titre. */
   .hero2 {
     position: relative;
+    /* TODO token: 12px → --space-… ? (l'échelle générique n'a pas de pas à 12px ;
+       --gap-grid vaut 12px mais son usage est réservé aux grilles de cartes/cadres) */
     margin: var(--hero-gap, 12px) 0 0;
     padding: 0;
     --hero-line: var(--hero-line-base, 34%);
@@ -103,9 +105,9 @@ const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height}
     bottom: calc(100% - var(--hero-line, 34%));
     margin: 0;
     font-family: var(--display);
-    font-size: clamp(96px, 17.5vw, 256px);
-    line-height: 0.8;
-    letter-spacing: 0.012em;
+    font-size: var(--fs-hero);
+    line-height: var(--lh-hero);
+    letter-spacing: var(--tr-hero);
     text-transform: uppercase;
     white-space: nowrap;
     background-repeat: no-repeat;
@@ -124,11 +126,12 @@ const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height}
     position: absolute;
     z-index: 4;
     left: 2px;
+    /* TODO token: 14px → --space-… ? (absent de l'échelle) */
     bottom: 14px;
     font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    color: #f3ecdb;
+    font-size: var(--fs-tag);
+    letter-spacing: var(--tr-tag);
+    color: var(--cover-ink-light);
     text-transform: uppercase;
     opacity: 0.9;
     text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);

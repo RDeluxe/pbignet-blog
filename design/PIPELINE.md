@@ -179,12 +179,39 @@ plafonne vers 3,4:1 et passe sous le seuil dès qu'une zone de couleur conservé
 ne sauve pas un ground trop clair : le scan de 10% à 75% de hauteur ne dépassait jamais
 3,33:1.
 
-### 4.7 Une valeur de style n'apparaît qu'une fois
+### 4.7 Une valeur de style n'apparaît qu'une fois — mais tout n'est pas un token
 
-Si un composant a besoin d'une échelle absente de `tokens/`, on **ajoute le token**. On
-n'écrit pas la valeur en dur « juste ici ». Le corollaire : deux valeurs proches
-(`clamp(20px,2.4vw,28px)` et `clamp(21px,2.7vw,31px)`) sont un bug de design, pas deux
-tokens.
+Deux valeurs proches pour une même intention (`clamp(20px,2.4vw,28px)` et
+`clamp(21px,2.7vw,31px)` ; trois crèmes `#f4efe3` / `#f3ecdb` / `#f1ead8`) sont un **bug de
+design**, pas deux tokens. Ça se corrige, pas se documente.
+
+En revanche, **tokeniser n'est pas gratuit** : chaque token est une indirection à lire et à
+maintenir. Le critère :
+
+> **Un token existe pour ce qui se répète entre composants, ou porte une intention de
+> marque.** Un padding interne à un seul composant n'en a pas besoin.
+
+Concrètement, après le passage des quatre agents sur 47 valeurs candidates :
+
+| Tokenisé | Pourquoi |
+|---|---|
+| `--cross-size/weight/out` | les croix de repérage servent dans 3 composants (tiles D2 + callout E1) |
+| `--dur-fast/base/slow` | 4 composants réinventaient leur timing |
+| `--photo-ground`, `--photo-scrim-rgb`, `--photo-ink-dark` | dupliqués entre `PhotoFrame` et `FeaturedEssay` |
+| `--riso-red-ink/deep` | déclinaisons d'une encre de marque |
+| `--line-strong`, `--rule-frame`, `--plate-*`, `--dot-*` | valeurs arrêtées par une décision de design (audit des boîtes) |
+| `--fs-brand-sm/lg`, `--tr-brand` | le logotype, dans 2 composants |
+| `--lh-loose` | 3 usages |
+
+| **Laissé en littéral** | Pourquoi |
+|---|---|
+| paddings internes (`20px`, `24px`, `18px`, `14px`, `11px`, `9px`, `3px`) | un seul composant, aucune intention partagée |
+| trackings ponctuels (`0.05em`, `0.06em`, `0.08em`, `0.12em`) | idem — l'échelle mono couvre les rôles, pas chaque cas |
+| `116px` (plancher d'une tile setup), `15px` (titre de callout) | un seul usage |
+
+Les valeurs laissées en littéral gardent un commentaire `/* TODO token: … */` : elles ne sont
+pas oubliées, elles sont **jugées non tokenisables pour l'instant**. Si une deuxième
+occurrence apparaît, le TODO devient un token.
 
 ---
 
@@ -229,6 +256,8 @@ elle est respectée. Les écarts sont invisibles à l'œil, mais listés pour ê
 |---|---|---|---|
 | `Lede` | `clamp(20px,2.4vw,28px)` **et** `clamp(21px,2.7vw,31px)` | `--fs-lead: clamp(20px,2.6vw,30px)` | Deux valeurs pour une intention = un bug de design. Ce qui varie est la **mesure** (30ch / 24ch), pas la taille. Aucune des deux n'était dans la source. |
 | `Grid` | `gap: 12px` (photos) **et** `14px` (gear) | `--gap-grid: 12px` | Même intention, deux valeurs. |
+| Encre sur photo | `#f4efe3` **et** `#f3ecdb` **et** `#f1ead8` | `--cover-ink-light` (`#f4efe3`) | **Trois** crèmes pour une seule intention — le crédit du hero, le mot de couverture et les légendes photo. Écart maximal 11/255 sur le bleu : invisible à l'œil, mais c'était trois vérités. |
+| `CollCard` | `lift translateY(-3px)` au hover | supprimé | L'audit des boîtes cite ce lift dans le *problème* ; D2 définit **un** hover unifié sans déplacement. Visible sur la home. |
 
 **L'échelle d'espacement est une invention locale** — la source utilise des valeurs libres.
 En cas de conflit, **la valeur de la source gagne** : on ajoute un pas plutôt que de
@@ -255,14 +284,21 @@ dans le code (les trois premières le sont depuis le re-base) :
 - [x] zéro arrondi — `.tag`/`.badge` sans radius
 - [x] `.post` sans flèche au hover (le glissement de 14px reste)
 - [x] marque **exhale** + domaine **exhale.blog**
-- [ ] **plate** = B6 : cadre « grille empruntée » (lignes 1.2px dépassant ~13px des angles) +
-      grille ultra-légère (majeure 64px @.05, mineure 16px @.022), sur papier nu
-- [ ] **tile** = D2 : nu au repos → croix d'angle + bordure ink + fond `paper-2` au hover.
-      `CollCard` et `GearCard` sont des tiles et ne suivent pas encore ce contrat.
-- [ ] **callout** = E1 : note épinglée, 2 croix, tag mono « N.B. » cassant la bordure.
-      Jamais de barre d'accent à gauche (tranche le P2 de la critique Article).
+- [x] **plate** = B6 : `src/components/print/Plate.astro` — cadre « grille empruntée »
+      (traits `--rule-frame` dépassant de `--plate-overshoot`) + carreau ultra-léger, sur
+      papier nu ; `surface="recessed"` pour le secondaire B4, `grid={false}` pour le cas C1.
+      ⚠ Le cadre déborde de 13px : le conteneur doit lui laisser cette marge, donc une plate
+      ne va pas dans une grille serrée.
+- [x] **tile** = D2 : `CollCard` et `GearCard` — nu au repos → croix d'angle + bordure ink +
+      fond `paper-2` au hover **et au `:focus-visible`**. En grille filet (`bordered={false}`)
+      les croix rentrent (`--cross-out: 0`), sinon elles écriraient sur la cellule voisine.
+      Le lift `translateY(-3px)` de `CollCard` est supprimé (cf. §5).
+- [x] **callout** = E1 : `src/components/print/Callout.astro` — filet, 2 croix (tl+br), points
+      estompés, étiquette mono qui casse le filet du haut. Aucune barre d'accent à gauche.
 - [ ] **boutons** : hover = remplissage dither animé (reduced-motion safe)
 - [ ] aucune ombre portée nulle part (à vérifier : `index.html` de research en avait une)
+- [ ] **Primitive `Tile`** : le bloc D2 est dupliqué entre `CollCard` et `GearCard` (contre
+      §4.7). La consolidation demande une primitive, pas seulement des tokens.
 - [ ] `dither.js` accepte désormais `'var(--token)'` / `#hex` / `'r,g,b'`, **résolus à chaque
       rendu** → les cellules claires peuvent suivre `--paper` en direct. À exploiter dans
       notre portage TS.
@@ -351,9 +387,11 @@ ils décrivent le contrat pour Claude Design. Les créer vides à l'avance n'app
 - [x] `PostRow`, `CollCard`, `SiteFooter` passés aux tokens.
 - [x] Re-base sur le sync du 2026-08-03 : tokens papier, zéro arrondi, flèche retirée,
       marque **exhale** + `exhale.blog`.
-- [ ] Reste aux tokens : `Hero`, `FeaturedEssay`, `GearCard`, `PhotoFrame`, `Metabar`,
-      `MainNav` (valeurs encore en dur).
-- [ ] Primitive `Stack` — dès qu'un deuxième cas type `.posts` apparaît.
+- [x] Passage aux tokens de `Hero`, `FeaturedEssay`, `PhotoFrame`, `Metabar`, `MainNav` :
+      16 valeurs remplacées, **zéro changement de rendu** (vérifié dans le CSS émis). Les
+      valeurs restées littérales portent un `TODO token:` et sont justifiées en §4.7.
+- [x] Primitive `Stack` + **`/writing`**, l'index qui manquait. La home est passée à
+      **zéro ligne de CSS** en même temps.
 - [x] **`HeroPopColor`** — le cover d'article qui fait popper une couleur extraite de la photo.
       Moteur porté en TS (`src/lib/spot-hero.ts`), composant piloté par une **recipe** par
       image, preview à `/ds/hero-pop-color`. Contraste mesuré à 1440px et 390px : 7,47:1 et

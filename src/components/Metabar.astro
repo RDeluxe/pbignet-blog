@@ -20,28 +20,34 @@ const { date = '02.06.26', location = 'Lyon, FR' } = Astro.props
   .metabar {
     display: grid;
     grid-template-columns: repeat(5, 1fr) auto;
+    /* TODO token: 18px → --space-… ? (vaut --space-head, réservé aux en-têtes de section) */
     gap: 0 18px;
     border-bottom: 2px solid var(--ink);
+    /* TODO token: 14px / 11px → --space-… ? (absents de l'échelle) */
     padding: 14px 0 11px;
     align-items: end;
   }
   .m .k {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: var(--fs-tag);
+    /* TODO token: 0.12em → --tr-… ? (entre --tr-data 0.1em et --tr-tag 0.14em) */
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--ink-3);
   }
   .m .v {
     font-family: var(--mono);
-    font-size: 12px;
+    font-size: var(--fs-data);
     color: var(--ink);
+    /* TODO token: 3px → --space-… ? (absent de l'échelle ; déjà en dur dans Tag/SiteFooter) */
     margin-top: 3px;
   }
   .brand {
     font-family: var(--display);
-    font-size: 26px;
-    letter-spacing: 0.02em;
+    /* TODO token: le logotype « exhale » n'a pas d'échelle à lui → --fs-brand / --tr-brand ?
+       (SiteFooter porte la même marque en 40px / 0.02em, également en dur) */
+    font-size: var(--fs-brand-sm);
+    letter-spacing: var(--tr-brand);
     line-height: 1;
     text-align: right;
   }

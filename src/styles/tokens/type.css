@@ -66,6 +66,16 @@
   /* ---- mobilier print (mono) ----
    * une taille par rôle, le tracking suit le rôle : plus c'est petit, plus c'est tracké.
    */
+  /* ---- logotype ----
+   * « exhale » en Anton, deux tailles selon la place : la barre de méta et le pied.
+   */
+  --fs-brand-sm: 26px;
+  --fs-brand-lg: 40px;
+  --tr-brand: 0.02em;
+
+  /* interlignage aéré des blocs mono multi-lignes (mentions, crédits) */
+  --lh-loose: 1.7;
+
   --fs-micro: 9px;     --tr-micro: 0.18em;   /* numéro de code-barre */
   --fs-tag: 10px;      --tr-tag: 0.14em;     /* tags de catégorie */
   --fs-label: 11px;    --tr-label: 0.16em;   /* mono labels, meta de section */
