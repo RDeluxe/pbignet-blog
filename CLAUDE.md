@@ -73,21 +73,12 @@ Source distante : **claude.ai/design**, projet `Pierrick Blog`
 > challenge infini). Seul le **navigateur du MCP Playwright** — où Pierrick s'est connecté à la
 > main — passe Cloudflare. On pilote donc le sync via le MCP, à la demande.
 
-### Push UP : le projet « exhale Design System »
-
-Un **second** projet Claude Design existe, de type Design System, qui reçoit le code comme
-référence : **`cc9e3407-7dd6-4647-bb7a-f64e48c433eb`** (créé le 2026-08-03). Il est
-**writable** par `DesignSync`, contrairement au projet de research.
-
-```sh
-npm run ds:build     # → .ds-bundle/ (tokens tels quels, contrats .d.ts, cards autonomes)
-```
-puis `DesignSync finalize_plan` (localDir = `.ds-bundle`) → `write_files` en `localPath`.
-Détail et principes : `design/PIPELINE.md` §6.
-
-Les deux projets ne se marchent pas dessus : **research → DOWN uniquement**, **DS → UP
-uniquement**. Voir aussi `PIPELINE.md` §9 : tant que CD est la source de vérité du design, les
-divergences du code sont une dette, et le DS poussé sert à les rendre visibles.
+> ⛔ **Le sync est DOWN uniquement. Ne pas construire de flux UP.** Un projet Claude Design
+> de type Design System a été créé le 2026-08-03 pour y pousser le code (tokens, contrats
+> `.d.ts`, cards) : Pierrick l'a jugé **illisible** — des déclarations TypeScript et des pages
+> de preview dans un outil de design — et il a été supprimé le jour même. `0_NORTHSTAR.html`
+> fait ce travail, mieux. Le remède aux écarts du code est la **discipline** (ne pas décider
+> de design côté code), pas un second artefact de vérité. Détail : `PIPELINE.md` §6.
 
 > **Lire UN fichier distant ne demande PAS de sync.** L'outil **`DesignSync get_file`**
 > (`projectId` + `path`) lit le projet à l'unité via le login Claude Code, **sans navigateur

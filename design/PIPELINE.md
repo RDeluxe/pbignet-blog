@@ -314,67 +314,31 @@ sur l'URL REST de download via le **MCP Playwright** (seul navigateur passé Clo
 puis `ditto` + `rsync -a --delete` vers le miroir. Le miroir est **pur** : rien ne s'y édite
 à la main.
 
-### UP — design system → Claude Design ✅ EN PLACE
+### UP — ABANDONNÉ (2026-08-03)
 
-**Projet : « exhale Design System »** — `cc9e3407-7dd6-4647-bb7a-f64e48c433eb`
-(type `PROJECT_TYPE_DESIGN_SYSTEM`, créé le 2026-08-03, 40 fichiers poussés).
+**Il n'y a pas de flux UP.** Le sync est **DOWN uniquement** : CD décide, le code implémente.
 
-Procédure, en trois commandes :
+J'avais créé un projet Claude Design de type Design System et y avais poussé un bundle de
+40 fichiers — tokens, 23 contrats `.d.ts`, 5 notices, 3 cards, un `SKILL.md`. Pierrick l'a
+jugé **illisible**, et il avait raison : ce sont des déclarations TypeScript et des pages de
+preview dans un outil de design. On n'y voit aucun composant, et il n'y avait aucune planche
+visuelle — ni swatch, ni échelle de type, ni mobilier. **`0_NORTHSTAR.html` fait ce travail,
+mieux, en un seul document.** Le projet a été supprimé, le bundle et son script avec.
 
-```sh
-npm run ds:build          # astro build + scripts/ds-build.mjs → .ds-bundle/
-# puis, via l'outil DesignSync :
-#   finalize_plan  projectId + localDir=.ds-bundle + writes/deletes
-#   write_files    chaque fichier en `localPath` (le contenu ne passe pas par le modèle)
-```
+**Ce que cet épisode dit, et qu'il faut retenir :**
 
-`scripts/ds-build.mjs` est la seule chose à connaître : il garantit les trois principes
-ci-dessous **par construction**, donc il n'y a rien à recopier à la main.
+Le problème réel n'était pas l'absence d'outillage, c'était que le code avait pris des
+décisions de design — trois crèmes unifiées, la mesure de lecture réinterprétée, un `--fs-lead`
+purement inventé. Le remède est la **discipline** (§9 : ne pas décider de design côté code),
+pas un système bidirectionnel pour rendre ses propres écarts « traçables ».
 
-Format calqué sur `Muskle Design System`, le pattern que Claude Design sait consommer :
+Et le comble : ce document dit lui-même que deux sources de vérité sont le problème. Un
+deuxième artefact de vérité, même bien construit, ne pouvait pas être la solution.
 
-```
-SKILL.md                       ← frontmatter name/description + les règles de marque
-README.md                      ← le guide design (dérivé du NORTHSTAR)
-tokens/{colors,type,space}.css ← POUSSÉS TELS QUELS depuis src/styles/tokens/
-styles.css                     ← point d'entrée qui importe les tokens
-guidelines/*.card.html         ← specimens : couleur, type, mobilier print
-components/<name>.card.html    ← preview du composant, générée par le build Astro
-components/<name>.d.ts         ← le contrat d'API, extrait des `interface Props`
-components/<name>.prompt.md    ← quand et comment l'utiliser
-explorations/                  ← la research recopiée depuis le miroir
-```
-
-Trois principes :
-
-1. **Les tokens sont le même artefact des deux côtés.** `src/styles/tokens/*.css` est du CSS
-   pur avec des custom properties : on le pousse **sans transformation**. Pas de génération,
-   donc pas de dérive possible. C'est la raison technique qui justifie le CSS pur plutôt
-   qu'un moteur de style avec son propre thème.
-2. **On ne pousse jamais une seconde implémentation.** Nos composants sont `.astro`, que
-   Claude Design ne peut pas exécuter — mais un JSX miroir serait un deuxième code à
-   maintenir, donc une dérive garantie. On pousse le **contrat** (`.d.ts` + `.prompt.md`) et
-   une **preview HTML rendue par le vrai composant**. Fidèle par construction.
-3. **`SKILL.md` remplace le prompt à recopier.** Le projet porte un skill invocable : Claude
-   Design lit la doctrine tout seul, à chaque session. Il est **généré** depuis ce document
-   et le NORTHSTAR, jamais écrit à la main en parallèle — sinon on recrée le problème.
-
-Ordre imposé par l'outil : `list_files` → `finalize_plan` → `write_files`. Les previews
-montent par `localPath` (le contenu ne transite pas par le contexte du modèle).
-
-**Ce qui est poussé aujourd'hui** : `SKILL.md` + `README.md`, les 3 fichiers de tokens et
-`base.css` (tels quels), 23 contrats `.d.ts`, 5 notices `.prompt.md` (`HeroPopColor`, `Plate`,
-`Callout`, `CollCard`, `Prose`), 3 cards autonomes (cover, tiles, boxes) et les 2 photos
-sources qu'elles utilisent. Total 1,2 Mo.
-
-**Ce qui manque encore** : les `guidelines/*.card.html` (specimens couleur / type / mobilier
-print), une card pour la page d'article complète, et les notices des composants restants. Rien
-de bloquant : le squelette est là et `ds:build` le remplit.
-
-> Au passage : `castle-blue.jpg` pesait 2,6 Mo dans `public/`. Recompressée en 2000px
-> (662 Ko) sous le nom `-web`, et la source lourde retirée du dépôt — elle reste dans le
-> miroir de la research. **Cette recompression ne vaut que pour les sources couleur** : un PNG
-> dithéré ne doit jamais être recompressé, la trame serait détruite.
+**Si un jour quelque chose doit remonter vers CD**, la question à se poser d'abord n'est pas
+« comment le pousser » mais « le NORTHSTAR ne le dit-il pas déjà ? ». Si la réponse est non,
+ça remonte **dans le NORTHSTAR, au format NORTHSTAR** — une section HTML avec des specimens
+visuels — et par une décision de Pierrick, pas par un script.
 
 ---
 
@@ -396,8 +360,9 @@ Trois familles :
   porteurs de sens de marque.
 - **composants de marque** (racine) — composent les deux précédentes et portent le NORTHSTAR.
 
-**`.prompt.md` et `preview.astro` sont exigés au moment du push UP (§6), pas à la création** :
-ils décrivent le contrat pour Claude Design. Les créer vides à l'avance n'apporte rien.
+Une `preview.astro` (les pages `/ds/*`) sert à **juger un composant sur pièce** avant de
+l'utiliser en page : variantes côte à côte, contraste mesurable, comportement au survol et au
+focus. Elle vaut pour ça seul — il n'y a pas de flux UP à alimenter (§6).
 
 ---
 
@@ -440,8 +405,7 @@ ils décrivent le contrat pour Claude Design. Les créer vides à l'avance n'app
       déclarer un tag Markdoc.
 - [ ] Portage de `dither.js` en TS — les plates du corps utilisent les PNG pré-cuits, ce qui
       suffit ; à faire si l'on veut qu'elles suivent `--paper` en direct.
-- [ ] Build `ds:build` (previews + `.d.ts` + `SKILL.md`) puis projet Design System.
-- [ ] Les 35 erreurs de lint restantes.
+- [ ] Les 30 erreurs de lint restantes (toutes antérieures à ce chantier).
 
 ---
 
@@ -485,15 +449,14 @@ pas validées** : elles doivent soit être approuvées, soit remonter dans CD, s
 
 ### La conséquence
 
-Tant que CD est la source, **ces divergences sont une dette**, pas des acquis. Deux sorties :
+Tant que CD est la source, **ces divergences sont une dette**, pas des acquis. La sortie est
+simple : **Pierrick les tranche**, et ce qui est validé remonte dans CD (banc ou gold), par une
+décision de design — pas par un script.
 
-1. **Pierrick les tranche** — et ce qui est validé remonte dans CD (banc ou gold) ;
-2. **Le push UP (§6) est mis en place** — le projet Design System reçoit le code comme
-   référence, et la question « qui fait foi » se pose alors explicitement, composant par
-   composant, au lieu de dériver en silence.
-
-Le deuxième chemin est celui qui règle le problème de fond : aujourd'hui le code avance plus
-vite que la research, donc il produit des décisions par défaut. Un DS poussé les rend visibles.
+Le tableau ci-dessus **est** l'outil. Six lignes qui disent où le code s'est écarté et pourquoi.
+J'ai d'abord cru qu'il fallait un système bidirectionnel pour rendre ces écarts visibles ; c'est
+faux, et §6 raconte ce que ça a coûté. La seule chose qui empêche la dérive, c'est de ne pas
+décider de design côté code — et quand ça arrive quand même, de l'écrire ici.
 
 ---
 
