@@ -1,0 +1,32 @@
+/* space.css — largeurs, gouttières, rythme vertical.
+ *
+ * SOURCES : assets/paper.css du miroir (--maxw, --gutter) + les espacements réellement
+ * employés par les composants et Home.html.
+ *
+ * ÉCART ASSUMÉ : --maxw reste 1180px. Le NORTHSTAR pose 1080px, mais c'est un override
+ * de mise en page du specimen lui-même (un document à lire), pas une largeur de marque.
+ * assets/paper.css — la base partagée par les pages — dit 1180px.
+ */
+
+:root {
+  /* ---- largeurs ---- */
+  --maxw: 1180px;
+  --gutter: clamp(20px, 4vw, 56px);
+
+  /* ---- échelle d'espacement ---- */
+  --space-2xs: 4px;
+  --space-xs: 6px;
+  --space-sm: 10px;
+  --space-md: 16px;    /* gap par défaut d'un en-tête de section */
+  --space-lg: 22px;    /* padding vertical d'une ligne de post */
+  --space-xl: 28px;
+  --space-2xl: 40px;
+
+  /* ---- rythme vertical ---- */
+  --rhythm-section: clamp(64px, 8vw, 110px);   /* respiration entre deux sections */
+  --rhythm-row: clamp(14px, 3vw, 40px);        /* gouttière interne d'une ligne de post */
+
+  /* ---- mobilier print ---- */
+  --regmark-size: 22px;
+  --regmark-inset: 16px;
+}

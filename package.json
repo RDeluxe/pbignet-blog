@@ -20,15 +20,12 @@
     "@fontsource-variable/newsreader": "^5.2.10",
     "@fontsource/anton": "^5.2.7",
     "@fontsource/space-mono": "^5.2.9",
-    "@unocss/astro": "^66.7.2",
     "astro": "^6.4.4",
     "svelte": "^5.56.2",
-    "typescript": "^6.0.3",
-    "unocss": "^66.7.2"
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.0.0",
-    "@unocss/eslint-plugin": "^66.6.8",
     "eslint": "^10.3.0",
     "eslint-plugin-astro": "1.7.0"
   }

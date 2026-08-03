@@ -1,79 +1,14 @@
-/* paper.css — design tokens, reset, et couches de texture partagées */
+/* paper.css — ZONE DE TRANSITION. Ce fichier doit tendre vers zéro.
+ *
+ * Chaque bloc ci-dessous est une classe GLOBALE, c'est-à-dire une dette : elle appartient
+ * à un composant qui n'existe pas encore. La destination est notée sur chaque bloc.
+ * Règle : on ne fait qu'en RETIRER. Interdiction d'y ajouter quoi que ce soit — un besoin
+ * nouveau est un composant ou un token (cf. design/PIPELINE.md).
+ *
+ * État : 4 blocs restants.
+ */
 
-/* ---- reset ---- */
-*, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
-img { display: block; max-width: 100%; }
-a { color: inherit; text-decoration: none; }
-button { font: inherit; color: inherit; }
-
-/* ---- design tokens ---- */
-:root {
-  /* base alignée sur la source de vérité : design/claude-design/Pierrick Blog/assets/paper.css */
-  --paper: #ece7dd;
-  --paper-2: #e5dfd3;
-  --ink: #1b1a16;
-  --ink-2: #4c483d;
-  /* ink-3 volontairement plus foncé que la source (#8a8674 ≈ 2.9:1) pour passer WCAG AA
-     sur le mobilier print en 10–11px ; reste la teinte la plus claire du ramp. */
-  --ink-3: #696551;
-  --accent: #3d491d;
-  --accent-ink: #ffffff;
-  --line: rgba(27, 26, 22, 0.20);
-  --line-soft: rgba(27, 26, 22, 0.12);
-  --topo: rgba(61, 73, 29, 0.06);
-
-  --display: 'Anton', 'Archivo', sans-serif;
-  --sans: 'Archivo Variable', system-ui, sans-serif;
-  --mono: 'Space Mono', ui-monospace, monospace;
-  --serif: 'Newsreader Variable', Georgia, serif;
-
-  --maxw: 1180px;
-  --gutter: clamp(20px, 4vw, 56px);
-  --grain: none;
-}
-
-/* ---- surface papier ---- */
-body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--sans);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  position: relative;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* ---- couches de texture ---- */
-.topo-layer {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-.grain-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background-image: var(--grain);
-  background-repeat: repeat;
-  mix-blend-mode: multiply;
-  opacity: 0.9;
-}
-.vignette {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(120% 100% at 50% 0%, transparent 60%, rgba(40, 36, 28, 0.06) 100%);
-}
-.page { position: relative; z-index: 2; }
-
-/* ---- layout ---- */
+/* → primitive <Wrap> (ou <Section wrap>) */
 .wrap {
   width: 100%;
   max-width: var(--maxw);
@@ -81,25 +16,27 @@ body {
   padding-left: var(--gutter);
   padding-right: var(--gutter);
 }
+
+/* → primitive <Rule thickness="hair|thick"> */
 .rule { border: none; border-top: 1px solid var(--line); margin: 0; }
 .rule-thick { border: none; border-top: 2px solid var(--ink); margin: 0; }
 
-/* ---- utilitaires typographiques ---- */
+/* → primitive <MonoLabel> · .tick → prop `accent` du composant qui le porte */
 .mono { font-family: var(--mono); }
 .mono-label {
   font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-label);
+  letter-spacing: var(--tr-label);
   text-transform: uppercase;
   color: var(--ink-2);
 }
 .tick { color: var(--accent); }
 
-/* ---- marks de repérage (impression) ---- */
+/* → composants print <RegMarks /> et <Barcode /> */
 .regmark {
   position: fixed;
-  width: 22px;
-  height: 22px;
+  width: var(--regmark-size);
+  height: var(--regmark-size);
   pointer-events: none;
   z-index: 3;
   opacity: 0.65;
@@ -112,12 +49,11 @@ body {
 }
 .regmark::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
 .regmark::after { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
-.regmark.tl { top: 16px; left: 16px; }
-.regmark.tr { top: 16px; right: 16px; }
-.regmark.bl { bottom: 16px; left: 16px; }
-.regmark.br { bottom: 16px; right: 16px; }
+.regmark.tl { top: var(--regmark-inset); left: var(--regmark-inset); }
+.regmark.tr { top: var(--regmark-inset); right: var(--regmark-inset); }
+.regmark.bl { bottom: var(--regmark-inset); left: var(--regmark-inset); }
+.regmark.br { bottom: var(--regmark-inset); right: var(--regmark-inset); }
 
-/* ---- code-barre CSS ---- */
 .barcode {
   height: 38px;
   width: 180px;
@@ -133,19 +69,8 @@ body {
 }
 .barcode-num {
   font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tr-micro);
   color: var(--ink-2);
   margin-top: 3px;
-}
-
-/* ---- accessibilité ---- */
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
 }

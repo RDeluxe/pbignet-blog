@@ -2,48 +2,66 @@
 interface Props {
   title: string
   meta?: string
+  /** échelle du titre : `lg` = ouverture de section (défaut), `md` = sous-section / index. */
+  size?: 'lg' | 'md'
+  /** `row` = titre et meta sur la même ligne de base (défaut), `stack` = meta sous le titre. */
+  align?: 'row' | 'stack'
 }
 
-const { title, meta } = Astro.props
+const { title, meta, size = 'lg', align = 'row' } = Astro.props
 ---
 
-<div class="shead">
+<div class="shead" data-size={size} data-align={align}>
   <h2>{title}</h2>
   {meta && <div class="shead-meta">{meta}</div>}
 </div>
 
 <style>
+  /* les props arrivent en data-attributes : une seule règle de base, les variantes
+     s'expriment en sélecteurs d'attribut. Pas de concaténation de classes côté JS. */
   .shead {
     display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+  .shead[data-align='row'] {
     align-items: baseline;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 18px;
   }
+  .shead[data-align='stack'] {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+
   h2 {
     margin: 0;
     font-family: var(--display);
-    font-weight: 400;
-    font-size: clamp(28px, 5vw, 56px);
-    line-height: 0.94;
-    letter-spacing: 0.005em;
+    font-weight: var(--w-regular);
+    line-height: var(--lh-shead);
+    letter-spacing: var(--tr-shead);
     text-transform: uppercase;
   }
+  .shead[data-size='lg'] h2 { font-size: var(--fs-shead); }
+  .shead[data-size='md'] h2 { font-size: var(--fs-shead-md); }
+
   .shead-meta {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: var(--fs-label);
     color: var(--ink-3);
-    letter-spacing: 0.1em;
+    letter-spacing: var(--tr-data);
     white-space: nowrap;
     flex-shrink: 0;
   }
 
-  /* en étroit : la meta passe sous le titre plutôt que de déborder le viewport */
+  /* en étroit : la meta passe sous le titre plutôt que de déborder le viewport.
+     Le breakpoint gagne sur la variante `row` — c'est voulu, une media query et un
+     sélecteur d'attribut ont la même spécificité, donc l'ordre dans le fichier tranche. */
   @media (max-width: 560px) {
-    .shead {
+    .shead[data-align='row'] {
       flex-direction: column;
       align-items: flex-start;
-      gap: 6px;
+      gap: var(--space-xs);
     }
     .shead-meta { white-space: normal; }
   }

@@ -1,0 +1,70 @@
+/* base.css — reset, surface papier, accessibilité.
+ * Le seul CSS légitimement global avec les tokens : ce qui s'applique au document,
+ * pas à un composant. Tout le reste appartient à un composant (cf. design/PIPELINE.md).
+ */
+
+/* ---- reset ---- */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+
+/* ---- surface papier ---- */
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ---- couches de matière ----
+ * → deviennent le composant <PaperSurface> à l'étape primitives : ces 4 couches et le
+ *   script texture.ts qui les alimente forment un tout, aujourd'hui recopié à la main
+ *   dans BaseLayout.
+ */
+:root {
+  --grain: none;   /* remplacée au runtime par le data-URI de bruit — cf. scripts/texture.ts */
+}
+
+.topo-layer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+.grain-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: var(--grain);
+  background-repeat: repeat;
+  mix-blend-mode: multiply;
+  opacity: 0.9;
+}
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 0%, transparent 60%, rgba(40, 36, 28, 0.06) 100%);
+}
+.page { position: relative; z-index: 2; }
+
+/* ---- accessibilité ---- */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+}

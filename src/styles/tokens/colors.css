@@ -1,0 +1,53 @@
+/* colors.css — base fixe + encres d'accent.
+ *
+ * SOURCE : design/claude-design/Pierrick Blog/dot·paper - NORTHSTAR.html §05 Color.
+ * Le NORTHSTAR importe assets/paper.css PUIS l'override dans son <style> : ses valeurs
+ * gagnent (règle CLAUDE.md « NORTHSTAR > tokens > Design Notes »).
+ *
+ * ÉCART ASSUMÉ, UN SEUL : --ink-3.
+ *   NORTHSTAR dit #8B8672 → ≈2.9:1 sur --paper, échoue WCAG AA sur le mobilier print
+ *   en 9–11px, qui est précisément son usage (mono labels, captions, hints).
+ *   On garde #696551 (≈4.6:1), la valeur de assets/paper.css. Reste la teinte la plus
+ *   claire du ramp, donc le rôle est préservé.
+ */
+
+:root {
+  /* ---- base fixe — ne change jamais d'une page à l'autre ---- */
+  --paper: #ece6da;      /* surface de page, off-white chaud */
+  --paper-2: #e3dccd;    /* panneaux en retrait, remplissages de hover */
+  --ink: #18170f;        /* texte primaire, filets, display */
+  --ink-2: #4a4636;      /* corps / texte secondaire */
+  --ink-3: #696551;      /* mono labels, légendes, hints — cf. écart ci-dessus */
+
+  --line: rgba(24, 23, 15, 0.22);
+  --line-soft: rgba(24, 23, 15, 0.12);
+
+  /* ---- encres d'accent — green-forward, jamais de bleu ----
+   * UNE SEULE par page, pour le MOBILIER + le TYPE (le dot, les liens, la teinte topo,
+   * les tags, les titres). Le ton du dither photographique en est EXEMPTÉ : il peut être
+   * keyé à l'image (NORTHSTAR §05/§08). Un dither non-olive n'est pas une faute.
+   */
+  --olive: #3d491d;      /* primaire — l'encre de travail. Remplace le bleu. */
+  --lime: #c2c762;       /* highlight / marqueur / remplissage SEULEMENT.
+                            Trop clair pour porter du texte sur papier. */
+  --sepia: #9a7838;      /* éditorial / essais, pour la variété de section */
+  --riso-red: #d44a2c;   /* couvertures d'articles / photo, avec parcimonie */
+  --green: #2c7a4c;      /* présent dans les vars du NORTHSTAR mais absent de ses
+                            swatches — usage non documenté, à ne pas employer sans arbitrage */
+
+  /* ---- encre active de la page ----
+   * Défaut = olive (home). Une page override --accent et TOUT suit.
+   * Articles : --accent: var(--sepia).
+   */
+  --accent: var(--olive);
+  --accent-ink: #ffffff;   /* texte posé SUR l'accent */
+
+  /* teinte topo = l'accent de la page à ~7%.
+   * ⚠ VALEURS LITTÉRALES OBLIGATOIRES : --topo est lue en JS par le canvas topo
+   * (BaseLayout → Topo.mount). getPropertyValue ne résout pas color-mix() sur une custom
+   * property non enregistrée, donc une valeur calculée arriverait telle quelle au canvas.
+   * Une page qui change d'encre change AUSSI --topo.
+   */
+  --topo: rgba(61, 73, 29, 0.07);   /* olive @7% — page home */
+  /* pages sépia : --topo: rgba(154, 120, 56, 0.07) */
+}

@@ -6,8 +6,16 @@
 
 Avant de toucher à quoi que ce soit (composant, style, layout, animation), chercher la réponse dans ce dossier. Ne jamais improviser une décision de design.
 
+**Doctrine CODE : `design/PIPELINE.md`** — comment la research Claude Design (HTML/CSS de page)
+devient un design system maintenable : le tri (token / primitive / composant / effet / poubelle),
+les règles dures (zéro `<style>` de page, `:global()` interdit, props = intentions, les 3
+mécanismes props→style d'Astro et le piège `define:vars`), les écarts assumés face au NORTHSTAR,
+et les deux procédures de sync. Le NORTHSTAR dit **quoi**, PIPELINE.md dit **comment ça devient
+du code**. À lire avant d'écrire un composant.
+
 ```
 design/
+  PIPELINE.md                    ← ★ doctrine code : research → design system
   claude-design/Pierrick Blog/   ← MIROIR 100% Claude Design (écrasé à chaque sync, ne rien y éditer à la main)
     dot·paper - NORTHSTAR.html   ← ★ SOURCE DE VÉRITÉ : northstar specimen, à lire en premier
     Home.html                    ← direction hero lockée, HTML de référence complet (ex-« RETRO Home v2/v3 », consolidés côté Claude Design le 2026-06-23)
@@ -71,7 +79,12 @@ racine ni ailleurs dans l'arbre. Ne pas laisser de `homepage-*.png` & co traîne
 ## Stack technique
 
 - **Framework** : Astro 6 + Svelte 5
-- **CSS** : `paper.css` global (tokens + textures) + styles scopés par composant + UnoCSS pour les utilitaires
+- **CSS** : CSS pur, scopé par composant (pas de framework utilitaire — UnoCSS a été retiré).
+  Global = `src/styles/tokens/{colors,type,space}.css` (custom properties **uniquement**, artefact
+  partagé tel quel avec Claude Design) + `base.css` (reset, surface papier, a11y), agrégés par
+  `src/styles/index.css`. `src/styles/paper.css` est une **zone de transition** qui doit tendre
+  vers zéro : on ne fait qu'en retirer. Variantes de composant = `data-*` + union TS. Détails et
+  règles dures : `design/PIPELINE.md`.
 - **Fonts** : self-hosted via `@fontsource` (Anton, Space Mono, Archivo Variable, Newsreader Variable)
 - **Content** : Astro Content Collections (`src/content.config.ts`) — `writing` + `guides`, format Markdoc (`.md` / `.mdoc`)
 - **Photos** : PNGs dithérés dans `public/photos/` — **ne jamais recompresser ni optimiser** les images dithérées, l'effet serait détruit

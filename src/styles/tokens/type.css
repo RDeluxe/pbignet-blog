@@ -1,0 +1,58 @@
+/* type.css — familles, graisses, échelles.
+ *
+ * SOURCES : NORTHSTAR §06 Type · assets/paper.css du miroir · Home.html.
+ * Les familles sont self-hosted via @fontsource (cf. BaseLayout) : les noms locaux
+ * portent le suffixe « Variable » là où la variable font est utilisée, contrairement
+ * au miroir qui charge les fonts par CDN.
+ *
+ * RÈGLE : toute valeur de type utilisée par un composant doit remonter ici. Si un
+ * composant a besoin d'une échelle absente, on l'ajoute — on ne l'écrit pas en dur.
+ */
+
+:root {
+  /* ---- familles ---- */
+  --display: 'Anton', 'Archivo Variable', sans-serif;   /* titres, hero, section heads */
+  --sans: 'Archivo Variable', system-ui, sans-serif;    /* UI, titres de post */
+  --mono: 'Space Mono', ui-monospace, monospace;        /* mobilier print, labels, données */
+  --serif: 'Newsreader Variable', Georgia, serif;       /* corps de lecture, leads */
+
+  /* ---- graisses ---- */
+  --w-regular: 400;
+  --w-semibold: 600;   /* titres de post */
+  --w-bold: 700;       /* titres de carte */
+
+  /* ---- échelles display / titres (fluides) ---- */
+  --fs-hero: clamp(96px, 17.5vw, 256px);   /* Hero home — la photo traverse les lettres */
+  --lh-hero: 0.8;
+  --tr-hero: 0.012em;
+
+  --fs-shead: clamp(28px, 5vw, 56px);      /* ouverture de section */
+  --lh-shead: 0.94;
+  --tr-shead: 0.005em;
+
+  --fs-shead-md: clamp(21px, 3vw, 32px);   /* sous-section / index.
+                                              ⚠ introduite en prod, absente de la research */
+
+  --fs-title: clamp(19px, 2.4vw, 27px);    /* titre de post en liste */
+  --lh-title: 1.12;
+  --tr-title: -0.01em;
+
+  --fs-card-title: 19px;                   /* titre de carte collection */
+
+  /* ---- corps de lecture ---- */
+  --fs-body: 16.5px;                       /* NORTHSTAR p.body */
+  --lh-body: 1.55;
+  --fs-body-sm: 15px;                      /* description de post */
+  --fs-body-xs: 14px;                      /* texte de carte */
+  --lh-body-tight: 1.5;
+  --measure-body: 66ch;                    /* mesure de lecture longue */
+  --measure-desc: 56ch;                    /* mesure des descriptions en liste */
+
+  /* ---- mobilier print (mono) ----
+   * une taille par rôle, le tracking suit le rôle : plus c'est petit, plus c'est tracké.
+   */
+  --fs-micro: 9px;     --tr-micro: 0.18em;   /* numéro de code-barre */
+  --fs-tag: 10px;      --tr-tag: 0.14em;     /* tags de catégorie */
+  --fs-label: 11px;    --tr-label: 0.16em;   /* mono labels, meta de section */
+  --fs-data: 12px;     --tr-data: 0.1em;     /* index de post, valeurs de metabar */
+}
