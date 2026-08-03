@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="--accent:#9a7838; --topo:rgba(154,120,56,.06); --post-hero-h:100vh;">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,281 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/paper.css">
-<style>
-  /* ====== ONE INK PER PAGE — SEPIA #9a7838 ====== */
-  :root {
-    --paper: #f6f5f1;
-    --paper-2: #edebe4;
-    --ink: #1b1a16;
-    --ink-2: #4c483d;
-    --ink-3: #696551;
-    --accent: #9a7838;                 /* sepia — the page's single ink */
-    --line: rgba(27,26,22,.20);
-    --line-soft: rgba(27,26,22,.12);
-    --topo: rgba(154,120,56,.06);      /* accent @ ~6% */
-    --maxw: 1180px;
-    --post-hero-h: 100vh;              /* reduce for a short note, e.g. 64vh */
-  }
 
-  /* ====== sticky reading bar — present by default, scroll only enriches ====== */
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: var(--paper);
-    border-bottom: 1px solid var(--line);
-    transition: background .3s ease, border-color .3s ease, color .3s ease;
-  }
-  .topbar .progress {
-    position: absolute;
-    left: 0; top: 0;
-    height: 2px;
-    width: 0;
-    background: var(--accent);
-    transition: width .12s linear;
-  }
-  .topbar .tb-in {
-    max-width: var(--maxw);
-    margin: 0 auto;
-    padding: 13px var(--gutter);
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 18px;
-  }
-  .topbar .brand { font-family: var(--display); font-size: 20px; letter-spacing: .02em; line-height: 1; }
-  .topbar .brand .dot { color: var(--accent); }
-  .topbar .tb-title {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .topbar .tb-back {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--ink-2);
-    white-space: nowrap;
-  }
-  .topbar .tb-back:hover { color: var(--accent); }
-  /* immersive state — JS adds this only while the cover is on screen */
-  .topbar.over-hero { background: transparent; border-color: transparent; }
-  .topbar.over-hero .brand,
-  .topbar.over-hero .tb-back { color: #f1ebdd; text-shadow: 0 1px 14px rgba(0,0,0,.5); }
-  .topbar.over-hero .tb-title { color: rgba(241,235,221,.0); }
-  .topbar.over-hero .progress { opacity: 0; }
-
-  /* ====== HERO "simple-dither" — full-screen cover, type-on-photo (Study 01 gesture).
-     Parameters: --post-hero-h (height) and --dither-line (how far the dither dissolve
-     reaches down from the top; the solid band is ~half of it). ====== */
-  .post-hero {
-    --dither-line: 42%;
-    position: relative;
-    width: 100%;
-    height: var(--post-hero-h);
-    min-height: 520px;
-    margin-top: calc(-1 * (48px + 2px));   /* slide under the sticky bar */
-    overflow: hidden;
-    background: #14110a;
-  }
-  .post-hero .dsrc { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-  /* the dither + contours dissolve the TOP of the frame (sky), fading out at --dither-line */
-  .post-hero .dither-canvas {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    image-rendering: pixelated; display: block; z-index: 2;
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(var(--dither-line) * .48), transparent var(--dither-line));
-    mask-image: linear-gradient(to bottom, #000 0%, #000 calc(var(--dither-line) * .48), transparent var(--dither-line));
-  }
-  .post-hero .topo-on {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 3;
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(var(--dither-line) * .43), transparent calc(var(--dither-line) * .9));
-    mask-image: linear-gradient(to bottom, #000 0%, #000 calc(var(--dither-line) * .43), transparent calc(var(--dither-line) * .9));
-  }
-  .post-hero .grain-on {
-    position: absolute; inset: 0; z-index: 4; pointer-events: none;
-    background-image: var(--grain); mix-blend-mode: overlay; opacity: .45;
-  }
-  /* legibility scrims: faint at top for metadata, deeper at the bottom for the credit */
-  .post-hero .scrim {
-    position: absolute; inset: 0; z-index: 5; pointer-events: none;
-    background:
-      linear-gradient(to bottom, rgba(18,14,8,.42) 0%, transparent 22%),
-      linear-gradient(to top, rgba(18,14,8,.5) 0%, transparent 30%);
-  }
-
-  /* cover word — placed PER IMAGE: here, low-left in the open sky, clear of the arch */
-  .ph-word {
-    position: absolute; left: var(--gutter); top: 28%; z-index: 7;
-    text-align: left; max-width: calc(100% - 2 * var(--gutter));
-    font-family: var(--display); font-weight: 400; text-transform: uppercase;
-    font-size: clamp(52px, 17vw, 176px); line-height: .8; letter-spacing: .03em;
-    color: #f1ebdd; margin: 0;
-    text-shadow: 0 3px 34px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.4);
-  }
-  /* bottom-left place + method/credit, like Study 01's Kawaguchiko block */
-  .ph-sub {
-    position: absolute; left: var(--gutter); bottom: 9%; z-index: 7;
-    font-family: var(--mono); color: #e9e3d6;
-  }
-  .ph-sub .big { font-family: var(--display); font-weight: 400; font-size: clamp(20px, 2.6vw, 34px); letter-spacing: .04em; text-transform: uppercase; line-height: 1; text-shadow: 0 1px 12px rgba(0,0,0,.5); }
-  .ph-sub .sm { font-size: 12px; letter-spacing: .1em; color: #cfc9bb; margin-top: 6px; text-shadow: 0 1px 10px rgba(0,0,0,.5); }
-
-  .ph-vcap {
-    position: absolute; right: max(18px, 3vw); bottom: 9%; z-index: 7;
-    writing-mode: vertical-rl;
-    font-family: var(--mono); font-size: 11px; letter-spacing: .24em; text-transform: uppercase;
-    color: #ece6d8; text-shadow: 0 1px 10px rgba(0,0,0,.5);
-  }
-
-  /* scroll cue */
-  .ph-cue {
-    position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 7;
-    font-family: var(--mono); font-size: 10px; letter-spacing: .3em; text-transform: uppercase;
-    color: rgba(241,235,221,.7);
-  }
-
-  /* ====== ARTICLE BODY ====== */
-  .article { max-width: 66ch; margin: 0 auto; padding: clamp(40px,6vw,76px) var(--gutter) 0; }
-
-  /* stat row — instrument strip at the head of the piece */
-  .statrow {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
-    border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line);
-    margin-bottom: clamp(30px, 4vw, 44px);
-  }
-  .statrow .st { padding: 14px 16px 14px 0; }
-  .statrow .st .k { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
-  .statrow .st .v { font-family: var(--mono); font-size: 13px; letter-spacing: .03em; color: var(--ink); margin-top: 5px; }
-  .statrow .st .v b { color: var(--accent); font-weight: 700; }
-
-  .art-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-
-  .art-title {
-    font-family: var(--sans); font-weight: 600; letter-spacing: -.01em;
-    font-size: clamp(31px, 5vw, 52px); line-height: 1.04; text-wrap: balance;
-    color: var(--ink); margin: 0 0 22px;
-  }
-  .art-dek {
-    font-family: var(--serif); font-size: clamp(19px, 2.4vw, 24px); line-height: 1.4;
-    color: var(--ink-2); text-wrap: pretty; margin: 0 0 14px; font-style: italic;
-  }
-  .art-byline {
-    font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
-    color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 16px; margin-top: 26px;
-  }
-  .art-byline b { color: var(--ink-2); }
-
-  .prose { margin-top: clamp(30px, 4vw, 44px); }
-  .prose > p {
-    font-family: var(--serif); font-size: 16.5px; line-height: 1.55; color: var(--ink-2);
-    text-wrap: pretty; margin: 0 0 1.45em;
-  }
-  .prose > p b, .prose > p strong { color: var(--ink); font-weight: 600; }
-  /* drop the first paragraph's lead-in slightly larger */
-  .prose > p.lede { font-size: 18.5px; line-height: 1.5; color: var(--ink); }
-  .prose > p.lede::first-letter {
-    font-family: var(--display); font-weight: 400; float: left;
-    font-size: 3.1em; line-height: .74; padding: 6px 12px 0 0; color: var(--accent);
-  }
-
-  h2.sub {
-    font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--ink); margin: 2.4em 0 1.1em; padding-bottom: 10px; border-bottom: 1px solid var(--line);
-  }
-  h2.sub .n { color: var(--accent); margin-right: 12px; }
-
-  /* pull quote — mono, instrument voice */
-  .pull {
-    margin: 2.2em 0; padding: 4px 0 4px 24px;
-    border-left: 3px solid var(--accent);
-    font-family: var(--serif); font-style: italic; font-weight: 500;
-    font-size: clamp(21px, 2.8vw, 27px); line-height: 1.32; color: var(--ink); text-wrap: balance;
-  }
-  .pull .src { display: block; font-family: var(--mono); font-style: normal; font-weight: 400; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-top: 14px; }
-
-  /* ====== body photo — dithered film frame, gentle boil ====== */
-  .figure { margin: clamp(36px,5vw,56px) 0; }
-  .figure.wide {
-    width: min(100vw, calc(var(--maxw) - 2 * var(--gutter) + 220px));
-    margin-left: 50%; transform: translateX(-50%);
-    max-width: 1080px;
-  }
-  .frame {
-    position: relative; overflow: hidden; background: #14110a;
-    aspect-ratio: 1066/1422;
-  }
-  .figure.wide .frame { aspect-ratio: 1066/720; }
-  .frame .dsrc { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-  .frame .dither-canvas {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    image-rendering: pixelated; display: block; z-index: 2;
-  }
-  .frame .grain-on { position: absolute; inset: 0; z-index: 3; pointer-events: none; background-image: var(--grain); mix-blend-mode: overlay; opacity: .4; }
-  .figcap {
-    display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap;
-    margin-top: 12px;
-    font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
-    color: var(--ink-3);
-  }
-  .figcap .r { color: var(--accent); }
-
-  /* end mark */
-  .art-end {
-    max-width: 66ch; margin: clamp(40px,6vw,72px) auto 0; padding: 0 var(--gutter);
-  }
-  .art-end .em {
-    border-top: 2px solid var(--ink); padding-top: 18px;
-    font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--ink-2); line-height: 1.6;
-  }
-  .art-end .em .dot { color: var(--accent); }
-  .art-end .em b { color: var(--ink); }
-
-  /* ====== footer — barcode lives here, once ====== */
-  footer.site { margin-top: clamp(60px,8vw,110px); border-top: 2px solid var(--ink); }
-  footer.site .fin {
-    max-width: var(--maxw); margin: 0 auto; padding: 34px var(--gutter) 56px;
-    display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 30px; align-items: start;
-  }
-  footer.site .f-brand { font-family: var(--display); font-size: 30px; line-height: 1; }
-  footer.site .f-brand .dot { color: var(--accent); }
-  footer.site .f-sub { font-family: var(--serif); font-size: 14px; line-height: 1.5; color: var(--ink-2); margin-top: 12px; max-width: 34ch; }
-  footer.site .f-col h4 { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; }
-  footer.site .f-col a { display: block; font-family: var(--mono); font-size: 12px; color: var(--ink-2); padding: 5px 0; letter-spacing: .04em; }
-  footer.site .f-col a:hover { color: var(--accent); }
-  footer.site .f-mark { text-align: right; }
-  footer.site .f-mark .barcode { margin-left: auto; }
-  footer.site .f-credit { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: var(--ink-3); margin-top: 16px; line-height: 1.7; }
-
-  @media (max-width: 720px) {
-    .ph-word { top: 23%; }
-    .statrow { grid-template-columns: 1fr 1fr; }
-    .statrow .st { border-bottom: 1px solid var(--line-soft); }
-    footer.site .fin { grid-template-columns: 1fr 1fr; }
-    footer.site .f-mark { grid-column: 1 / -1; text-align: left; }
-    footer.site .f-mark .barcode { margin-left: 0; }
-    .ph-vcap { display: none; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .topbar, .topbar .progress, .frame .dither-canvas { transition: none; }
-  }
-
-  @media print {
-    .topo-layer, .grain-layer, .vignette, .ph-cue, .topbar .progress { display: none !important; }
-    body { background: #fff; }
-    .post-hero { height: 70vh; }
-    .article, .prose > p, .figure, .pull { break-inside: avoid; }
-    a { color: inherit; }
-  }
-</style>
 </head>
 <body>
 <canvas class="topo-layer" id="topo"></canvas>
@@ -341,7 +67,7 @@
         <div class="st"><div class="k">Edition</div><div class="v">Nº 014</div></div>
       </div>
 
-      <div class="art-tags"><span class="tag tag-accent">Essay</span><span class="tag">Craft</span><span class="tag">Building</span></div>
+      <div class="art-tags"><span class="tag" data-accent="on">Essay</span><span class="tag">Craft</span><span class="tag">Building</span></div>
 
       <h1 class="art-title">On taste as a competitive advantage</h1>
       <p class="art-dek">Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity.</p>
@@ -367,8 +93,8 @@
         <p>Features get copied in a quarter. Pricing gets matched in a week. The accumulated weight of a thousand correct small decisions does not transfer. A competitor can read your changelog. They cannot read the meetings where you said no.</p>
       </div>
 
-      <figure class="figure wide">
-        <div class="frame" id="fig1">
+      <figure class="figure" data-width="wide">
+        <div class="frame" data-dither="on" id="fig1">
           <img class="dsrc" src="assets/photos/pier.jpg" alt="A jetty reaching into the calm Setouchi sea">
           <canvas class="dither-canvas"></canvas>
           <div class="grain-on"></div>
@@ -396,7 +122,7 @@
   </article>
 
   <!-- ===================== FOOTER ===================== -->
-  <footer class="site">
+  <footer class="site" data-variant="article">
     <div class="fin">
       <div>
         <div class="f-brand">exhale</div>

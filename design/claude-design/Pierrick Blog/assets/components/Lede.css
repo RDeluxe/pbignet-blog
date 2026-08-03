@@ -1,0 +1,6 @@
+/* Lede — serif intro line. data-size='intro' (over the hero) | 'section' */
+.lede[data-size='section'] { font-family: var(--serif); font-size: clamp(20px,2.4vw,28px); line-height: 1.32; max-width: 24ch; }
+.lede[data-size='intro'] { position: absolute; z-index: 0; right: 6%; top: 7.5%; font-family: var(--serif); font-size: clamp(19px,2.2vw,26px); line-height: 1.34; max-width: 22ch; margin: 0; text-wrap: balance; color: var(--ink); text-align: left; }
+@media (max-width: 880px) {
+  .lede[data-size='intro'] { display: none; }
+}

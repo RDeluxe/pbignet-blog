@@ -401,7 +401,7 @@
     <div class="sec-no">Section 07</div>
     <h2 class="sec-title">Components</h2>
     <hr class="sec-rule">
-    <p class="sec-intro">The reusable blocks, all defined in <code>paper.css</code> and shared across pages. Live specimens below — these are the real classes.</p>
+    <p class="sec-intro">The reusable blocks — one file each in <code>assets/components/</code>, imported by <code>paper.css</code> — shared across pages. Live specimens below — these are the real classes.</p>
 
     <h3 class="blk">Plate — <code>.plate</code> (grille empruntée)</h3>
     <div class="plate"><span class="ptag">PLATE</span>
@@ -415,13 +415,13 @@
 
     <h3 class="blk">Writing index row — <code>.post</code></h3>
     <div class="plate plain"><span class="ptag">POST</span>
-      <a class="post" href="#" style="border-top:none;"><span class="idx">001</span><span><span class="tag tag-accent">Essay</span><div class="ptitle">On taste as a competitive advantage</div><div class="pdesc">Why the companies that win on craft are usually the ones who couldn't articulate why craft mattered — until it did.</div></span><span class="pmeta">8 MIN<br>MAY 2026</span></a>
+      <a class="post" href="#" style="border-top:none;"><span class="idx">001</span><span><span class="tag" data-accent="on">Essay</span><div class="ptitle">On taste as a competitive advantage</div><div class="pdesc">Why the companies that win on craft are usually the ones who couldn't articulate why craft mattered — until it did.</div></span><span class="pmeta">8 MIN<br>MAY 2026</span></a>
     </div>
 
     <h3 class="blk">Collection cards — <code>.coll</code> in a 3-up grid (hover: crosses + paper-2)</h3>
     <div class="plate plain"><span class="ptag">COLL</span>
       <div class="coll-grid">
-        <div class="coll"><span class="tag tag-accent">Guide</span><h3>The Studio Operating Manual</h3><p>Everything I wish I'd known about running a humane software studio.</p><span class="coll-foot">14 CHAPTERS →</span></div>
+        <div class="coll"><span class="tag" data-accent="on">Guide</span><h3>The Studio Operating Manual</h3><p>Everything I wish I'd known about running a humane software studio.</p><span class="coll-foot">14 CHAPTERS →</span></div>
         <div class="coll"><span class="tag">Guide</span><h3>Field Notes on Game Direction</h3><p>Pillars, vibe, scope, and the art of saying no.</p><span class="coll-foot">09 ENTRIES →</span></div>
         <div class="coll"><span class="tag">Guide</span><h3>A Photographer's Notebook</h3><p>Light, film stocks, scanning, the dithering pipeline.</p><span class="coll-foot">07 ENTRIES →</span></div>
       </div>
@@ -448,8 +448,8 @@
     <h3 class="blk">Tags · barcode · gear — supporting bits</h3>
     <div class="g3">
       <div class="plate plain"><span class="ptag">TAGS</span>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="tag tag-accent">Essay</span><span class="tag">Note</span><span class="tag">Guide</span></div>
-        <div class="mono-note" style="margin-top:12px;">Mono caps, 1px border. <code>.tag-accent</code> borrows the page ink.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="tag" data-accent="on">Essay</span><span class="tag">Note</span><span class="tag">Guide</span></div>
+        <div class="mono-note" style="margin-top:12px;">Mono caps, 1px border. <code>.tag[data-accent='on']</code> borrows the page ink.</div>
       </div>
       <div class="plate plain"><span class="ptag">GEAR</span>
         <div style="border:1px solid var(--line);padding:16px;"><div style="font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:0.12em;">SET·02</div><div style="font-family:var(--sans);font-weight:800;font-size:17px;margin-top:8px;">Camera Bag</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:6px;">Contax T2 · X100V</div></div>
@@ -458,7 +458,7 @@
         <div style="position:relative;height:96px;background:linear-gradient(135deg,#3a4a6a,#7a5a48);border:1px solid var(--line);overflow:hidden;"><div style="position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#f0e9d8;background:linear-gradient(transparent,rgba(20,18,12,0.7));padding:18px 10px 7px;"><span>Miyajima</span><span>№014</span></div></div>
       </div>
     </div>
-    <p class="mono-note" style="margin-top:16px;">ALSO IN <code>paper.css</code> → <code>.metabar</code> (top data bar) · <code>nav.main</code> · <code>.feature</code> (word-over-photo) · <code>footer.site</code> · film-frame <code>image-slot</code> slots.</p>
+    <p class="mono-note" style="margin-top:16px;">ALSO IN <code>assets/components/</code> → <code>.metabar</code> (top data bar) · <code>nav.main</code> · <code>.feature</code> (word-over-photo) · <code>footer.site</code> · film-frame <code>image-slot</code> slots.</p>
   </section>
 
   <!-- ===================== 08 PAGE ANATOMY ===================== -->
@@ -569,15 +569,22 @@
     <div class="sec-no">Section 11</div>
     <h2 class="sec-title">Build conventions</h2>
     <hr class="sec-rule">
-    <p class="sec-intro">How a new page is wired. Everything structural lives in <code>paper.css</code> + <code>assets/*.js</code>; each page only overrides <b>color &amp; font tokens</b> and adds its own layout.</p>
+    <p class="sec-intro">How a new page is wired. Everything structural lives in <code>paper.css</code> + <code>assets/components/*.css</code> + <code>assets/*.js</code>; a page only sets its <b>ink tokens</b>, inline on <code>&lt;html&gt;</code> — page <code>&lt;style&gt;</code> blocks stay empty.</p>
 
     <h3 class="blk">File layout</h3>
     <table class="spec">
-      <tr><td>assets/paper.css</td><td>Tokens, reset, texture layering, all shared components.</td></tr>
+      <tr><td>assets/paper.css</td><td>Tokens, reset, texture layers; <code>@import</code>s every component.</td></tr>
+      <tr><td>assets/components/*.css</td><td>One file per component — a component's CSS lives in exactly one file.</td></tr>
       <tr><td>assets/texture.js</td><td><code>Grain</code> + <code>Topo</code> (procedural, on <code>window</code>).</td></tr>
       <tr><td>assets/dither.js</td><td><code>Dither.ambient</code> / <code>Dither.photo</code> + Bayer matrix.</td></tr>
-      <tr><td>assets/image-slot.js</td><td>Drag-drop photo slots (film-frame styling in paper.css).</td></tr>
+      <tr><td>assets/image-slot.js</td><td>Drag-drop photo slots (empty-state styling in <code>components/ImageSlot.css</code>).</td></tr>
       <tr><td>assets/photos/*</td><td>Source <code>.jpg</code> + baked <code>*-dither.png</code> / <code>*-cdither.png</code>.</td></tr>
+    </table>
+
+    <h3 class="blk">Component conventions (Aug 2026)</h3>
+    <table class="spec">
+      <tr><td>One file per component</td><td>A component's CSS lives in <b>exactly one file</b>, <code>assets/components/&lt;Name&gt;.css</code>, imported by <code>paper.css</code>. Page <code>&lt;style&gt;</code> blocks stay <b>empty</b> — if a page needs something, it is a component or a variant of one. Page ink tokens go inline on <code>&lt;html&gt;</code>.</td></tr>
+      <tr><td>Variants are <code>data-*</code></td><td>Never suffixed classes: <code>.tag[data-accent='on']</code> · <code>.rule[data-weight='thick']</code> · <code>.lede[data-size='intro'|'section']</code> · <code>.figure[data-width='wide']</code> · <code>.frame[data-dither='on']</code> · <code>.pframe[data-ratio]</code> · <code>footer.site[data-variant]</code>. Legacy class variants (<code>.plate.plain/.recessed</code>, <code>.btn.accent/.invert</code>, <code>.regmark.tl…br</code>) predate the rule — convert on their next pass.</td></tr>
     </table>
 
     <h3 class="blk">New-page skeleton</h3>
@@ -585,11 +592,8 @@
 &lt;link href=<span class="s">"…Anton&amp;Archivo&amp;Space+Mono&amp;Newsreader…"</span>&gt;
 &lt;link rel=<span class="s">"stylesheet"</span> href=<span class="s">"assets/paper.css"</span>&gt;
 
-<span class="c">&lt;!-- 2 · override ONLY tokens for this page's accent --&gt;</span>
-&lt;style&gt;:root{
-  <span class="t">--accent</span>: #2c7a4c;            <span class="c">/* pick one ink */</span>
-  <span class="t">--topo</span>: rgba(44,122,76,.06); <span class="c">/* accent @ ~6% */</span>
-}&lt;/style&gt;
+<span class="c">&lt;!-- 2 · page ink INLINE on &lt;html&gt; — pages have NO &lt;style&gt; block --&gt;</span>
+&lt;html style=<span class="s">"--accent:#2c7a4c; --topo:rgba(44,122,76,.06)"</span>&gt;
 
 <span class="c">&lt;!-- 3 · texture layers (fixed, behind .page) --&gt;</span>
 &lt;canvas class=<span class="s">"topo-layer"</span> id=<span class="s">"topo"</span>&gt;&lt;/canvas&gt;

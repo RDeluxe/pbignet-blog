@@ -69,3 +69,13 @@ Writing index · Article (long-form) · Photos (grid + swatches) · Now · Setup
 - Propagé : gold (01_Home, 02_Article, NORTHSTAR, Pâte graphique ×2, Test Export ×2), paper.css, bancs actifs (Boxes, Article spot colour). Études research 01–04 & archives laissées en v1.
 - `dither.js` accepte `'var(--token)'` / `#hex` / `'r,g,b'`, résolus à CHAQUE rendu → les cellules claires suivent `--paper` en live (défaut du mode photo, utilisé par 02_Article fig1). Duotones par image (hero 02_Article navy/ciel) gardés volontairement.
 - À revoir : `--card` des carrés Test Export (#f1ece2, désormais plus sombre que paper) ; PNG hero cuits (01-dither…) encore teintés v1 → à re-cuire.
+
+## CSS per component — décision août 2026
+- `paper.css` = tokens + reset + texture layers + focus/print/reduced-motion only; every component lives in exactly ONE file, `assets/components/<Name>.css`, @imported at the top of paper.css. Gold pages carry **no `<style>` block**; the page ink (`--accent`/`--topo`/`--post-hero-h`) sits inline on `<html>`.
+- Variants are `data-*`, never suffixed classes: `.tag[data-accent='on']` · `.rule[data-weight='thick']` · `.lede[data-size='intro'|'section']` (ex `.hero-intro`/`.lead-serif`) · `.figure[data-width='wide']` · `.pframe[data-ratio='tall'|'wide']` · `footer.site[data-variant='index'|'article']`.
+- **§3 ruling**: the article frame is the SAME `.frame` component with a dither variant → `.frame[data-dither='on']` (overflow + dark ground + 1066/1422 + canvas on); base stays dither-off. Lives in `ArticlePlate.css`.
+- **§6 rulings**: `.frame-marks` NOT deleted — research/02 Topographic still uses it; kept in paper.css, flagged legacy. `.rule`/`.rule-thick`/`.tick` kept (`Rule.css`, data-weight form).
+- Kept as class variants for now (NORTHSTAR specimens + archives use them): `.plate.plain/.recessed`, `.btn.accent/.invert`, `.regmark.tl…br`. Convert when those pages get their own pass.
+- Footer collision the brief missed: home and article `footer.site` differ (margin-top, padding, inner classes `.foot-*` vs `.fin/.f-*`) → one `SiteFooter.css` with `data-variant`.
+- Hero photo URLs in `Hero.css` rewritten `assets/photos/…` → `../photos/…` (same files; CSS-relative).
+- Markup touched for renames: 01_Home, 02_Article, NORTHSTAR + archives using `.tag-accent` off shared CSS.

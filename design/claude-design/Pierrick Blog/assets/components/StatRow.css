@@ -1,0 +1,10 @@
+/* StatRow — instrument strip at the head of a piece */
+.statrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); margin-bottom: clamp(30px, 4vw, 44px); }
+.statrow .st { padding: 14px 16px 14px 0; }
+.statrow .st .k { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.statrow .st .v { font-family: var(--mono); font-size: 13px; letter-spacing: .03em; color: var(--ink); margin-top: 5px; }
+.statrow .st .v b { color: var(--accent); font-weight: 700; }
+@media (max-width: 720px) {
+  .statrow { grid-template-columns: 1fr 1fr; }
+  .statrow .st { border-bottom: 1px solid var(--line-soft); }
+}

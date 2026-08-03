@@ -1,0 +1,4 @@
+/* Rule — horizontal rules + tick accent. data-weight='thick' */
+.rule { border: none; border-top: 1px solid var(--line); margin: 0; }
+.rule[data-weight='thick'] { border: none; border-top: 2px solid var(--ink); margin: 0; }
+.tick { color: var(--accent); }

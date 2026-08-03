@@ -1,0 +1,10 @@
+/* GearCard — setup tile + 4-up grid */
+.gear { position: relative; border: 1px solid var(--line); padding: 16px; min-height: 116px; display: flex; flex-direction: column; justify-content: space-between; transition: .2s; }
+.gear:hover { background: var(--paper-2); border-color: var(--ink-2); }
+.gear-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.gear .gnum { font-family: var(--mono); font-size: 10px; color: var(--ink-3); letter-spacing: 0.12em; }
+.gear .gname { font-family: var(--sans); font-weight: 800; font-size: 17px; margin-top: 8px; }
+.gear .gmeta { font-family: var(--mono); font-size: 11px; color: var(--ink-2); margin-top: 6px; }
+@media (max-width: 880px) {
+  .gear-grid { grid-template-columns: 1fr 1fr; }
+}

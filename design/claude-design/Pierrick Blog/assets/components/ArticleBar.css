@@ -1,0 +1,22 @@
+/* ArticleBar — sticky reading bar; JS adds .over-hero while the cover shows */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  transition: background .3s ease, border-color .3s ease, color .3s ease;
+}
+.topbar .progress { position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--accent); transition: width .12s linear; }
+.topbar .tb-in { max-width: var(--maxw); margin: 0 auto; padding: 13px var(--gutter); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; }
+.topbar .brand { font-family: var(--display); font-size: 20px; letter-spacing: .02em; line-height: 1; }
+.topbar .brand .dot { color: var(--accent); }
+.topbar .tb-title { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar .tb-back { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; }
+.topbar .tb-back:hover { color: var(--accent); }
+/* immersive state — JS adds this only while the cover is on screen */
+.topbar.over-hero { background: transparent; border-color: transparent; }
+.topbar.over-hero .brand,
+.topbar.over-hero .tb-back { color: #f1ebdd; text-shadow: 0 1px 14px rgba(0,0,0,.5); }
+.topbar.over-hero .tb-title { color: rgba(241,235,221,.0); }
+.topbar.over-hero .progress { opacity: 0; }

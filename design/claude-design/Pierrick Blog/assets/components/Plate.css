@@ -1,0 +1,39 @@
+/* Plate — static presentation box, "grille empruntée" (B6).
+ * The frame is four grid lines that darken and run past the corners (#).
+ * Grid rhythm: --cell (24px) = the body line-height, so text lines sit ON
+ * the grid; the fill is clipped to the content box. Majeure every 4 cells.
+ * .plain — no grid (content draws its own, e.g. diagram.js)
+ * .recessed — paper-2 panel, for plates that must lift off busy surroundings
+ * (legacy class variants — used by NORTHSTAR + Pâte graphique; convert to
+ * data-* on their next pass) */
+.plate {
+  --cell: 24px;
+  position: relative;
+  background-color: var(--paper);
+  padding: var(--cell);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--ink) 2.2%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ink) 2.2%, transparent) 1px, transparent 1px);
+  background-size: calc(var(--cell) * 4) calc(var(--cell) * 4), calc(var(--cell) * 4) calc(var(--cell) * 4), var(--cell) var(--cell), var(--cell) var(--cell);
+  background-position: 0 0;
+}
+.plate p, .plate li, .plate .mono-note { line-height: var(--cell); }
+.plate::before {
+  content: "";
+  position: absolute; left: -13px; right: -13px; top: 0; bottom: 0;
+  border-top: 1.2px solid color-mix(in srgb, var(--ink) 55%, transparent);
+  border-bottom: 1.2px solid color-mix(in srgb, var(--ink) 55%, transparent);
+  pointer-events: none;
+}
+.plate::after {
+  content: "";
+  position: absolute; top: -13px; bottom: -13px; left: 0; right: 0;
+  border-left: 1.2px solid color-mix(in srgb, var(--ink) 55%, transparent);
+  border-right: 1.2px solid color-mix(in srgb, var(--ink) 55%, transparent);
+  pointer-events: none;
+}
+.plate.plain { background-image: none; }
+.plate.recessed { background-color: var(--paper-2); }
+.plate .ptag { position: absolute; top: 10px; right: 12px; z-index: 1; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--ink-3); text-transform: uppercase; }

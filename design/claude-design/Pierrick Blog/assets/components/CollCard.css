@@ -1,0 +1,13 @@
+/* CollCard — collection (evergreen) card + fused 3-up grid */
+.coll { border: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 10px; position: relative; background: color-mix(in srgb, var(--ink) 2%, transparent); transition: border-color 0.25s ease, background 0.25s ease; }
+.coll:hover { background: var(--paper-2); border-color: var(--ink-2); z-index: 1; }
+.coll h3 { margin: 0; font-family: var(--sans); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; }
+.coll p { margin: 0; font-family: var(--serif); font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+.coll .coll-foot { margin-top: auto; font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em; }
+/* collection cards in a fused grid (shared 1px borders) */
+.coll-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.coll-grid .coll { border: none; background: var(--paper); }
+.coll-grid .coll:hover { background: var(--paper-2); }
+@media (max-width: 880px) {
+  .coll-grid { grid-template-columns: 1fr 1fr; }
+}

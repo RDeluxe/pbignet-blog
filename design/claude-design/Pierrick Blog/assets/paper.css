@@ -1,6 +1,36 @@
-/* paper.css — shared foundation for the "exhale" homepage variations.
- * Each variation HTML overrides the colour + font tokens and adds its own
- * layout rules; everything structural and texture-related lives here. */
+/* paper.css — shared foundation for the "exhale" pages.
+ * A component's CSS lives in exactly ONE file, assets/components/<Name>.css,
+ * imported below. This file keeps only: tokens, reset, the paper surface +
+ * texture layers, focus ring, print + reduced-motion blocks. */
+@import 'components/Wrap.css';
+@import 'components/Metabar.css';
+@import 'components/MainNav.css';
+@import 'components/Hero.css';
+@import 'components/Lede.css';
+@import 'components/SectionHead.css';
+@import 'components/PostRow.css';
+@import 'components/Tag.css';
+@import 'components/CollCard.css';
+@import 'components/GearCard.css';
+@import 'components/Tile.css';
+@import 'components/PhotoFrame.css';
+@import 'components/FeaturedEssay.css';
+@import 'components/SiteFooter.css';
+@import 'components/Plate.css';
+@import 'components/Callout.css';
+@import 'components/Button.css';
+@import 'components/Barcode.css';
+@import 'components/RegMarks.css';
+@import 'components/MonoLabel.css';
+@import 'components/Rule.css';
+@import 'components/ArticleBar.css';
+@import 'components/ArticleHead.css';
+@import 'components/ArticlePlate.css';
+@import 'components/PullQuote.css';
+@import 'components/StatRow.css';
+@import 'components/HeroPopColor.css';
+@import 'components/Prose.css';
+@import 'components/ImageSlot.css';
 
 /* ---- reset ---- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -9,7 +39,7 @@ img { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; }
 
-/* ---- tokens (defaults; variations override) ---- */
+/* ---- tokens (defaults; a page overrides ink tokens inline on <html>) ---- */
 :root {
   --paper: #f6f5f1;
   --paper-2: #edebe4;
@@ -44,120 +74,18 @@ body {
   overflow-x: hidden;
 }
 /* topo contour canvas — fixed, faint, behind everything */
-.topo-layer {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 1;
-}
+.topo-layer { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 1; }
 /* grain overlay — sits above paper, below content, multiply for tooth */
-.grain-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background-image: var(--grain);
-  background-repeat: repeat;
-  mix-blend-mode: multiply;
-  opacity: 0.9;
-}
+.grain-layer { position: fixed; inset: 0; z-index: 1; pointer-events: none; background-image: var(--grain); background-repeat: repeat; mix-blend-mode: multiply; opacity: 0.9; }
 /* subtle vignette so edges feel like a printed sheet */
-.vignette {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(120% 100% at 50% 0%, transparent 60%, rgba(40,36,28,0.06) 100%);
-}
-.page { position: relative; z-index: 2; }
+.vignette { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(120% 100% at 50% 0%, transparent 60%, rgba(40,36,28,0.06) 100%); }
+.page { position: relative; z-index: 2; padding-bottom: 0; }
 
-/* ---- shared layout ---- */
-.wrap {
-  width: 100%;
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding-left: var(--gutter);
-  padding-right: var(--gutter);
-}
-.rule { border: none; border-top: 1px solid var(--line); margin: 0; }
-.rule-thick { border: none; border-top: 2px solid var(--ink); margin: 0; }
+/* ---- page rhythm (section spacing between blocks) ---- */
+section.block { margin-top: clamp(64px, 8vw, 110px); }
 
-/* ---- type helpers ---- */
-.mono { font-family: var(--mono); }
-.mono-label {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
-.tick { color: var(--accent); }
-
-/* ---- registration / crop marks (corner instrument detail) ---- */
-.regmark {
-  position: absolute;
-  width: 22px; height: 22px;
-  pointer-events: none;
-  z-index: 3;
-  opacity: 0.65;
-}
-.regmark::before, .regmark::after {
-  content: "";
-  position: absolute;
-  background: var(--ink);
-}
-.regmark::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
-.regmark::after { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
-.regmark.tl { top: 16px; left: 16px; }
-.regmark.tr { top: 16px; right: 16px; }
-.regmark.bl { bottom: 16px; left: 16px; }
-.regmark.br { bottom: 16px; right: 16px; }
-
-/* ---- barcode (CSS gradient of random-ish bars) ---- */
-.barcode {
-  height: 38px;
-  width: 180px;
-  background-image: repeating-linear-gradient(90deg,
-    var(--ink) 0 1px, transparent 1px 3px,
-    var(--ink) 3px 5px, transparent 5px 6px,
-    var(--ink) 6px 9px, transparent 9px 12px,
-    var(--ink) 12px 13px, transparent 13px 16px,
-    var(--ink) 16px 19px, transparent 19px 20px);
-  background-size: 20px 100%;
-}
-.barcode-num {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.18em;
-  color: var(--ink-2);
-  margin-top: 3px;
-}
-
-/* ---- film-frame image slots (styling image-slot's empty state) ---- */
-.frame { position: relative; }
-.frame .dither-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  image-rendering: pixelated;
-  pointer-events: none;
-  z-index: 2;
-  display: none;
-}
-image-slot {
-  --slot-cap: var(--ink-3);
-}
-image-slot::part(frame) {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
-}
-image-slot::part(ring) {
-  border-color: var(--line);
-}
-/* film notch corners on a frame wrapper */
+/* ---- LEGACY — film notch corners; retired from gold (July 2026), kept for
+ * research archives only (research/02 Topographic still uses it) ---- */
 .frame-marks::before, .frame-marks::after,
 .frame-marks > .fm1, .frame-marks > .fm2 {
   content: "";
@@ -172,227 +100,21 @@ image-slot::part(ring) {
 .frame-marks > .fm1 { bottom: -1px; left: -1px; border-right: none; border-top: none; }
 .frame-marks > .fm2 { bottom: -1px; right: -1px; border-left: none; border-top: none; }
 
-/* ---- writing index rows ---- */
-.post {
-  display: grid;
-  grid-template-columns: 64px 1fr auto;
-  gap: clamp(14px, 3vw, 40px);
-  align-items: baseline;
-  padding: 22px 0;
-  border-top: 1px solid var(--line);
-  position: relative;
-  transition: transform 0.25s ease;
-}
-.post:hover { transform: translateX(14px); }
-.post:last-child { border-bottom: 1px solid var(--line); }
-.post .idx { font-family: var(--mono); font-size: 12px; color: var(--ink-3); padding-top: 6px; }
-.post .ptitle {
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: clamp(19px, 2.4vw, 27px);
-  line-height: 1.12;
-  letter-spacing: -0.01em;
-  text-wrap: balance;
-}
-.post .pmeta {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--ink-2);
-  text-align: right;
-  white-space: nowrap;
-  line-height: 1.5;
-}
-.post .pdesc {
-  font-family: var(--serif);
-  font-size: 15px;
-  color: var(--ink-2);
-  margin-top: 8px;
-  max-width: 56ch;
-  line-height: 1.5;
-}
-.post .arrow { display: none; }
-
-/* category tag */
-.tag {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border: 1px solid var(--line);
-  color: var(--ink-2);
-}
-.tag-accent { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
-
-/* ---- section header ---- */
-.shead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-.shead h2 {
-  margin: 0;
-  font-family: var(--display);
-  font-weight: 400;
-  font-size: clamp(28px, 5vw, 56px);
-  line-height: 0.94;
-  letter-spacing: 0.005em;
-  text-transform: uppercase;
-}
-.shead .shead-meta { font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.1em; }
-
-/* collection (evergreen) cards */
-.coll {
-  border: 1px solid var(--line);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  position: relative;
-  background: color-mix(in srgb, var(--ink) 2%, transparent);
-  transition: border-color 0.25s ease, background 0.25s ease;
-}
-.coll:hover { background: var(--paper-2); border-color: var(--ink-2); z-index: 1; }
-.coll h3 { margin: 0; font-family: var(--sans); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; }
-.coll p { margin: 0; font-family: var(--serif); font-size: 14px; color: var(--ink-2); line-height: 1.5; }
-.coll .coll-foot { margin-top: auto; font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em; }
-
-/* ---- PLATE — static presentation box, "grille empruntée" ----
- * The frame is four grid lines that darken and run past the corners (#).
- * Grid rhythm: --cell (24px) = the body line-height, so text lines sit ON
- * the grid; the fill is clipped to the content box (clean paper margin
- * between pattern and frame). Majeure every 4 cells.
- * .plain — no grid (content draws its own, e.g. diagram.js)
- * .recessed — paper-2 panel, for plates that must lift off busy surroundings */
-.plate {
-  --cell: 24px;
-  position: relative;
-  background-color: var(--paper);
-  padding: var(--cell);
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px),
-    linear-gradient(color-mix(in srgb, var(--ink) 2.2%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--ink) 2.2%, transparent) 1px, transparent 1px);
-  background-size: calc(var(--cell) * 4) calc(var(--cell) * 4), calc(var(--cell) * 4) calc(var(--cell) * 4), var(--cell) var(--cell), var(--cell) var(--cell);
-  background-position: 0 0;
-}
-.plate p, .plate li, .plate .mono-note { line-height: var(--cell); }
-.plate::before {
-  content: "";
-  position: absolute; left: -13px; right: -13px; top: 0; bottom: 0;
-  border-top: 1.2px solid color-mix(in srgb, var(--ink) 55%, transparent);
-  border-bottom: 1.2px solid color-mix(in srgb, var(--ink) 55%, transparent);
-  pointer-events: none;
-}
-.plate::after {
-  content: "";
-  position: absolute; top: -13px; bottom: -13px; left: 0; right: 0;
-  border-left: 1.2px solid color-mix(in srgb, var(--ink) 55%, transparent);
-  border-right: 1.2px solid color-mix(in srgb, var(--ink) 55%, transparent);
-  pointer-events: none;
-}
-.plate.plain { background-image: none; }
-.plate.recessed { background-color: var(--paper-2); }
-.plate .ptag {
-  position: absolute; top: 10px; right: 12px; z-index: 1;
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
-  color: var(--ink-3); text-transform: uppercase;
-}
-
-/* ---- TILE hover — 1px corner crosses appear on interactive boxes ---- */
-.coll::after, .gear::after {
-  content: "";
-  position: absolute; inset: -8.5px;
-  pointer-events: none; opacity: 0; transition: opacity 0.18s;
-  background-image:
-    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2)),
-    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2)),
-    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2)),
-    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2));
-  background-size: 1px 17px, 17px 1px, 1px 17px, 17px 1px, 1px 17px, 17px 1px, 1px 17px, 17px 1px;
-  background-position: left 8px top 0, left 0 top 8px, right 8px top 0, right 0 top 8px, left 8px bottom 0, left 0 bottom 8px, right 8px bottom 0, right 0 bottom 8px;
-  background-repeat: no-repeat;
-}
-.gear { position: relative; }
-.coll:hover::after, .gear:hover::after { opacity: 1; }
-
-/* ---- CALLOUT — pinned note (no accent bar) ----
- * hairline box, faint dots clipped to the content box (padded off the
- * border), dot pitch = --cell = text line-height, mono tag breaking the
- * top border (data-tag), two 1px crosses tl + br */
-.callout {
-  --cell: 24px;
-  position: relative;
-  border: 1px solid var(--line);
-  padding: var(--cell) 20px;
-  background-color: var(--paper);
-  background-image: radial-gradient(color-mix(in srgb, var(--ink) 13%, transparent) 1px, transparent 1.4px);
-  background-size: var(--cell) var(--cell);
-  background-position: 0 0;
-}
-.callout p, .callout li { line-height: var(--cell); }
-.callout::before {
-  content: attr(data-tag);
-  position: absolute; top: -8px; left: 14px;
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
-  color: var(--accent); background: var(--paper); padding: 0 7px; text-transform: uppercase;
-}
-.callout::after {
-  content: "";
-  position: absolute; inset: -8.5px; pointer-events: none;
-  background-image:
-    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2)),
-    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2));
-  background-size: 1px 17px, 17px 1px, 1px 17px, 17px 1px;
-  background-position: left 8px top 0, left 0 top 8px, right 8px bottom 0, right 0 bottom 8px;
-  background-repeat: no-repeat;
-}
-
-/* ---- BUTTON — light animated dither rises in the fill on hover ----
- * .accent — accent ink trame · .invert — secondary mode: solid ink inversion */
-.btn {
-  position: relative;
-  display: inline-flex; align-items: center; gap: 7px;
-  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 11px 18px; border: 1px solid var(--ink);
-  background: transparent; color: var(--ink); cursor: pointer;
-}
-.btn::before {
-  content: "";
-  position: absolute; inset: 0; z-index: -1;
-  opacity: 0; transition: opacity 0.22s;
-  background-image: radial-gradient(var(--btn-dith, color-mix(in srgb, var(--ink) 55%, transparent)) 0.8px, transparent 1px);
-  background-size: 4px 4px;
-}
-.btn:hover::before { opacity: 0.3; animation: btn-boil 0.42s steps(1, end) infinite; }
-.btn.accent { border-color: var(--accent); color: var(--accent); --btn-dith: color-mix(in srgb, var(--accent) 60%, transparent); }
-.btn.invert { transition: background 0.2s, color 0.2s; }
-.btn.invert::before { display: none; }
-.btn.invert:hover { background: var(--ink); color: var(--paper); }
-@keyframes btn-boil {
-  0% { background-position: 0 0; }
-  33% { background-position: 2px 1px; }
-  66% { background-position: 1px 3px; }
-  100% { background-position: 0 0; }
-}
-
-/* collection cards in a fused grid (shared 1px borders) */
-.coll-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
-.coll-grid .coll { border: none; background: var(--paper); }
-.coll-grid .coll:hover { background: var(--paper-2); }
-
 /* focus ring for keyboard users */
 a:focus-visible, button:focus-visible, image-slot:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
+@media print {
+  .topo-layer, .grain-layer, .vignette, .ph-cue, .topbar .progress { display: none !important; }
+  body { background: #fff; }
+  .post-hero { height: 70vh; }
+  .article, .prose > p, .figure, .pull { break-inside: avoid; }
+  a { color: inherit; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .post, .coll, .coll::after, .gear::after, .btn::before { transition: none; }
+  .post, .coll, .coll::after, .gear::after, .btn::before, .topbar, .topbar .progress, .frame .dither-canvas { transition: none; }
   .btn:hover::before { animation: none; }
 }

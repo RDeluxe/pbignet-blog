@@ -1,0 +1,20 @@
+/* Hero — HERO v2: photo cropped at top, continues inside the type.
+ * NOTE: photo URLs are relative to THIS file (../photos/ = assets/photos/). */
+.hero2 { position: relative; margin: var(--hero-gap,12px) 0 0; padding: 0; --hero-line: var(--hero-line-base,34%); }
+.hero-kick { position: relative; z-index: 5; display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--ink-2); padding: 8px 0 14px; }
+.hero-kick b { color: var(--accent); }
+.hero2-stage { position: relative; width: 100%; height: var(--hero-h,min(82vh,760px)); overflow: hidden; background: transparent; }
+.photo-plane { position: absolute; inset: 0; background-image: url('../photos/arc-cdither.png'); background-size: cover; background-position: 50% 50%; background-repeat: no-repeat; z-index: 1; clip-path: inset(var(--hero-line,34%) 0 0 0); }
+.ctype { position: absolute; z-index: 3; left: -0.03em; bottom: calc(100% - var(--hero-line,34%)); margin: 0; font-family: var(--display); font-size: clamp(96px, 17.5vw, 256px); line-height: 0.8; letter-spacing: 0.012em; text-transform: uppercase; white-space: nowrap; background-image: url('../photos/arc-cdither.png'); background-repeat: no-repeat; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+.hero2-credit { position: absolute; z-index: 4; left: 2px; bottom: 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: #f3ecdb; text-transform: uppercase; opacity: 0.9; text-shadow: 0 1px 10px rgba(0,0,0,0.8); }
+.hero2-bc { position: absolute; z-index: 4; right: 2px; bottom: 12px; text-align: right; }
+.hero2-bc .barcode { --ink: #f6f5f1; margin-left: auto; }
+.hero2-bc .barcode-num { color: #e6dfd0; text-shadow: 0 1px 8px rgba(0,0,0,0.7); }
+@media (max-width: 880px) {
+  .hero2 { --hero-line: 24%; }
+  .hero-serif { display: none; }
+  .hero-role { top: 58%; }
+}
+@media (max-width: 560px) {
+  .hero2 { --hero-line: 16%; }
+}

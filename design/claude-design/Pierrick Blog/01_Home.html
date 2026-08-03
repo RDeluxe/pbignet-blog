@@ -17,107 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/paper.css">
-<style>
-  :root {
-    --paper: #f6f5f1;
-    --paper-2: #edebe4;
-    --ink: #1b1a16;
-    --ink-2: #4c483d;
-    --ink-3: #696551;
-    --accent: #3d491d;          /* olive */
-    --line: rgba(27,26,22,.20);
-    --line-soft: rgba(27,26,22,.12);
-    --topo: rgba(61,73,29,.06);
-  }
-  .page { padding-bottom: 0; }
 
-  /* ---------- top bar (RETRO metadata) ---------- */
-  .metabar { display: grid; grid-template-columns: repeat(5, 1fr) auto; gap: 0 18px; border-bottom: 2px solid var(--ink); padding: 14px 0 11px; align-items: end; }
-  .metabar .m .k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
-  .metabar .m .v { font-family: var(--mono); font-size: 12px; color: var(--ink); margin-top: 3px; }
-  .metabar .brand { font-family: var(--display); font-size: 26px; letter-spacing: 0.02em; line-height: 1; text-align: right; }
-  .metabar .brand .dot { color: var(--accent); }
-  nav.main { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 11px 0; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; border-bottom: 1px solid var(--line); }
-  nav.main a { color: var(--ink-2); padding-bottom: 2px; border-bottom: 1px solid transparent; transition: .2s; }
-  nav.main a:hover { color: var(--accent); border-color: var(--accent); }
-  nav.main .sp { flex: 1; }
-  nav.main .lock { color: var(--ink-3); }
-
-  /* ---------- intro line ---------- */
-  .hero-intro { position: absolute; z-index: 0; right: 6%; top: 7.5%; font-family: var(--serif); font-size: clamp(19px,2.2vw,26px); line-height: 1.34; max-width: 22ch; margin: 0; text-wrap: balance; color: var(--ink); text-align: left; }
-
-  /* ---------- HERO v2: photo cropped at top, continues inside the type ---------- */
-  .hero2 { position: relative; margin: var(--hero-gap,12px) 0 0; padding: 0; --hero-line: var(--hero-line-base,34%); }
-  .hero-kick { position: relative; z-index: 5; display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--ink-2); padding: 8px 0 14px; }
-  .hero-kick b { color: var(--accent); }
-  .hero2-stage { position: relative; width: 100%; height: var(--hero-h,min(82vh,760px)); overflow: hidden; background: transparent; }
-  .photo-plane { position: absolute; inset: 0; background-image: url('assets/photos/arc-cdither.png'); background-size: cover; background-position: 50% 50%; background-repeat: no-repeat; z-index: 1; clip-path: inset(var(--hero-line,34%) 0 0 0); }
-  .ctype { position: absolute; z-index: 3; left: -0.03em; bottom: calc(100% - var(--hero-line,34%)); margin: 0;
-    font-family: var(--display); font-size: clamp(96px, 17.5vw, 256px); line-height: 0.8; letter-spacing: 0.012em; text-transform: uppercase; white-space: nowrap;
-    background-image: url('assets/photos/arc-cdither.png'); background-repeat: no-repeat;
-    -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
-  .hero2-credit { position: absolute; z-index: 4; left: 2px; bottom: 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: #f3ecdb; text-transform: uppercase; opacity: 0.9; text-shadow: 0 1px 10px rgba(0,0,0,0.8); }
-  .hero2-bc { position: absolute; z-index: 4; right: 2px; bottom: 12px; text-align: right; }
-  .hero2-bc .barcode { --ink: #f6f5f1; margin-left: auto; }
-  .hero2-bc .barcode-num { color: #e6dfd0; text-shadow: 0 1px 8px rgba(0,0,0,0.7); }
-
-  /* ---------- generic sections ---------- */
-  section.block { margin-top: clamp(64px, 8vw, 110px); }
-  .lead-serif { font-family: var(--serif); font-size: clamp(20px,2.4vw,28px); line-height: 1.32; max-width: 24ch; }
-
-  .coll-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
-  .coll-grid .coll { border: none; background: var(--paper); }
-  .coll-grid .coll:hover { background: var(--paper-2); }
-
-  /* ---------- FEATURED word-over-photo (repeat of hero move) ---------- */
-  .feature { position: relative; height: min(64vh, 560px); overflow: hidden; background: #2a2620; }
-  .feature img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
-  .feature .ftag { position: absolute; z-index: 2; top: 18px; left: 18px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #f0e9d8; background: rgba(20,18,12,0.5); padding: 4px 9px; }
-  .feature .fword { position: absolute; z-index: 2; left: 3%; bottom: 4%; margin: 0; font-family: var(--display); font-size: clamp(70px,13vw,180px); line-height: 0.8; text-transform: lowercase; color: #f1ead8; text-shadow: 0.045em 0.045em 0 #7a2414; letter-spacing: 0.005em; }
-  .feature .fmeta { position: absolute; z-index: 2; right: 4%; bottom: 8%; text-align: right; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: #36281f; line-height: 1.7; }
-  .feature .fmeta b { color: #ad3318; }
-
-  /* ---------- PHOTOS strip ---------- */
-  .photos-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
-  .pframe { position: relative; overflow: hidden; background: #2a2620; aspect-ratio: 3/4; border: 1px solid var(--line); }
-  .pframe.tall { aspect-ratio: 3/4; }
-  .pframe.wide { aspect-ratio: 4/5; }
-  .pframe img { width: 100%; height: 100%; object-fit: cover; }
-  .pframe .pc { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #f0e9d8; background: linear-gradient(transparent, rgba(20,18,12,0.7)); padding: 18px 10px 8px; }
-
-  /* ---------- gear ---------- */
-  .gear-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
-  .gear { border: 1px solid var(--line); padding: 16px; min-height: 116px; display: flex; flex-direction: column; justify-content: space-between; transition: .2s; }
-  .gear:hover { background: var(--paper-2); border-color: var(--ink-2); }
-  .gear .gnum { font-family: var(--mono); font-size: 10px; color: var(--ink-3); letter-spacing: 0.12em; }
-  .gear .gname { font-family: var(--sans); font-weight: 800; font-size: 17px; margin-top: 8px; }
-  .gear .gmeta { font-family: var(--mono); font-size: 11px; color: var(--ink-2); margin-top: 6px; }
-
-  /* ---------- footer ---------- */
-  footer.site { margin-top: clamp(70px,9vw,120px); border-top: 2px solid var(--ink); padding: 30px 0 56px; }
-  .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 30px; align-items: start; }
-  .foot-brand { font-family: var(--display); font-size: 40px; line-height: 0.9; letter-spacing: 0.02em; }
-  .foot-brand .dot { color: var(--accent); }
-  .foot-brand .fb-sub { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--ink-2); margin-top: 12px; line-height: 1.7; text-transform: none; }
-  .foot-col h4 { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; }
-  .foot-col a { display: block; font-family: var(--mono); font-size: 12px; color: var(--ink-2); padding: 3px 0; }
-  .foot-col a:hover { color: var(--accent); }
-
-  @media (max-width: 880px) {
-    .hero2 { --hero-line: 24%; }
-    .metabar { grid-template-columns: 1fr 1fr; }
-    .metabar .brand { grid-column: span 2; text-align: left; }
-    .coll-grid, .gear-grid { grid-template-columns: 1fr 1fr; }
-    .photos-grid { grid-template-columns: 1fr 1fr; }
-    .foot-grid { grid-template-columns: 1fr 1fr; }
-    .hero-serif { display: none; }
-    .hero-intro { display: none; }
-    .hero-role { top: 58%; }
-  }
-  @media (max-width: 560px) {
-    .hero2 { --hero-line: 16%; }
-  }
-</style>
 </head>
 <body>
 <canvas class="topo-layer" id="topo"></canvas>
@@ -145,7 +45,7 @@
     <!-- HERO v2 -->
     <div class="hero2">
       <div class="hero2-stage">
-        <p class="hero-intro">I build software, direct the art of games, and photograph everything in between.</p>
+        <p class="lede" data-size="intro">I build software, direct the art of games, and photograph everything in between.</p>
         <div class="photo-plane"></div>
         <h1 class="ctype">RESPIRE</h1>
         <div class="hero2-credit">SETOUCHI · NAOSHIMA · PANASONIC GX80 · ⓒ P. BIGNET</div>
@@ -157,11 +57,11 @@
     <!-- WRITING -->
     <section class="block">
       <div class="shead"><h2>Writing</h2><div class="shead-meta">[ OPINIONS · NOTES ]</div></div>
-      <p class="lead-serif">Short essays and unfiled opinions: taste, building things, and the gap between.</p>
+      <p class="lede" data-size="section">Short essays and unfiled opinions: taste, building things, and the gap between.</p>
       <div style="margin-top:28px;">
-        <a class="post" href="#"><span class="idx">001</span><span><span class="tag tag-accent">Essay</span><div class="ptitle">On taste as a competitive advantage</div><div class="pdesc">Why the companies that win on craft are usually the ones who couldn't articulate why craft mattered — until it did.</div></span><span class="pmeta">8 MIN<br>MAY 2026</span></a>
+        <a class="post" href="#"><span class="idx">001</span><span><span class="tag" data-accent="on">Essay</span><div class="ptitle">On taste as a competitive advantage</div><div class="pdesc">Why the companies that win on craft are usually the ones who couldn't articulate why craft mattered — until it did.</div></span><span class="pmeta">8 MIN<br>MAY 2026</span></a>
         <a class="post" href="#"><span class="idx">002</span><span><span class="tag">Note</span><div class="ptitle">Why I still write the first draft by hand</div><div class="pdesc">The friction is the feature. A short defence of slow tools in a fast studio.</div></span><span class="pmeta">4 MIN<br>APR 2026</span></a>
-        <a class="post" href="#"><span class="idx">003</span><span><span class="tag tag-accent">Essay</span><div class="ptitle">The real cost of context-switching, measured</div><div class="pdesc">I tracked every interruption for a month. The numbers were worse than the folklore.</div></span><span class="pmeta">11 MIN<br>APR 2026</span></a>
+        <a class="post" href="#"><span class="idx">003</span><span><span class="tag" data-accent="on">Essay</span><div class="ptitle">The real cost of context-switching, measured</div><div class="pdesc">I tracked every interruption for a month. The numbers were worse than the folklore.</div></span><span class="pmeta">11 MIN<br>APR 2026</span></a>
       </div>
     </section>
   </main>
@@ -182,7 +82,7 @@
     <section class="block">
       <div class="shead"><h2>Field&nbsp;Guides</h2><div class="shead-meta"></div></div>
       <div class="coll-grid">
-        <a class="coll" href="#"><span class="tag tag-accent">Guide</span><h3>The Studio Operating Manual</h3><p>Everything I wish I'd known about running a profitable, humane software studio.</p><span class="coll-foot">14 CHAPTERS · 3 SUB-SECTIONS →</span></a>
+        <a class="coll" href="#"><span class="tag" data-accent="on">Guide</span><h3>The Studio Operating Manual</h3><p>Everything I wish I'd known about running a profitable, humane software studio.</p><span class="coll-foot">14 CHAPTERS · 3 SUB-SECTIONS →</span></a>
         <a class="coll" href="#"><span class="tag">Guide</span><h3>Field Notes on Game Direction</h3><p>Creative-direction lessons from shipping games: pillars, vibe, scope, saying no.</p><span class="coll-foot">09 ENTRIES →</span></a>
         <a class="coll" href="#"><span class="tag">Guide</span><h3>A Photographer's Technical Notebook</h3><p>Light, film stocks, scanning, and the dithering pipeline behind this very site.</p><span class="coll-foot">07 ENTRIES →</span></a>
       </div>
@@ -192,9 +92,9 @@
     <section class="block">
       <div class="shead"><h2>Photographs</h2><div class="shead-meta">[ 35MM · DITHERED · 2024–26 ]</div></div>
       <div class="photos-grid">
-        <div class="pframe tall"><img src="assets/photos/street-dither.png" alt="Tokyo backstreet"><div class="pc"><span>Tokyo · sakura</span><span>№012</span></div></div>
-        <div class="pframe wide"><img src="assets/photos/fuji-dither.png" alt="Fuji"><div class="pc"><span>Kawaguchiko</span><span>№001</span></div></div>
-        <div class="pframe wide"><img src="assets/photos/torii-red.png" alt="Torii"><div class="pc"><span>Miyajima</span><span>№014</span></div></div>
+        <div class="pframe" data-ratio="tall"><img src="assets/photos/street-dither.png" alt="Tokyo backstreet"><div class="pc"><span>Tokyo · sakura</span><span>№012</span></div></div>
+        <div class="pframe" data-ratio="wide"><img src="assets/photos/fuji-dither.png" alt="Fuji"><div class="pc"><span>Kawaguchiko</span><span>№001</span></div></div>
+        <div class="pframe" data-ratio="wide"><img src="assets/photos/torii-red.png" alt="Torii"><div class="pc"><span>Miyajima</span><span>№014</span></div></div>
       </div>
     </section>
 
@@ -210,7 +110,7 @@
     </section>
   </main>
 
-  <footer class="site">
+  <footer class="site" data-variant="index">
     <div class="wrap">
       <div class="foot-grid">
         <div><div class="foot-brand">exhale<div class="fb-sub">The personal index of Pierrick Bignet.<br>Engineer by trade, artist by default.<br>Built on paper, light &amp; dots.</div></div></div>

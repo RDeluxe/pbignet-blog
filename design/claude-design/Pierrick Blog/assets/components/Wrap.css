@@ -1,0 +1,2 @@
+/* Wrap — centered page column */
+.wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding-left: var(--gutter); padding-right: var(--gutter); }
