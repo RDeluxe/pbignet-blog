@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "mirror:diff": "node design/mirror/css-diff.mjs --manifest"
   },
   "dependencies": {
     "@astrojs/markdoc": "^1.0.6",

@@ -314,31 +314,72 @@ sur l'URL REST de download via le **MCP Playwright** (seul navigateur passé Clo
 puis `ditto` + `rsync -a --delete` vers le miroir. Le miroir est **pur** : rien ne s'y édite
 à la main.
 
-### UP — ABANDONNÉ (2026-08-03)
+### UP — un brief, pas un bundle (révisé 2026-08-03, le soir)
 
-**Il n'y a pas de flux UP.** Le sync est **DOWN uniquement** : CD décide, le code implémente.
+**Ce qui a été abandonné le matin** : pousser un bundle de 40 fichiers dans un projet Design
+System — tokens, 23 contrats `.d.ts`, 5 notices, 3 cards, un `SKILL.md`. Pierrick l'a jugé
+illisible et il avait raison : des déclarations TypeScript et des pages de preview dans un
+outil de design ne montrent aucun composant, et il n'y avait aucune planche visuelle.
+`0_NORTHSTAR.html` fait ce travail mieux, en un document. Projet supprimé, script avec.
 
-J'avais créé un projet Claude Design de type Design System et y avais poussé un bundle de
-40 fichiers — tokens, 23 contrats `.d.ts`, 5 notices, 3 cards, un `SKILL.md`. Pierrick l'a
-jugé **illisible**, et il avait raison : ce sont des déclarations TypeScript et des pages de
-preview dans un outil de design. On n'y voit aucun composant, et il n'y avait aucune planche
-visuelle — ni swatch, ni échelle de type, ni mobilier. **`0_NORTHSTAR.html` fait ce travail,
-mieux, en un seul document.** Le projet a été supprimé, le bundle et son script avec.
+La leçon reste : le problème n'était pas l'absence d'outillage, c'était que le code avait pris
+des décisions de design (trois crèmes unifiées, la mesure de lecture réinterprétée, un
+`--fs-lead` inventé). Un second artefact de vérité ne pouvait pas soigner ça.
 
-**Ce que cet épisode dit, et qu'il faut retenir :**
+**Ce qui marche, décidé le soir** : un brief en prose, un miroir CSS, un diff.
 
-Le problème réel n'était pas l'absence d'outillage, c'était que le code avait pris des
-décisions de design — trois crèmes unifiées, la mesure de lecture réinterprétée, un `--fs-lead`
-purement inventé. Le remède est la **discipline** (§9 : ne pas décider de design côté code),
-pas un système bidirectionnel pour rendre ses propres écarts « traçables ».
+1. Écrire le brief dans `design/briefs/<date>-<sujet>.md`. Le dossier est **hors miroir**,
+   donc `rsync --delete` ne l'efface pas : ça devient le journal daté de ce qu'on a demandé.
+2. Le faire parvenir à CD — uploadé par Pierrick, ou tapé dans le composer via le MCP
+   Playwright. Dans ce cas utiliser **`keyboard.insertText`**, jamais `type` : chaque `\n`
+   déclencherait l'envoi et le message partirait en morceaux. (`require` n'existe pas dans le
+   sandbox `run_code_unsafe` : passer le texte en littéral.)
+3. CD exécute, et tranche ce qui est de son ressort.
+4. Sync DOWN, puis `pnpm mirror:diff` pour vérifier — jamais sur parole.
 
-Et le comble : ce document dit lui-même que deux sources de vérité sont le problème. Un
-deuxième artefact de vérité, même bien construit, ne pouvait pas être la solution.
+**La règle qui ne change pas** : un brief demande du **rangement** ou un **mécanisme**, jamais
+un choix de design. Le brief du 3 août portait 4 collisions déjà arbitrées (des déplacements à
+valeur constante, donc pas des décisions) et posait à CD la seule vraie question de design :
+`.frame`, variante ou deux composants ? Il a répondu variante. C'est le partage à tenir.
 
-**Si un jour quelque chose doit remonter vers CD**, la question à se poser d'abord n'est pas
-« comment le pousser » mais « le NORTHSTAR ne le dit-il pas déjà ? ». Si la réponse est non,
-ça remonte **dans le NORTHSTAR, au format NORTHSTAR** — une section HTML avec des specimens
-visuels — et par une décision de Pierrick, pas par un script.
+### Le miroir CSS — un fichier par composant des deux côtés
+
+CD ne portera jamais de composants Astro. Mais il porte **le même découpage** :
+
+```
+assets/paper.css              ← fondation : reset, :root, surface papier, focus, print
+                                 + la liste des @import (les 29 résolvent, vérifié)
+assets/components/<Nom>.css   ← un par composant, au nom du composant Astro
+```
+
+Deux conventions, inscrites côté CD dans `0_NORTHSTAR.html` §11 « Component conventions » :
+
+1. **Le fichier CD porte le nom du composant Astro**, à l'identique.
+2. **Les variantes s'écrivent en `data-*`** des deux côtés — `.tag[data-accent='on']`, pas
+   `.tag-accent`. C'est ce qui rend les sélecteurs comparables.
+
+`design/mirror/manifest.json` déclare le périmètre, sans quoi le diff hurle sur ce qui n'a pas
+à converger : `mirrored` (doit converger, tout écart est un signal) · `ours-only` (plomberie de
+layout, CD n'a rien à en dire) · `cd-only` (CD l'a spécifié, on ne l'a pas porté : c'est une
+dette, pas un écart).
+
+`design/mirror/css-diff.mjs` compare **par déclaration, pas par texte** — sinon rien ne
+correspondrait jamais. Il neutralise `[data-astro-cid-*]`, éclate les sélecteurs de groupe,
+indexe par contexte `@media`, uniformise les guillemets et les espaces dans les parenthèses.
+Et surtout il **résout les `var()` de chaque côté avec ses propres tokens** : `var(--fs-tag)`
+contre `10px` n'est pas un écart si le token vaut 10px. Ces cas sont comptés séparément comme
+« équivalents ».
+
+**Trois limites à connaître avant de croire un rapport :**
+
+- **Le CSS inline est invisible.** Un `style` sur `<html>` n'apparaît dans aucune feuille, donc
+  échappe au diff. C'est pourquoi l'ink de page doit vivre dans `:root[data-ink]` — sinon la
+  seule valeur qui distingue un article de la home est la seule qu'on ne peut pas contrôler.
+- **`calc()` n'est pas évalué.** `calc(-1 * 9px)` et `-9px` seront signalés comme différents.
+- **La comparaison pixel a un plancher sur toute page dithérée.** `dither.js` et le grain de
+  `texture.js` (`Math.random`) ne sont pas reproductibles : deux rendus de la *même* page
+  d'article diffèrent de 16,6 %. Toujours mesurer ce plancher avant de conclure à une
+  régression, et masquer `.grain-layer` / `.topo-layer` / `.vignette` pour comparer.
 
 ---
 
