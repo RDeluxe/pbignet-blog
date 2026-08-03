@@ -1,8 +1,10 @@
 /* HeroPopColor — full-screen article cover, type-on-photo (Study 01 gesture).
- * Parameters: --post-hero-h (height, set inline on <html>) and --dither-line
+ * Parameters: --post-hero-h (defaults to 100vh here; override per page if a
+ * cover should be shorter) and --dither-line
  * (how far the dither dissolve reaches down; solid band ~half of it). */
 .post-hero {
   --dither-line: 42%;
+  --post-hero-h: 100vh;
   position: relative;
   width: 100%;
   height: var(--post-hero-h);

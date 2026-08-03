@@ -79,3 +79,8 @@ Writing index · Article (long-form) · Photos (grid + swatches) · Now · Setup
 - Footer collision the brief missed: home and article `footer.site` differ (margin-top, padding, inner classes `.foot-*` vs `.fin/.f-*`) → one `SiteFooter.css` with `data-variant`.
 - Hero photo URLs in `Hero.css` rewritten `assets/photos/…` → `../photos/…` (same files; CSS-relative).
 - Markup touched for renames: 01_Home, 02_Article, NORTHSTAR + archives using `.tag-accent` off shared CSS.
+
+## Ink mechanism — révision (même jour)
+- Page ink is now `<html data-ink='olive'|'sepia'>`; values live in `paper.css :root[data-ink]` (mirrors Astro `src/styles/tokens/colors.css`). No inline design tokens on `<html>` — only runtime `--grain` (texture.js) stays inline.
+- `--post-hero-h` is layout, not ink → defaults to `100vh` in `HeroPopColor.css` (.post-hero); override per page only when a cover should be shorter.
+- Home/intro lede overlap with RESPIRE is deliberate: lede at z-index 0 recedes behind the clipped-photo type. Mirror as-is.

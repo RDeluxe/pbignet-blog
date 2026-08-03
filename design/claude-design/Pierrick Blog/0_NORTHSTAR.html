@@ -583,7 +583,7 @@
 
     <h3 class="blk">Component conventions (Aug 2026)</h3>
     <table class="spec">
-      <tr><td>One file per component</td><td>A component's CSS lives in <b>exactly one file</b>, <code>assets/components/&lt;Name&gt;.css</code>, imported by <code>paper.css</code>. Page <code>&lt;style&gt;</code> blocks stay <b>empty</b> — if a page needs something, it is a component or a variant of one. Page ink tokens go inline on <code>&lt;html&gt;</code>.</td></tr>
+      <tr><td>One file per component</td><td>A component's CSS lives in <b>exactly one file</b>, <code>assets/components/&lt;Name&gt;.css</code>, imported by <code>paper.css</code>. Page <code>&lt;style&gt;</code> blocks stay <b>empty</b> — if a page needs something, it is a component or a variant of one. Page ink is <code>&lt;html data-ink='olive'|'sepia'&gt;</code>, values defined in <code>paper.css :root[data-ink]</code>. Only runtime values (<code>--grain</code>, set by texture.js) may be inline.</td></tr>
       <tr><td>Variants are <code>data-*</code></td><td>Never suffixed classes: <code>.tag[data-accent='on']</code> · <code>.rule[data-weight='thick']</code> · <code>.lede[data-size='intro'|'section']</code> · <code>.figure[data-width='wide']</code> · <code>.frame[data-dither='on']</code> · <code>.pframe[data-ratio]</code> · <code>footer.site[data-variant]</code>. Legacy class variants (<code>.plate.plain/.recessed</code>, <code>.btn.accent/.invert</code>, <code>.regmark.tl…br</code>) predate the rule — convert on their next pass.</td></tr>
     </table>
 
@@ -592,8 +592,8 @@
 &lt;link href=<span class="s">"…Anton&amp;Archivo&amp;Space+Mono&amp;Newsreader…"</span>&gt;
 &lt;link rel=<span class="s">"stylesheet"</span> href=<span class="s">"assets/paper.css"</span>&gt;
 
-<span class="c">&lt;!-- 2 · page ink INLINE on &lt;html&gt; — pages have NO &lt;style&gt; block --&gt;</span>
-&lt;html style=<span class="s">"--accent:#2c7a4c; --topo:rgba(44,122,76,.06)"</span>&gt;
+<span class="c">&lt;!-- 2 · page ink by ATTRIBUTE — pages have NO &lt;style&gt; block; inks live in paper.css :root[data-ink] --&gt;</span>
+&lt;html data-ink=<span class="s">"sepia"</span>&gt;
 
 <span class="c">&lt;!-- 3 · texture layers (fixed, behind .page) --&gt;</span>
 &lt;canvas class=<span class="s">"topo-layer"</span> id=<span class="s">"topo"</span>&gt;&lt;/canvas&gt;
