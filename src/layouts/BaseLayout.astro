@@ -1,4 +1,5 @@
 ---
+import RegMarks from '../components/print/RegMarks.astro'
 import '../styles/index.css'
 import '@fontsource/anton/400.css'
 import '@fontsource/space-mono/400.css'
@@ -45,10 +46,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href
     <canvas class="topo-layer" id="topo" aria-hidden="true"></canvas>
     <div class="grain-layer" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
-    <div class="regmark tl" aria-hidden="true"></div>
-    <div class="regmark tr" aria-hidden="true"></div>
-    <div class="regmark bl" aria-hidden="true"></div>
-    <div class="regmark br" aria-hidden="true"></div>
+    <RegMarks />
 
     <div class="page">
       <slot />

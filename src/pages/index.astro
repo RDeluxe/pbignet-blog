@@ -1,16 +1,19 @@
 ---
 import { getCollection } from 'astro:content'
-import BaseLayout from '../layouts/BaseLayout.astro'
-import Metabar from '../components/Metabar.astro'
-import MainNav from '../components/MainNav.astro'
-import Hero from '../components/Hero.astro'
-import SectionHead from '../components/SectionHead.astro'
-import PostRow from '../components/PostRow.astro'
 import CollCard from '../components/CollCard.astro'
 import FeaturedEssay from '../components/FeaturedEssay.astro'
-import PhotoFrame from '../components/PhotoFrame.astro'
 import GearCard from '../components/GearCard.astro'
+import Hero from '../components/Hero.astro'
+import MainNav from '../components/MainNav.astro'
+import Metabar from '../components/Metabar.astro'
+import PhotoFrame from '../components/PhotoFrame.astro'
+import PostRow from '../components/PostRow.astro'
+import Grid from '../components/primitives/Grid.astro'
+import Lede from '../components/primitives/Lede.astro'
+import Section from '../components/primitives/Section.astro'
+import SectionHead from '../components/SectionHead.astro'
 import SiteFooter from '../components/SiteFooter.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
 
 const allPosts = await getCollection('writing')
 const posts = allPosts
@@ -34,23 +37,22 @@ const photos = [
 ---
 
 <BaseLayout>
-  <header class="wrap">
+  <Section as="header" rhythm="none">
     <Metabar />
     <MainNav currentPath="/" />
-    <p class="hero-intro">
+    <Lede spaced>
       I build software, direct the art of games, and photograph everything in between.
-    </p>
+    </Lede>
     <Hero photoSrc="/photos/arc-cdither.png" />
-  </header>
+  </Section>
 
   <main>
-    <!-- WRITING -->
-    <section class="block wrap">
+    <Section>
       <SectionHead title="Writing" meta="[ OPINIONS · NOTES ]" />
-      <p class="lead-serif">
+      <Lede measure="tight">
         Short essays and unfiled opinions: taste, building things, and the gap between.
-      </p>
-      <div class="post-list">
+      </Lede>
+      <div class="posts">
         {posts.map((post, i) => (
           <PostRow
             index={String(i + 1).padStart(3, '0')}
@@ -64,12 +66,11 @@ const photos = [
           />
         ))}
       </div>
-    </section>
+    </Section>
 
-    <!-- FEATURED FIELD NOTE -->
-    <section class="block wrap">
+    <Section>
       <SectionHead title="Latest&nbsp;Field&nbsp;Note" meta="[ PHOTO-ESSAY · TRAVEL ]" />
-    </section>
+    </Section>
     <FeaturedEssay
       number="014"
       location="Itsukushima, Miyajima"
@@ -81,10 +82,9 @@ const photos = [
       href="/writing/miyajima"
     />
 
-    <!-- FIELD GUIDES -->
-    <section class="block wrap">
+    <Section>
       <SectionHead title="Field&nbsp;Guides" />
-      <div class="coll-grid">
+      <Grid cols={3} gap="hairline">
         {allGuides.map(guide => (
           <CollCard
             tag={guide.data.tag}
@@ -93,15 +93,15 @@ const photos = [
             description={guide.data.description}
             footer={guide.data.chapters}
             href={`/guides/${guide.id}`}
+            bordered={false}
           />
         ))}
-      </div>
-    </section>
+      </Grid>
+    </Section>
 
-    <!-- PHOTOGRAPHS -->
-    <section class="block wrap">
+    <Section>
       <SectionHead title="Photographs" meta="[ 35MM · DITHERED · 2024–26 ]" />
-      <div class="photos-grid">
+      <Grid cols={3} lead>
         {photos.map(p => (
           <PhotoFrame
             src={p.src}
@@ -111,13 +111,12 @@ const photos = [
             ratio={p.ratio}
           />
         ))}
-      </div>
-    </section>
+      </Grid>
+    </Section>
 
-    <!-- SETUP -->
-    <section class="block wrap">
+    <Section>
       <SectionHead title="The&nbsp;Setup" />
-      <div class="gear-grid">
+      <Grid cols={4}>
         {gear.map(g => (
           <GearCard
             number={g.number}
@@ -126,64 +125,15 @@ const photos = [
             href={g.href}
           />
         ))}
-      </div>
-    </section>
+      </Grid>
+    </Section>
   </main>
 
   <SiteFooter />
 </BaseLayout>
 
 <style>
-  .hero-intro {
-    font-family: var(--serif);
-    font-size: clamp(21px, 2.7vw, 31px);
-    line-height: 1.34;
-    max-width: 30ch;
-    margin: 22px 0 0;
-    text-wrap: balance;
-    color: var(--ink);
-  }
-
-  .block { margin-top: clamp(64px, 8vw, 110px); }
-
-  .lead-serif {
-    font-family: var(--serif);
-    font-size: clamp(20px, 2.4vw, 28px);
-    line-height: 1.32;
-    max-width: 24ch;
-    margin: 0 0 28px;
-  }
-
-  .post-list { margin-top: 28px; }
-
-  .coll-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--line);
-    border: 1px solid var(--line);
-  }
-  /* les cards dans la grille n'ont pas leur propre bordure */
-  .coll-grid > :global(.coll) {
-    border: none;
-    background: var(--paper);
-  }
-
-  .photos-grid {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr 1fr;
-    gap: 12px;
-  }
-
-  .gear-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-  }
-
-  @media (max-width: 880px) {
-    .coll-grid,
-    .gear-grid { grid-template-columns: 1fr 1fr; }
-    .photos-grid { grid-template-columns: 1fr 1fr; }
-  }
+  /* seul CSS de page toléré : la composition, ici l'espace entre l'en-tête de section
+     et la liste. À remonter dans une primitive <Stack> dès qu'un deuxième cas apparaît. */
+  .posts { margin-top: var(--space-xl); }
 </style>

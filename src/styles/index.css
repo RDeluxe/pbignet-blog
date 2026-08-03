@@ -11,5 +11,5 @@
 @import './tokens/space.css';
 @import './base.css';
 
-/* zone de transition — doit tendre vers zéro, cf. design/PIPELINE.md */
-@import './paper.css';
+/* La zone de transition (ex-paper.css) a atteint zéro : plus aucune classe globale
+   en dehors de base.css. Tout le reste vit dans un composant. */

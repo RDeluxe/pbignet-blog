@@ -1,0 +1,46 @@
+---
+/**
+ * Grid — grille de cartes ou de cadres.
+ *
+ * `gap="hairline"` produit la grille d'impression : les cellules sont séparées par un
+ * filet d'1px obtenu par le fond de la grille, pas par des bordures de cartes. Les
+ * enfants doivent alors renoncer à leur propre bordure — via LEUR prop (`bordered={false}`),
+ * jamais par un `:global()` depuis la page.
+ */
+interface Props {
+  cols?: 2 | 3 | 4
+  gap?: 'grid' | 'hairline'
+  /** première colonne plus large — grille photo menée par une image d'ouverture */
+  lead?: boolean
+}
+
+const { cols = 3, gap = 'grid', lead = false } = Astro.props
+---
+
+<div class="grid" data-cols={cols} data-gap={gap} data-lead={lead ? 'on' : 'off'}>
+  <slot />
+</div>
+
+<style>
+  .grid { display: grid; }
+
+  .grid[data-cols='2'] { grid-template-columns: repeat(2, 1fr); }
+  .grid[data-cols='3'] { grid-template-columns: repeat(3, 1fr); }
+  .grid[data-cols='4'] { grid-template-columns: repeat(4, 1fr); }
+
+  /* la colonne d'ouverture prend plus de place que les suivantes */
+  .grid[data-lead='on'][data-cols='3'] { grid-template-columns: 1.3fr 1fr 1fr; }
+
+  .grid[data-gap='grid'] { gap: var(--gap-grid); }
+  .grid[data-gap='hairline'] {
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  @media (max-width: 880px) {
+    .grid[data-cols='3'],
+    .grid[data-cols='4'],
+    .grid[data-lead='on'][data-cols='3'] { grid-template-columns: 1fr 1fr; }
+  }
+</style>

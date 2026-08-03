@@ -1,0 +1,24 @@
+---
+/**
+ * Wrap — contraint le contenu à la largeur du site et pose les gouttières.
+ * Primitive de layout : aucune identité de marque, aucun rythme vertical.
+ */
+interface Props {
+  /** élément rendu (une seule raison de le changer : la sémantique du document) */
+  as?: 'div' | 'header' | 'footer' | 'section'
+}
+
+const { as: Tag = 'div' } = Astro.props
+---
+
+<Tag class="wrap"><slot /></Tag>
+
+<style>
+  .wrap {
+    width: 100%;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding-left: var(--gutter);
+    padding-right: var(--gutter);
+  }
+</style>

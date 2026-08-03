@@ -184,16 +184,26 @@ fichier de token. Une divergence non listée est un bug.
 | `--ink-3` | `#8B8672` | `#696551` | `#8B8672` ≈ 2.9:1 sur `--paper` → échoue WCAG AA, or son usage est le mobilier print en 9–11px. Valeur reprise d'`assets/paper.css`. Reste la teinte la plus claire du ramp. |
 | `--maxw` | `1080px` | `1180px` | Le 1080 du NORTHSTAR est un override de mise en page **du specimen** (un document à lire), pas une largeur de marque. `assets/paper.css` — la base partagée des pages — dit 1180. |
 
+### Normalisations sur l'échelle — valeurs absorbées
+
+Une valeur hors échelle est ramenée au pas le plus proche : l'échelle n'a d'intérêt que si
+elle est respectée. Les écarts sont invisibles à l'œil, mais listés pour être contestables.
+
+| Endroit | Avant | Après | Note |
+|---|---|---|---|
+| `Lede` | `clamp(20px,2.4vw,28px)` **et** `clamp(21px,2.7vw,31px)` | `--fs-lead: clamp(20px,2.6vw,30px)` | Deux valeurs pour une intention = un bug de design. Ce qui varie est la **mesure** (30ch / 24ch), pas la taille. |
+| `SectionHead` | `margin-bottom: 18px` | `--space-md` (16px) | 18 est absent de l'échelle (…10, 16, 22…). |
+| `Grid` | `gap: 12px` (photos) **et** `14px` (gear) | `--gap-grid: 12px` | Même intention, deux valeurs. |
+
 ### Arbitrages ouverts
 
-- **Deux échelles de lead** coexistent en prod (`clamp(20px,2.4vw,28px)` dans
-  `.lead-serif`, `clamp(21px,2.7vw,31px)` dans `.hero-intro`), aucune n'est dans la
-  research. Le NORTHSTAR n'a que `sec-intro` (`clamp(17px,1.8vw,21px)`). → **à unifier**,
-  probablement en un `--fs-lead` unique.
 - **`--fs-shead-md`** (`clamp(21px,3vw,32px)`) a été introduite en prod pour les
   sous-sections. Absente de la research. → à valider ou à remonter dans le NORTHSTAR.
 - **`--green` (`#2c7a4c`)** existe dans les variables du NORTHSTAR mais pas dans ses
   swatches documentés. Usage indéfini → ne pas l'employer sans arbitrage.
+- **Responsive des grilles** : à ≤880px toutes les grilles passent à 2 colonnes et n'en
+  descendent jamais — comportement repris à l'identique de l'existant. Deux cartes côte à
+  côte sur un écran de 380px sont étroites. → à trancher (passage à 1 colonne ≤480px ?).
 
 ---
 
@@ -245,21 +255,23 @@ montent par `localPath` (le contenu ne transite pas par le contexte du modèle).
 ## 7. Anatomie d'un composant
 
 ```
-src/components/section-head/
-  SectionHead.astro       ← markup + Props typées + <style> scopé
-  SectionHead.prompt.md   ← la notice : quand l'utiliser, ce qu'il ne fait pas
-  preview.astro           ← toutes les variantes côte à côte → devient le .card.html
+src/components/
+  primitives/    Section · Wrap · Grid · Lede   (+ Stack, Prose, Bleed à venir)
+  print/         RegMarks · Barcode · MonoLabel
+  <marque>.astro Hero · PostRow · PhotoFrame · Tag · CollCard · Metabar…
 ```
 
-Deux familles :
+Trois familles :
 
-- **primitives** (`primitives/`) — `Section`, `Stack`, `Grid`, `Bleed`, `Lede`, `Prose`,
-  `Rule`, `MonoLabel`. Aucune identité de marque, aucune couleur décidée. Ce sont elles qui
-  absorbent le CSS de page.
-- **composants de marque** — `Hero`, `PostRow`, `PhotoFrame`, `Metabar`, `Barcode`,
-  `RegMarks`… Ils composent des primitives et portent le NORTHSTAR.
+- **primitives** (`primitives/`) — aucune identité de marque, aucune couleur décidée. Ce
+  sont elles qui absorbent le CSS de page.
+- **mobilier print** (`print/`) — les objets qui existent parce qu'une feuille imprimée en
+  a : repères, code-barre, labels tracés. Décoratifs au sens sémantique (`aria-hidden`),
+  porteurs de sens de marque.
+- **composants de marque** (racine) — composent les deux précédentes et portent le NORTHSTAR.
 
-Un composant qui ne sait pas dans quelle famille il est n'est pas encore conçu.
+**`.prompt.md` et `preview.astro` sont exigés au moment du push UP (§6), pas à la création** :
+ils décrivent le contrat pour Claude Design. Les créer vides à l'avance n'apporte rien.
 
 ---
 
@@ -269,10 +281,31 @@ Un composant qui ne sait pas dans quelle famille il est n'est pas encore conçu.
 - [x] `tokens/{colors,type,space}.css` + `base.css` extraits, écarts tracés (§5).
 - [x] `SectionHead` converti — pilote du pattern `data-*` (§4.5a).
 - [x] Miroir exclu du lint (1025 → 35 erreurs, toutes dans `src/`).
-- [ ] Primitives — videront les 54 lignes de CSS d'`index.astro`.
-- [ ] `paper.css` → zéro (4 blocs restants : `wrap`, `rule`, `mono-label`, print).
-- [ ] Les 10 composants restants convertis aux tokens.
+- [x] Primitives `Section` · `Wrap` · `Grid` · `Lede`, print `RegMarks` · `Barcode` ·
+      `MonoLabel`, et `Tag` (dédoublonné : il existait en deux copies identiques).
+- [x] **`paper.css` supprimé** — plus aucune classe globale hors `base.css`.
+- [x] `index.astro` : 54 lignes de CSS → 1 (`.posts`, un margin de composition).
+- [x] `:global(.coll)` éliminé → `CollCard bordered={false}`.
+- [x] `PostRow`, `CollCard`, `SiteFooter` passés aux tokens.
+- [ ] Reste aux tokens : `Hero`, `FeaturedEssay`, `GearCard`, `PhotoFrame`, `Metabar`,
+      `MainNav` (valeurs encore en dur).
+- [ ] Primitive `Stack` — dès qu'un deuxième cas type `.posts` apparaît.
 - [ ] `Hero` polymorphe (home `clip-text` + article `plate`), art direction par image.
 - [ ] Route Article + les P2/P3 de la critique Impeccable.
 - [ ] Build `ds:build` (previews + `.d.ts` + `SKILL.md`) puis projet Design System.
 - [ ] Les 35 erreurs de lint restantes.
+
+---
+
+## 9. Piège d'outillage — vérifier une conversion
+
+`pkill -f "astro dev"` **ne matche pas** le process lancé par `npm run dev` (la commande
+réelle est `node …/.pnpm/astro@…/astro.js dev`). Conséquence vécue pendant cette migration :
+`astro preview` échoue silencieusement sur port occupé, le dev server répond à sa place, et
+Vite sert du **HTML neuf avec des styles périmés**. On croit alors à une régression du
+composant — ici, `CollCard bordered={false}` semblait ne pas s'appliquer alors que le CSS de
+production était juste.
+
+**Donc** : vérifier une conversion sur `astro preview`, sur un **port dédié**
+(`--port 4399`), et confirmer par les règles CSS réellement chargées
+(`document.styleSheets`) plutôt qu'à l'œil sur une capture.

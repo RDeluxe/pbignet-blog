@@ -1,0 +1,38 @@
+---
+/**
+ * RegMarks — les quatre repères de repérage aux coins de la feuille.
+ * Mobilier d'impression : purement décoratif au sens sémantique (aria-hidden), mais
+ * porteur de sens de marque — une feuille imprimée en a. Fixé au viewport.
+ */
+---
+
+<div class="marks" aria-hidden="true">
+  <div class="regmark tl"></div>
+  <div class="regmark tr"></div>
+  <div class="regmark bl"></div>
+  <div class="regmark br"></div>
+</div>
+
+<style>
+  .regmark {
+    position: fixed;
+    width: var(--regmark-size);
+    height: var(--regmark-size);
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0.65;
+  }
+  .regmark::before,
+  .regmark::after {
+    content: '';
+    position: absolute;
+    background: var(--ink);
+  }
+  .regmark::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+  .regmark::after { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
+
+  .tl { top: var(--regmark-inset); left: var(--regmark-inset); }
+  .tr { top: var(--regmark-inset); right: var(--regmark-inset); }
+  .bl { bottom: var(--regmark-inset); left: var(--regmark-inset); }
+  .br { bottom: var(--regmark-inset); right: var(--regmark-inset); }
+</style>

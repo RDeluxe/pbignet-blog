@@ -1,0 +1,33 @@
+---
+/**
+ * Tag — l'étiquette de catégorie (ESSAY · NOTE · GUIDE).
+ * Extraite parce qu'elle existait en deux copies identiques, dans CollCard et PostRow.
+ */
+interface Props {
+  /** porte l'encre de la page. Réservé à la catégorie principale d'une liste. */
+  accent?: boolean
+}
+
+const { accent = false } = Astro.props
+---
+
+<span class="tag" data-accent={accent ? 'on' : 'off'}><slot /></span>
+
+<style>
+  .tag {
+    display: inline-block;
+    align-self: flex-start;
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    letter-spacing: var(--tr-tag);
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    color: var(--ink-2);
+  }
+  .tag[data-accent='on'] {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+</style>

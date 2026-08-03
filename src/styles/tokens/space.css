@@ -22,6 +22,10 @@
   --space-xl: 28px;
   --space-2xl: 40px;
 
+  /* ---- grilles ---- */
+  --gap-grid: 12px;    /* gouttière d'une grille de cartes/cadres. Unifie les 12px et 14px
+                          qui coexistaient (photos vs gear) pour la même intention. */
+
   /* ---- rythme vertical ---- */
   --rhythm-section: clamp(64px, 8vw, 110px);   /* respiration entre deux sections */
   --rhythm-row: clamp(14px, 3vw, 40px);        /* gouttière interne d'une ligne de post */

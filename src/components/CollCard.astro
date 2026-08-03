@@ -1,4 +1,6 @@
 ---
+import Tag from './Tag.astro'
+
 interface Props {
   tag: string
   tagAccent?: boolean
@@ -6,13 +8,19 @@ interface Props {
   description: string
   footer: string
   href: string
+  /**
+   * La carte porte son propre cadre (défaut). Passer `false` dans une
+   * `<Grid gap="hairline">` : c'est la grille qui fournit les filets, et le fond doit
+   * alors être opaque pour masquer celui de la grille.
+   */
+  bordered?: boolean
 }
 
-const { tag, tagAccent = false, title, description, footer, href } = Astro.props
+const { tag, tagAccent = false, title, description, footer, href, bordered = true } = Astro.props
 ---
 
-<a class="coll" href={href}>
-  <span class:list={['tag', { 'tag-accent': tagAccent }]}>{tag}</span>
+<a class="coll" href={href} data-bordered={bordered ? 'on' : 'off'}>
+  <Tag accent={tagAccent}>{tag}</Tag>
   <h3>{title}</h3>
   <p>{description}</p>
   <span class="coll-foot">{footer} →</span>
@@ -20,54 +28,44 @@ const { tag, tagAccent = false, title, description, footer, href } = Astro.props
 
 <style>
   .coll {
-    border: 1px solid var(--line);
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    background: color-mix(in srgb, var(--ink) 2%, transparent);
+    gap: var(--space-sm);
     transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
   }
-  .coll:hover { transform: translateY(-3px); border-color: var(--ink-2); }
+  .coll[data-bordered='on'] {
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--ink) 2%, transparent);
+  }
+  .coll[data-bordered='off'] {
+    border: none;
+    background: var(--paper);
+  }
+  .coll:hover { transform: translateY(-3px); }
+  .coll[data-bordered='on']:hover { border-color: var(--ink-2); }
 
   h3 {
     margin: 0;
     font-family: var(--sans);
-    font-weight: 700;
-    font-size: 19px;
+    font-weight: var(--w-bold);
+    font-size: var(--fs-card-title);
     letter-spacing: -0.01em;
   }
 
   p {
     margin: 0;
     font-family: var(--serif);
-    font-size: 14px;
+    font-size: var(--fs-body-xs);
     color: var(--ink-2);
-    line-height: 1.5;
+    line-height: var(--lh-body-tight);
   }
 
   .coll-foot {
     margin-top: auto;
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: var(--fs-label);
     color: var(--ink-3);
     letter-spacing: 0.08em;
-  }
-
-  .tag {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border: 1px solid var(--line);
-    color: var(--ink-2);
-    border-radius: 2px;
-    align-self: flex-start;
-  }
-  .tag-accent {
-    color: var(--accent);
-    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
   }
 </style>

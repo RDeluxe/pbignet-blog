@@ -1,0 +1,36 @@
+---
+/**
+ * Lede — le paragraphe serif d'introduction, sous un titre ou en ouverture de page.
+ *
+ * Une seule échelle (`--fs-lead`) : les deux valeurs proches qui coexistaient en prod
+ * (clamp(20px,2.4vw,28px) et clamp(21px,2.7vw,31px)) étaient un bug de design, pas deux
+ * intentions. Ce qui varie légitimement, c'est la MESURE.
+ */
+interface Props {
+  /** largeur de ligne. `tight` = un lede court sous un titre de section. */
+  measure?: 'default' | 'tight'
+  /** espace au-dessus (un lede d'ouverture suit un en-tête, pas un titre) */
+  spaced?: boolean
+}
+
+const { measure = 'default', spaced = false } = Astro.props
+---
+
+<p class="lede" data-measure={measure} data-spaced={spaced ? 'on' : 'off'}>
+  <slot />
+</p>
+
+<style>
+  .lede {
+    font-family: var(--serif);
+    font-size: var(--fs-lead);
+    line-height: var(--lh-lead);
+    color: var(--ink);
+    text-wrap: balance;
+    margin: 0;
+  }
+  .lede[data-measure='default'] { max-width: var(--measure-lede); }
+  .lede[data-measure='tight'] { max-width: var(--measure-lede-tight); }
+
+  .lede[data-spaced='on'] { margin-top: var(--space-lg); }
+</style>

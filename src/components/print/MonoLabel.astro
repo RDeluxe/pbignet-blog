@@ -1,0 +1,26 @@
+---
+/**
+ * MonoLabel — le label mono tracké du mobilier print : mentions, crédits, méta.
+ * Ne porte AUCUN espacement : c'est au conteneur de le poser (cf. PIPELINE §4.4).
+ */
+interface Props {
+  /** teinte. `quiet` = le plancher du ramp, pour les mentions de bas de page. */
+  tone?: 'default' | 'quiet'
+  as?: 'div' | 'span' | 'p'
+}
+
+const { tone = 'default', as: Tag = 'div' } = Astro.props
+---
+
+<Tag class="mono-label" data-tone={tone}><slot /></Tag>
+
+<style>
+  .mono-label {
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-label);
+    text-transform: uppercase;
+  }
+  .mono-label[data-tone='default'] { color: var(--ink-2); }
+  .mono-label[data-tone='quiet'] { color: var(--ink-3); }
+</style>

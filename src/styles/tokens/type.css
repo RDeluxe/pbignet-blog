@@ -39,6 +39,16 @@
 
   --fs-card-title: 19px;                   /* titre de carte collection */
 
+  /* ---- lede (paragraphe serif d'introduction) ----
+   * échelle UNIQUE : remplace les deux valeurs proches qui coexistaient en prod
+   * (clamp(20px,2.4vw,28px) et clamp(21px,2.7vw,31px)) — un bug de design, pas deux
+   * intentions. Ce qui varie légitimement est la mesure, pas la taille.
+   */
+  --fs-lead: clamp(20px, 2.6vw, 30px);
+  --lh-lead: 1.33;
+  --measure-lede: 30ch;
+  --measure-lede-tight: 24ch;
+
   /* ---- corps de lecture ---- */
   --fs-body: 16.5px;                       /* NORTHSTAR p.body */
   --lh-body: 1.55;

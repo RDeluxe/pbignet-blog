@@ -22,7 +22,8 @@ const { title, meta, size = 'lg', align = 'row' } = Astro.props
   .shead {
     display: flex;
     gap: var(--space-md);
-    margin-bottom: var(--space-lg);
+    /* l'original portait 18px, absent de l'échelle : normalisé au pas le plus proche */
+    margin-bottom: var(--space-md);
   }
   .shead[data-align='row'] {
     align-items: baseline;

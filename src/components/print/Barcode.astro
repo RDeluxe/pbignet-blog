@@ -1,0 +1,41 @@
+---
+/**
+ * Barcode — code-barre en dégradé CSS + sa ligne de chiffres.
+ * Mobilier d'impression. Le motif est décoratif (aucune donnée n'y est encodée) : la
+ * ligne de texte sous le code porte l'information réelle, donc elle est lisible.
+ */
+interface Props {
+  /** la ligne sous le code — coordonnées, année, référence */
+  label?: string
+}
+
+const { label } = Astro.props
+---
+
+<div class="barcode-block">
+  <div class="barcode" aria-hidden="true"></div>
+  {label && <div class="barcode-num">{label}</div>}
+</div>
+
+<style>
+  .barcode {
+    height: 38px;
+    width: 180px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--ink) 0 1px, transparent 1px 3px,
+      var(--ink) 3px 5px, transparent 5px 6px,
+      var(--ink) 6px 9px, transparent 9px 12px,
+      var(--ink) 12px 13px, transparent 13px 16px,
+      var(--ink) 16px 19px, transparent 19px 20px
+    );
+    background-size: 20px 100%;
+  }
+  .barcode-num {
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tr-micro);
+    color: var(--ink-2);
+    margin-top: 3px;
+  }
+</style>
