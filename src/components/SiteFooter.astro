@@ -34,8 +34,8 @@ import MonoLabel from './print/MonoLabel.astro'
         <a href="/travel" title="Section en cours de construction">Travel ⌁</a>
       </div>
 
-      <div class="foot-right">
-        <Barcode label="PB · 2026 · 45.76N 4.83E · ∞" />
+      <div class="foot-mark">
+        <Barcode label="PB · 2026 · 45.76N 4.83E · ∞" align="right" />
         <div class="foot-credit">
           <MonoLabel>
             SET IN ANTON · ARCHIVO<br />
@@ -95,7 +95,21 @@ import MonoLabel from './print/MonoLabel.astro'
   }
   .foot-col a:hover { color: var(--accent); }
 
-  .foot-right { text-align: right; }
+  /* Nom aligné sur celui du gold (`.foot-mark`), qui a remplacé les trois styles en ligne
+   * de `01_Home` en résorbant `text-align:right` / `margin-left:auto` / `margin-top:16px`.
+   *
+   * Le gold pousse le code-barre à droite avec `.foot-mark .barcode { margin-left: auto }`,
+   * ce qui suppose d'atteindre l'intérieur de `Barcode`. En CSS scopé on obtient le même
+   * résultat sans y toucher : une colonne flex alignée à la fin cale les blocs enfants à
+   * droite, quelle que soit leur largeur. Sans ça le code-barre restait 20px avant le bord —
+   * `text-align` seul ne déplace pas un bloc de 180px.
+   */
+  .foot-mark {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+  }
   /* l'espacement appartient au conteneur, pas au MonoLabel (cf. PIPELINE §4.4) */
   .foot-credit { margin-top: var(--space-m); }
 

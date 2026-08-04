@@ -1,22 +1,6 @@
 ---
-interface NavItem {
-  label: string
-  href: string
-  locked?: boolean
-}
-
-const items: NavItem[] = [
-  { label: 'Writing', href: '/writing' },
-  { label: 'Projects', href: '/projects' },
-  { label: 'Now', href: '/now' },
-  { label: 'Setup', href: '/setup' },
-  { label: 'Photos', href: '/photos' },
-]
-
-const right: NavItem[] = [
-  { label: 'About', href: '/about' },
-  { label: 'Travel ⌁', href: '/travel', locked: true },
-]
+/** les entrées vivent dans `src/data/nav.ts` : la barre index affiche les mêmes */
+import { primary as items, secondary as right } from '../data/nav'
 
 const { currentPath } = Astro.props as { currentPath?: string }
 ---

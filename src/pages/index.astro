@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+import ArticleBar from '../components/article/ArticleBar.astro'
 import CollCard from '../components/CollCard.astro'
 import FeaturedEssay from '../components/FeaturedEssay.astro'
 import GearCard from '../components/GearCard.astro'
@@ -38,6 +39,8 @@ const photos = [
 ---
 
 <BaseLayout>
+  <ArticleBar context="index" />
+
   <Section as="header" rhythm="none">
     <Metabar />
     <MainNav currentPath="/" />

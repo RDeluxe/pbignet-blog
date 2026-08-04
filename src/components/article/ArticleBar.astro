@@ -9,72 +9,127 @@
  * La jauge anime `transform: scaleX()`, pas `width` : le gold animait `width`, ce qui
  * déclenche un layout à chaque frame de scroll (P3 de la critique Impeccable).
  */
+import { barItems } from '../../data/nav'
+
 interface Props {
-  /** titre courant, affiché au centre */
-  title: string
-  /** lien de retour */
+  /**
+   * `article` — la barre de lecture : jauge d'avancement, titre courant, retour.
+   * `index` — la barre de la home : absente en haut de page, elle se résout en dither une
+   * fois le hero passé. Variante du gold, `[data-context='index']` dans `ArticleBar.css`.
+   */
+  context?: 'article' | 'index'
+  /** titre courant, affiché au centre (contexte article) */
+  title?: string
+  /** lien de retour (contexte article) */
   backHref?: string
   backLabel?: string
   /** la barre démarre transparente si la page ouvre sur une cover pleine hauteur */
   overCover?: boolean
+  /** libellé de droite en contexte index — le mobilier d'impression du gold */
+  indexLabel?: string
 }
 
 const {
-  title,
+  context = 'article',
+  title = '',
   backHref = '/writing',
   backLabel = '← Writing',
   overCover = false,
+  indexLabel = 'Nº 001 · INDEX',
 } = Astro.props
 ---
 
-<header class="topbar" data-over-cover={overCover ? 'on' : 'off'}>
-  <div class="progress" aria-hidden="true"></div>
-  <div class="tb-in">
-    <a class="brand" href="/" aria-label="exhale — accueil">exhale</a>
-    <div class="tb-title">{title}</div>
-    <a class="tb-back" href={backHref}>{backLabel}</a>
-  </div>
-</header>
+{context === 'index'
+  ? (
+      /* `aria-hidden` est l'état INITIAL (la barre est absente en haut de page) ; le script
+         le bascule, et pose `inert` pour retirer les liens de l'ordre de tabulation —
+         `pointer-events: none` ne bloque que le pointeur, pas le clavier. */
+      <header class="topbar" data-context="index" id="indexbar" aria-hidden="true" inert>
+        <div class="tb-in">
+          <a class="brand" href="#top" aria-label="exhale — haut de page">exhale</a>
+          <nav class="tb-nav" aria-label="Navigation">
+            {barItems.map(item => <a href={item.href}>{item.label}</a>)}
+          </nav>
+          <span class="tb-back">{indexLabel}</span>
+        </div>
+      </header>
+    )
+  : (
+      <header class="topbar" data-context="article" data-over-cover={overCover ? 'on' : 'off'}>
+        <div class="progress" aria-hidden="true"></div>
+        <div class="tb-in">
+          <a class="brand" href="/" aria-label="exhale — accueil">exhale</a>
+          <div class="tb-title">{title}</div>
+          <a class="tb-back" href={backHref}>{backLabel}</a>
+        </div>
+      </header>
+    )}
 
 <script>
-  const bar = document.querySelector<HTMLElement>('.topbar')
-  const gauge = bar?.querySelector<HTMLElement>('.progress')
-  const cover = document.querySelector<HTMLElement>('.post-hero')
+const bar = document.querySelector<HTMLElement>('.topbar')
+const gauge = bar?.querySelector<HTMLElement>('.progress')
+const cover = document.querySelector<HTMLElement>('.post-hero')
 
-  // Publie la hauteur RÉELLE de la barre : c'est de cette valeur que la cover remonte pour
-  // passer dessous. Le gold hardcode `48px + 2px`, ce que la critique Impeccable relevait
-  // comme fragile (chargement de font, mobile). Un ResizeObserver suit les vraies mesures.
-  if (bar) {
-    const publish = (): void => {
-      document.documentElement.style.setProperty('--bar-h', `${Math.round(bar.offsetHeight)}px`)
-    }
-    publish()
-    new ResizeObserver(publish).observe(bar)
-    document.fonts?.ready.then(publish)
+/* ---- variante index : la barre se résout une fois le hero passé ----
+   * Observe le stage du hero et bascule trois choses ensemble : les classes d'animation,
+   * `aria-hidden` et `inert`. Les deux derniers vont de pair — sans `inert`, six liens
+   * restent tabulables dans une barre invisible, parce que `opacity: 0` et
+   * `pointer-events: none` ne retirent rien de l'ordre de tabulation.
+   */
+if (bar?.dataset.context === 'index') {
+  const stage = document.querySelector<HTMLElement>('.hero2-stage')
+  if (stage && 'IntersectionObserver' in window) {
+    let on = false
+    const io = new IntersectionObserver((entries) => {
+      const e = entries[0]
+      // « passé » = le hero est sorti par le HAUT, pas simplement hors champ
+      const past = !e.isIntersecting && e.boundingClientRect.bottom < 0
+      if (past === on)
+        return
+      on = past
+      bar.classList.toggle('is-on', on)
+      bar.classList.toggle('is-off', !on)
+      bar.setAttribute('aria-hidden', on ? 'false' : 'true')
+      bar.toggleAttribute('inert', !on)
+    })
+    io.observe(stage)
   }
+}
 
-  if (bar && gauge) {
-    const onScroll = (): void => {
-      const doc = document.documentElement
-      const max = doc.scrollHeight - doc.clientHeight || 1
-      const p = Math.min(1, Math.max(0, (window.scrollY || doc.scrollTop) / max))
-      gauge.style.transform = `scaleX(${p})`
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    onScroll()
-
-    // au-dessus de la cover, la barre s'efface dans l'image ; l'IO n'est qu'un confort
-    if (cover && 'IntersectionObserver' in window) {
-      const io = new IntersectionObserver(
-        entries => entries.forEach((e) => {
-          bar.dataset.overCover = e.isIntersecting && e.intersectionRatio > 0.35 ? 'on' : 'off'
-        }),
-        { threshold: [0, 0.35, 0.6] },
-      )
-      io.observe(cover)
-    }
+// Publie la hauteur RÉELLE de la barre : c'est de cette valeur que la cover remonte pour
+// passer dessous. Le gold hardcode `48px + 2px`, ce que la critique Impeccable relevait
+// comme fragile (chargement de font, mobile). Un ResizeObserver suit les vraies mesures.
+if (bar && bar.dataset.context === 'article') {
+  const publish = (): void => {
+    document.documentElement.style.setProperty('--bar-h', `${Math.round(bar.offsetHeight)}px`)
   }
+  publish()
+  new ResizeObserver(publish).observe(bar)
+  document.fonts?.ready.then(publish)
+}
+
+if (bar && gauge) {
+  const onScroll = (): void => {
+    const doc = document.documentElement
+    const max = doc.scrollHeight - doc.clientHeight || 1
+    const p = Math.min(1, Math.max(0, (window.scrollY || doc.scrollTop) / max))
+    gauge.style.transform = `scaleX(${p})`
+  }
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onScroll)
+  onScroll()
+
+  // au-dessus de la cover, la barre s'efface dans l'image ; l'IO n'est qu'un confort
+  if (cover && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      entries => entries.forEach((e) => {
+        bar.dataset.overCover = e.isIntersecting && e.intersectionRatio > 0.35 ? 'on' : 'off'
+      }),
+      { threshold: [0, 0.35, 0.6] },
+    )
+    io.observe(cover)
+  }
+}
 </script>
 
 <style>
@@ -156,10 +211,61 @@ const {
   .topbar[data-over-cover='on'] .tb-title { color: transparent; }
   .topbar[data-over-cover='on'] .progress { opacity: 0; }
 
+  /* ---- variante index (la home) ----
+   * Barre FIXE, absente en haut de page, qui se résout en dither une fois le hero passé et
+   * se dissout au retour. Le dither est fait au masque : la barre est peinte normalement,
+   * et c'est son masque qui grossit ses points d'étape en étape. `steps(1, end)` est ce qui
+   * lui donne son aspect d'impression — pas d'interpolation, quatre états francs.
+   */
+  .topbar[data-context='index'] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .topbar[data-context='index'] .tb-nav {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-l);
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    min-width: 0;
+  }
+  .topbar[data-context='index'] .tb-nav a { color: var(--ink-2); }
+  .topbar[data-context='index'] .tb-nav a:hover { color: var(--accent); }
+
+  .topbar[data-context='index'].is-on {
+    opacity: 1;
+    pointer-events: auto;
+    animation: bar-dither-in 0.42s steps(1, end);
+  }
+  .topbar[data-context='index'].is-off {
+    animation: bar-dither-out 0.42s steps(1, end);
+  }
+
+  @keyframes bar-dither-in {
+    0% { mask-image: radial-gradient(circle, #000 0.6px, transparent 0.8px); mask-size: 5px 5px; }
+    30% { mask-image: radial-gradient(circle, #000 1.1px, transparent 1.3px); mask-size: 5px 5px; }
+    55% { mask-image: radial-gradient(circle, #000 1.7px, transparent 1.9px); mask-size: 5px 5px; }
+    80% { mask-image: radial-gradient(circle, #000 2.4px, transparent 2.6px); mask-size: 5px 5px; }
+  }
+  @keyframes bar-dither-out {
+    0% { opacity: 1; mask-image: radial-gradient(circle, #000 2.4px, transparent 2.6px); mask-size: 5px 5px; }
+    35% { opacity: 1; mask-image: radial-gradient(circle, #000 1.7px, transparent 1.9px); mask-size: 5px 5px; }
+    70% { opacity: 1; mask-image: radial-gradient(circle, #000 1px, transparent 1.2px); mask-size: 5px 5px; }
+  }
+
   @media (max-width: 700px) {
     /* le titre courant sauterait la place du retour : on le masque plutôt que de le tronquer */
     .tb-title { display: none; }
     .tb-in { grid-template-columns: auto auto; justify-content: space-between; }
+    /* six libellés mono ne tiennent pas en étroit : la barre garde la marque et le repère */
+    .topbar[data-context='index'] .tb-nav { display: none; }
+    .topbar[data-context='index'] .tb-in { grid-template-columns: auto auto; }
   }
 
   @media print {

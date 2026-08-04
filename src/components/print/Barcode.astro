@@ -7,17 +7,29 @@
 interface Props {
   /** la ligne sous le code — coordonnées, année, référence */
   label?: string
+  /**
+   * Bord sur lequel le code s'aligne. Le motif fait 180px de large, la ligne de chiffres
+   * souvent plus : sans ça, le code reste collé à gauche d'un bloc plus large que lui, et
+   * un `text-align: right` du conteneur ne le déplace pas — ce n'est pas du texte.
+   *
+   * Le gold obtient le même résultat depuis l'extérieur, avec
+   * `.foot-mark .barcode { margin-left: auto }`. Ici c'est une prop : le conteneur n'a pas
+   * à connaître l'intérieur du composant (PIPELINE §4.3).
+   */
+  align?: 'left' | 'right'
 }
 
-const { label } = Astro.props
+const { label, align = 'left' } = Astro.props
 ---
 
-<div class="barcode-block">
+<div class="barcode-block" data-align={align}>
   <div class="barcode" aria-hidden="true"></div>
   {label && <div class="barcode-num">{label}</div>}
 </div>
 
 <style>
+  .barcode-block[data-align='right'] .barcode { margin-left: auto; }
+
   .barcode {
     height: 38px;
     width: 180px;

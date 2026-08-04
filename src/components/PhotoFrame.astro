@@ -10,7 +10,7 @@ interface Props {
 const { src, alt, caption, number, ratio = 'tall' } = Astro.props
 ---
 
-<div class:list={['pframe', ratio]}>
+<div class="pframe" data-ratio={ratio}>
   <img src={src} alt={alt} loading="lazy" decoding="async" />
   <div class="pc">
     <span>{caption}</span>
@@ -25,8 +25,10 @@ const { src, alt, caption, number, ratio = 'tall' } = Astro.props
     background: var(--photo-ground);
     border: 1px solid var(--line);
   }
-  .pframe.tall { aspect-ratio: 3 / 4; }
-  .pframe.wide { aspect-ratio: 4 / 5; }
+  /* Variantes en `data-*` des deux côtés (PROTOCOL §2) : le gold a converti
+     `.pframe.tall/.wide` en `[data-ratio]` en août 2026, on suivait encore en classes. */
+  .pframe[data-ratio='tall'] { aspect-ratio: 3 / 4; }
+  .pframe[data-ratio='wide'] { aspect-ratio: 4 / 5; }
 
   img {
     width: 100%;
