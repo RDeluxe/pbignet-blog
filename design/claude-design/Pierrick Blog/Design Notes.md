@@ -84,3 +84,7 @@ Writing index · Article (long-form) · Photos (grid + swatches) · Now · Setup
 - Page ink is now `<html data-ink='olive'|'sepia'>`; values live in `paper.css :root[data-ink]` (mirrors Astro `src/styles/tokens/colors.css`). No inline design tokens on `<html>` — only runtime `--grain` (texture.js) stays inline.
 - `--post-hero-h` is layout, not ink → defaults to `100vh` in `HeroPopColor.css` (.post-hero); override per page only when a cover should be shorter.
 - Home/intro lede overlap with RESPIRE is deliberate: lede at z-index 0 recedes behind the clipped-photo type. Mirror as-is.
+
+## PullQuote — 4 août 2026 (écart §8 du protocole)
+- La barre d'accent à gauche PART : la doctrine de juillet fait foi, le CSS lui était antérieur. Nouveau geste (déjà dans le vocabulaire, cf. \`.art-end\`) : rule d'encre 2px × 64px au-dessus, citation au fer à gauche, source mono inchangée. \`PullQuote.css\` seul touché ; les archives research/ qui self-définissent \`.pull\` restent telles quelles (historique).
+- Callout confirmé : \`--cell: 24px\` est voulu (pitch des points = hauteur de ligne, spec E1) ; padding vertical = \`var(--cell)\`.

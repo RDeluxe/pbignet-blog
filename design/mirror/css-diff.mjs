@@ -190,6 +190,25 @@ const countDecls = m => [...m.values()].reduce((n, v) => n + v.decls.size, 0)
 
 /* ── mode manifeste ─────────────────────────────────────────────────────────── */
 
+/**
+ * Le protocole doit exister à l'identique des deux côtés (PROTOCOL §9). Une copie
+ * périmée chez CD est pire que pas de copie : les deux côtés croient suivre la même
+ * règle. On le dit en tête de rapport plutôt que d'espérer s'en souvenir.
+ */
+function checkProtocolCopy(cdRoot) {
+  const mine = join(HERE, '../PROTOCOL.md')
+  const theirs = join(cdRoot, 'PROTOCOL.md')
+  if (!existsSync(mine)) return
+  if (!existsSync(theirs)) {
+    console.log('⚠ PROTOCOL.md absent côté CD — le lui envoyer (PROTOCOL §9)\n')
+    return
+  }
+  const norm = p => readFileSync(p, 'utf8').replace(/\r\n/g, '\n').trimEnd()
+  if (norm(mine) !== norm(theirs)) {
+    console.log('⚠ PROTOCOL.md diverge entre le dépôt et CD — renvoyer la version du dépôt (PROTOCOL §9)\n')
+  }
+}
+
 function runManifest() {
   const man = JSON.parse(readFileSync(join(HERE, 'manifest.json'), 'utf8'))
   const cdRoot = join(REPO, man.cdRoot)
@@ -214,6 +233,8 @@ function runManifest() {
     else if (c.scope === 'cd-only') dette.push([name, c])
     else horsPerimetre.push([name, c])
   }
+
+  checkProtocolCopy(cdRoot)
 
   // chaque côté résout avec SES propres tokens : on compare des valeurs finales
   const varsCD = collectVars(man.foundation.cd.map(f => join(cdRoot, f)))

@@ -59,8 +59,10 @@ assets/components/HeroPopColor.css          src/components/hero/HeroPopColor.ast
 …29 fichiers                                …le <style> scopé du composant
 ```
 
-Les pages gold (`01_Home.html`, `02_Article.html`) ne contiennent **aucun bloc
-`<style>`** et gardent un seul `<link>` vers `paper.css`.
+Les pages gold (`01_Home.html`, `02_Article.html`) ne contiennent **aucun bloc `<style>`**
+et ne chargent qu'**une seule feuille de style locale**, `paper.css`. Elles ont par ailleurs
+un `<link>` vers les fontes Google et des `<script>` vers `assets/*.js` : c'est normal et
+hors sujet ici.
 
 ### Les deux conventions qui font tenir le miroir
 
@@ -223,7 +225,41 @@ une décision de CD ?** Les deux premiers cas illustrent les deux sens.
 
 - **Notre dérive** — `Callout` : CD porte `--cell: 24px` (pas des points calé sur la
   hauteur de ligne, conforme à la spec E1) là où nous avons `--dot-step: 16px`, avec un
-  padding de 24 contre 18. Notre trame est plus serrée que la spec. À corriger côté code.
-- **Sa dérive** — `PullQuote` : CD écrit `border-left: 3px solid var(--accent)` alors que
-  sa propre doctrine de juillet 2026 interdit la barre d'accent à gauche. Notre
-  implémentation est conforme, la sienne contredit son journal. À lui de trancher.
+  padding de 24 contre 18. Notre trame est plus serrée que la spec. **CD a confirmé 24px**
+  le 4 août : à corriger côté code.
+- **Sa dérive, tranchée** — `PullQuote` : CD écrivait `border-left: 3px solid var(--accent)`
+  alors que sa propre doctrine de juillet 2026 interdit la barre d'accent à gauche. Signalé
+  le 4 août, **il a tranché en faveur de la doctrine** : la barre part de son CSS, notre
+  implémentation était la bonne. Rien à changer côté code.
+
+C'est le premier aller-retour où l'outil a trouvé une contradiction **interne à CD** — sa
+feuille contre son propre journal. Ça vaut d'être noté : le diff ne sert pas seulement à
+rattraper nos dérives.
+
+---
+
+## 9. Ce document vit des deux côtés
+
+Un protocole que seul un des deux côtés connaît n'est pas un protocole. Ce fichier existe
+donc en deux exemplaires :
+
+| Copie | Rôle |
+| --- | --- |
+| `design/PROTOCOL.md` (ce dépôt) | **l'original.** Toute modification se fait ici. |
+| `PROTOCOL.md` à la racine du projet CD | la copie que CD lit à chaque session |
+
+**Règle : toute modification de ce document est renvoyée à CD dans le même mouvement.**
+Pas « à la prochaine occasion » — dans le même mouvement. Un protocole désynchronisé est
+pire que pas de protocole : les deux côtés croient suivre la même règle.
+
+Comment la copie arrive chez CD : joindre le fichier au composer via le MCP Playwright
+(`setInputFiles` sur l'input file, sans passer par le bouton) et demander à CD de
+l'enregistrer sous `PROTOCOL.md` à la racine du projet. `DesignSync` ne peut pas écrire ici
+(§4.1), donc c'est CD qui crée le fichier — il redescend ensuite par le sync DOWN.
+
+**Le contrôle est automatique** : `pnpm mirror:diff` compare les deux copies en tête de
+rapport et avertit si elles divergent ou si celle de CD manque. Ce n'est pas une
+convention qu'on se rappelle, c'est une ligne qui s'affiche.
+
+La version est en français, comme le reste du dépôt. CD la lit sans difficulté et son
+`Design Notes.md` contient déjà des décisions en français.
