@@ -98,3 +98,10 @@ Writing index · Article (long-form) · Photos (grid + swatches) · Now · Setup
 - Print : règles composants déplacées dans leurs fichiers ; `.post-hero` print reçoit `min-height: 0` (trouvaille CC — la règle était un no-op).
 - Morts supprimés : `.topo-layer{opacity:1}`, `.page{padding-bottom:0}`.
 - Inline styles gold éliminés : `.post-list` (PostRow), `.feature{display:block}`, `.foot-mark` (SiteFooter), `.prose[data-flow='continued']`. `--dither-line:30%` n'existait qu'en commentaire.
+
+## Spécimen article + encres photo — 4 août 2026
+- **Encres de couverture — 5 valeurs = accumulation, pas intention.** Trois rôles tranchés, promus tokens dans paper.css : `--cover-ink-light: #f1ebdd` (mot de couverture, labels, crédits — absorbe #f3ecdb/#e9e3d6/#ece6d8/#f0e9d8/#f1ead8/#e6dfd0), `--cover-ink-quiet: #cfc9bb` (métadonnées secondaires), `--cover-ink-dark: #14110a` (fond des dithers). Le cue = light à 70% (color-mix), pas une 4e encre. Les valeurs des bancs (#f4efe3/#ded7c8/#241606) sont abandonnées — l'or fait foi. #2a2620 (fond placeholder photo) reste littéral : c'est un fond d'attente, pas une encre.
+- **Callout/Plate en contexte de lecture** (02_Article) : les deux vivent À L'INTÉRIEUR de .prose, à la largeur de colonne, rythme du pull (2.2em) ; **ni l'un ni l'autre ne coupe le flux** — seul le .figure[data-width='wide'] hors-colonne justifie data-flow='continued'. Plate en article : oui au .ptag, court ("Ledger · One Week"). Tag de callout : un mot de rôle — CAVEAT/MÉTHODE/SOURCE ; N.B. reste le défaut de spécimen.
+- **RegMarks : absolute.** Les marques appartiennent à la feuille, elles défilent avec elle. `fixed` côté repo = bug à corriger.
+- **CollCard : fond opaque var(--paper).** Le tint 2% ne survivait nulle part (la grille fusionnée le remplaçait déjà) ; alignés.
+- **.post .arrow : shim d'archive**, garde le display:none côté gold (les research/ portent encore le markup flèche) mais ce n'est PAS le composant — ne pas porter.

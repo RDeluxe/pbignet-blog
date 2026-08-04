@@ -193,22 +193,52 @@ page. Leur CSS est correct, mais rien ne le rend — donc rien ne le vérifie.
 
 ---
 
-## Les quatre questions pour CD (Q)
+## Les quatre questions — toutes tranchées le 2026-08-04
 
-Toujours ouvertes — elles n'étaient pas dans le brief de l'échelle, elles feront le suivant.
+Brief `2026-08-04-article-specimen-complet.md`. CD a répondu aux quatre et implémenté
+(13 fichiers). **Plus aucune question ouverte.**
 
-1. **Encres de photo** — unifier les cinq nuances claires du gold, ou les garder distinctes ?
-   C'est la plus importante : c'est une question de méthode (§2), pas de valeur.
-2. **RegMarks** — `absolute` (sa version) ou `fixed` (la nôtre) ?
-3. **CollCard** — notre fond opaque, qui masque volontairement le filet d'une grille en
-   `hairline`, contre son fond translucide à 2 % d'encre.
-4. **PostRow** — `.post .arrow` est-il un vestige, la doctrine de juillet ayant retiré la
-   flèche ?
+### 1. Encres de photo — « accumulation, not intention »
 
-Un nettoyage trivial à lui signaler au passage, sans en faire une question : son
-`.ph-cue { display: none !important }` d'impression garde un `!important` qui n'avait de sens
-que tant que la règle vivait dans `paper.css` global. Depuis qu'elle est dans le composant,
-plus rien ne la concurrence.
+Son verdict : les cinq nuances du gold étaient bien accidentelles, « chacune tapée le jour où
+son composant a été écrit ». Il les a ramenées à **trois rôles**, en reprenant nos noms de
+tokens et des valeurs dérivées du gold :
+
+| token | valeur | rôle |
+|---|---|---|
+| `--cover-ink-light` | `#f1ebdd` | le mot de couverture, le crédit, les labels, la vcap |
+| `--cover-ink-quiet` | `#cfc9bb` | métadonnée secondaire : sous-titre mono, numéro de code-barre |
+| `--cover-ink-dark` | `#14110a` | fonds de dither |
+
+L'invite à scroller (`.ph-cue`) n'est **pas une quatrième encre** mais un traitement de la
+claire : `color-mix(in srgb, var(--cover-ink-light) 70%, transparent)`.
+
+Nos trois anciennes valeurs sont mortes — et `#241606` « exists nowhere », confirmant la faute
+de méthode. Appliqué. `#2a2620` reste littéral : c'est le fond de remplacement d'un cadre
+photo, pas une encre.
+
+### 2. RegMarks — `absolute`, et notre `fixed` était un bug
+
+Sa réponse tranche en une phrase : « marks belong to the sheet and scroll with it ; your fixed
+is the bug ». Corrigé. Le conteneur restant statique, les repères se résolvent sur `body`, qui
+porte `position: relative` dans `base.css`.
+
+### 3. CollCard — c'est LUI qui s'est aligné sur nous
+
+« The 2% tint never survived anywhere — the fused grid already overrode it. Your
+hairline-masking need confirms opaque is right. » Son fond passe à `var(--paper)`.
+
+### 4. `.post .arrow` — vestige, mais porteur
+
+À ne **pas** porter, et pour une raison qu'on n'aurait pas devinée : aucune page gold ne rend
+de flèche, mais la règle tue celles qui traînent encore dans le markup de `research/`, qui
+partage `paper.css`. Il l'a laissée avec un commentaire `LEGACY shim — don't port`.
+
+### Les trois notes du §3
+
+Acceptées telles quelles : notre compteur CSS et notre étiquette dans le DOM sont meilleurs de
+notre côté ; son gold les garde en dur « for gold-file simplicity ». Le `!important` vestigial
+est noté. Aucun de ces trois points n'est de la dérive.
 
 ---
 

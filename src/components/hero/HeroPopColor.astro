@@ -317,7 +317,9 @@ document.querySelectorAll<HTMLElement>('.post-hero').forEach((hero) => {
     font-size: var(--fs-tag);
     letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: var(--cover-ink-quiet);
+    /* l'invite à scroller n'est pas une quatrième encre mais un TRAITEMENT de la claire :
+       CD l'a tranché ainsi le 2026-08-04 en ramenant les cinq nuances du gold à trois rôles. */
+    color: color-mix(in srgb, var(--cover-ink-light) 70%, transparent);
   }
 
   .hero-fade {

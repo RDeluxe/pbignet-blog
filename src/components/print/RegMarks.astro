@@ -2,7 +2,13 @@
 /**
  * RegMarks — les quatre repères de repérage aux coins de la feuille.
  * Mobilier d'impression : purement décoratif au sens sémantique (aria-hidden), mais
- * porteur de sens de marque — une feuille imprimée en a. Fixé au viewport.
+ * porteur de sens de marque — une feuille imprimée en a.
+ *
+ * **Positionnés sur la FEUILLE, pas sur le viewport.** On était en `fixed`, donc les repères
+ * restaient collés à l'écran pendant le défilement ; CD l'a tranché le 2026-08-04 en une
+ * phrase qui règle la question : « marks belong to the sheet and scroll with it ; your fixed
+ * is the bug ». Le conteneur reste statique, donc les repères se résolvent sur `body`, qui
+ * porte `position: relative` dans `base.css` — soit toute la hauteur de la feuille.
  */
 ---
 
@@ -15,7 +21,7 @@
 
 <style>
   .regmark {
-    position: fixed;
+    position: absolute;
     width: var(--regmark-size);
     height: var(--regmark-size);
     pointer-events: none;

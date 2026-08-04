@@ -6,5 +6,6 @@
 .post .ptitle { font-family: var(--sans); font-weight: 600; font-size: clamp(19px, 2.4vw, 27px); line-height: 1.12; letter-spacing: -0.01em; text-wrap: balance; }
 .post .pmeta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--ink-2); text-align: right; white-space: nowrap; line-height: 1.5; }
 .post .pdesc { font-family: var(--serif); font-size: 15px; color: var(--ink-2); margin-top: var(--space-xs); max-width: 56ch; line-height: 1.5; }
+/* LEGACY shim — no gold page renders an arrow; kills the pre-July arrows still in research/ markup. Not part of the component: don't port. */
 .post .arrow { display: none; }
 .post-list { margin-top: var(--space-xl); }

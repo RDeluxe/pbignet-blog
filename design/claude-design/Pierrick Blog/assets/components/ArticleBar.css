@@ -17,7 +17,7 @@
 /* immersive state — JS adds this only while the cover is on screen */
 .topbar.over-hero { background: transparent; border-color: transparent; }
 .topbar.over-hero .brand,
-.topbar.over-hero .tb-back { color: #f1ebdd; text-shadow: 0 1px 14px rgba(0,0,0,.5); }
+.topbar.over-hero .tb-back { color: var(--cover-ink-light); text-shadow: 0 1px 14px rgba(0,0,0,.5); }
 .topbar.over-hero .tb-title { color: rgba(241,235,221,.0); }
 .topbar.over-hero .progress { opacity: 0; }
 @media print { .topbar .progress { display: none !important; } }

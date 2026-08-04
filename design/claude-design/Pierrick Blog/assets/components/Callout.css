@@ -28,3 +28,7 @@
   background-position: left 8px top 0, left 0 top 8px, right 8px bottom 0, right 0 bottom 8px;
   background-repeat: no-repeat;
 }
+/* in a reading column the callout sits INSIDE .prose, pull-quote rhythm */
+.prose .callout { margin: 2.2em 0; }
+.callout h4 { margin: 0 0 6px; font-family: var(--sans); font-weight: 700; font-size: 14px; letter-spacing: .01em; }
+.callout p { margin: 0; font-family: var(--serif); font-size: 15px; color: var(--ink-2); }

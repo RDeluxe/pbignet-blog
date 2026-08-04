@@ -65,6 +65,12 @@ button { font: inherit; color: inherit; }
 :root[data-ink='olive'] { --accent: #3d491d; --topo: rgba(61, 73, 29, 0.06); }
 :root[data-ink='sepia'] { --accent: #9a7838; --topo: rgba(154, 120, 56, 0.06); }
 
+/* ---- cover inks — type set ON photographs (arbitrated 2026-08-04):
+ * three roles, not five accumulated values. light = primary (cover word,
+ * labels, credits); quiet = secondary metadata; dark = dither ground.
+ * The cue is light at 70%, not a fourth ink. ---- */
+:root { --cover-ink-light: #f1ebdd; --cover-ink-quiet: #cfc9bb; --cover-ink-dark: #14110a; }
+
 /* ---- spacing scale — 4px grid named by size; sm/ml are deliberate half-steps
  * (the mono-label rhythm, arbitrated 2026-08-04). ≤6px optical nudges stay literal. ---- */
 :root {

@@ -57,10 +57,20 @@
    * Hors doctrine « one ink » : ce ne sont pas des encres de mobilier mais du type sur
    * image. Le choix light/dark est une décision **par image** — vérifier ≥3:1 (grand
    * texte) sur chaque breakpoint.
+   *
+   * TROIS RÔLES, tranchés par CD le 2026-08-04 (brief `2026-08-04-article-specimen-complet.md`).
+   * Le gold portait cinq nuances claires à quelques points l'une de l'autre — « accumulation,
+   * not intention », chacune tapée le jour où son composant a été écrit. Elles sont désormais
+   * unifiées sur ces trois rôles, chez lui comme ici.
+   *
+   * ⚠️ Nos anciennes valeurs (#f4efe3, #ded7c8, #241606) venaient des **bancs**
+   * (`research/Article - hero studies`, `research/Article - spot colour`), pas du gold — une
+   * faute de méthode : « a validated result graduates to root », donc la research ne fait
+   * jamais foi. Ces trois hex n'existent plus nulle part dans le projet distant.
    */
-  --cover-ink-light: #f4efe3;
-  --cover-ink-dark: #241606;
-  --cover-ink-quiet: #ded7c8;   /* lignes techniques, indices */
+  --cover-ink-light: #f1ebdd;   /* le mot de couverture, le crédit, les labels, la vcap */
+  --cover-ink-quiet: #cfc9bb;   /* métadonnée secondaire : sous-titre mono, numéro de code-barre */
+  --cover-ink-dark: #14110a;    /* fonds de dither */
 
   /* fond sombre d'un cadre photo (avant chargement, ou sous une image transparente) */
   --photo-ground: #2a2620;
