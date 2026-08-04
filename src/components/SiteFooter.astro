@@ -1,7 +1,7 @@
 ---
+import Wrap from './primitives/Wrap.astro'
 import Barcode from './print/Barcode.astro'
 import MonoLabel from './print/MonoLabel.astro'
-import Wrap from './primitives/Wrap.astro'
 ---
 
 <footer class="site">
@@ -51,7 +51,7 @@ import Wrap from './primitives/Wrap.astro'
   .site {
     margin-top: clamp(70px, 9vw, 120px);
     border-top: 2px solid var(--ink);
-    padding: 30px 0 56px;
+    padding: 30px 0 var(--space-4xl);
   }
 
   .foot-grid {
@@ -73,7 +73,7 @@ import Wrap from './primitives/Wrap.astro'
     font-size: var(--fs-label);
     letter-spacing: 0.05em;
     color: var(--ink-2);
-    margin-top: 12px;
+    margin-top: var(--space-s);
     line-height: var(--lh-loose);
   }
 
@@ -83,7 +83,7 @@ import Wrap from './primitives/Wrap.astro'
     letter-spacing: var(--tr-tag);
     text-transform: uppercase;
     color: var(--ink-3);
-    margin: 0 0 12px;
+    margin: 0 0 var(--space-s);
   }
   .foot-col a {
     display: block;
@@ -97,7 +97,7 @@ import Wrap from './primitives/Wrap.astro'
 
   .foot-right { text-align: right; }
   /* l'espacement appartient au conteneur, pas au MonoLabel (cf. PIPELINE §4.4) */
-  .foot-credit { margin-top: var(--space-md); }
+  .foot-credit { margin-top: var(--space-m); }
 
   @media (max-width: 880px) {
     .foot-grid { grid-template-columns: 1fr 1fr; }

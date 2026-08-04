@@ -337,4 +337,15 @@ document.querySelectorAll<HTMLElement>('.post-hero').forEach((hero) => {
     .post-hero { --ph-title-y: var(--phTitleYMobile); }
     .ph-vcap { display: none; }
   }
+
+  /* imprimée, la cover ne doit pas manger une page entière — et l'invite à scroller
+     n'a plus de sens sur du papier. `min-height` doit tomber, sinon les 540px
+     gagneraient contre les 70vh d'une feuille A4. */
+  @media print {
+    .post-hero {
+      height: 70vh;
+      min-height: 0;
+    }
+    .ph-cue { display: none; }
+  }
 </style>

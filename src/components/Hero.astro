@@ -40,33 +40,35 @@ const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height}
 </div>
 
 <script define:vars={{ photoSrc }}>
-  // Aligne le background-clip:text du titre avec le photo-plane du dessous
-  // pour que la photo semble traverser les lettres en continu.
-  (function () {
-    const img = new Image()
-    function align() {
-      const stage = document.getElementById('hero-stage')
-      const ct = document.getElementById('hero-ctype')
-      if (!stage || !ct || !img.naturalWidth) return
-      const W = stage.clientWidth
-      const H = stage.clientHeight
-      const nw = img.naturalWidth
-      const nh = img.naturalHeight
-      const scale = Math.max(W / nw, H / nh)
-      const cw = nw * scale
-      const ch = nh * scale
-      const offX = (W - cw) / 2
-      const offY = (H - ch) / 2
-      ct.style.backgroundSize = `${cw}px ${ch}px`
-      ct.style.backgroundPosition = `${offX - ct.offsetLeft}px ${offY - ct.offsetTop}px`
-    }
-    img.onload = align
-    img.src = photoSrc
-    window.addEventListener('resize', align)
-    if (document.fonts?.ready) document.fonts.ready.then(align)
-    setTimeout(align, 250)
-    setTimeout(align, 800)
-  })()
+// Aligne le background-clip:text du titre avec le photo-plane du dessous
+// pour que la photo semble traverser les lettres en continu.
+(function () {
+  const img = new Image()
+  function align() {
+    const stage = document.getElementById('hero-stage')
+    const ct = document.getElementById('hero-ctype')
+    if (!stage || !ct || !img.naturalWidth)
+      return
+    const W = stage.clientWidth
+    const H = stage.clientHeight
+    const nw = img.naturalWidth
+    const nh = img.naturalHeight
+    const scale = Math.max(W / nw, H / nh)
+    const cw = nw * scale
+    const ch = nh * scale
+    const offX = (W - cw) / 2
+    const offY = (H - ch) / 2
+    ct.style.backgroundSize = `${cw}px ${ch}px`
+    ct.style.backgroundPosition = `${offX - ct.offsetLeft}px ${offY - ct.offsetTop}px`
+  }
+  img.onload = align
+  img.src = photoSrc
+  window.addEventListener('resize', align)
+  if (document.fonts?.ready)
+    document.fonts.ready.then(align)
+  setTimeout(align, 250)
+  setTimeout(align, 800)
+})()
 </script>
 
 <style>

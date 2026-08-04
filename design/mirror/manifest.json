@@ -67,6 +67,45 @@
     "ImageSlot":      { "scope": "cd-only", "cd": "ImageSlot.css", "note": "état vide du custom element <image-slot> de CD, propre à son éditeur. Ne sera probablement jamais porté." }
   },
 
+  "assumedDiffs": [
+    {
+      "prop": "--display",
+      "selector": ":root",
+      "reason": "familles self-hostées via @fontsource : le nom LOCAL d'une variable font porte le suffixe « Variable » (Archivo Variable), là où CD charge par CDN et écrit « Archivo ». Même fonte, deux façons de la nommer selon la façon de la servir. Ne pas converger : côté code, retirer le suffixe casse le chargement."
+    },
+    {
+      "prop": "--sans",
+      "selector": ":root",
+      "reason": "idem --display : @fontsource nomme la variable font « Archivo Variable »."
+    },
+    {
+      "prop": "--serif",
+      "selector": ":root",
+      "reason": "idem --display : @fontsource nomme la variable font « Newsreader Variable »."
+    }
+  ],
+  "$assumedNote": "Écarts RÉELS mais délibérés, avec leur motif. Le diff les sort dans une rubrique à part : les compter comme de la dérive apprendrait à ignorer le rapport, et un rapport qu'on ignore ne sert à rien. Un écart n'entre ici que si le motif tient sans CD — sinon c'est un arbitrage à lui envoyer, pas un écart à assumer.",
+
+  "assumedSelectors": [
+    {
+      "match": "section.block",
+      "reason": "le rythme entre sections est notre primitive <Section> ; CD l'exprime en marge sur les pages. Déjà déclaré ours-only pour Section — ne convergera pas."
+    },
+    {
+      "match": "image-slot:focus-visible",
+      "reason": "<image-slot> est le custom element de l'éditeur CD, il n'a pas d'équivalent runtime chez nous."
+    },
+    {
+      "prefix": "@media (prefers-reduced-motion: reduce)",
+      "reason": "EN ATTENTE D'ARBITRAGE CD (brief 2026-08-04-echelle-espacement.md §2) — CD énumère un sélecteur par composant, nous neutralisons globalement avec `*`. Le global couvre strictement plus et ne peut pas être oublié en ajoutant un composant ; proposition faite de l'adopter et de supprimer l'énumération."
+    },
+    {
+      "prefix": "@media print",
+      "reason": "EN ATTENTE D'ARBITRAGE CD (brief 2026-08-04-echelle-espacement.md §3) — CD garde toutes les règles d'impression dans paper.css ; chez nous celles qui visent un composant vivent DANS le composant, comme le reste de son CSS. Proposition faite de les y déplacer aussi, ce qui referme l'écart des deux côtés."
+    }
+  ],
+  "$assumedSelectorsNote": "Sélecteurs présents d'un seul côté délibérément. `match` = littéral, `prefix` = toute une famille (un bloc @media). Deux entrées sont marquées EN ATTENTE : ce ne sont pas des écarts acceptés mais des questions posées à CD, gardées visibles avec leur référence de brief pour qu'un arbitrage oublié ne se transforme pas en écart tacite.",
+
   "ignoreSelectors": [
     ".frame-marks",
     ".frame-marks::before",

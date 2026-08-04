@@ -63,7 +63,7 @@ const { numbered = false, dropCap = false } = Astro.props
   }
   .prose[data-drop-cap='on'] :global(> p:first-child::first-letter) {
     float: left;
-    padding: 6px 12px 0 0;
+    padding: 6px var(--space-s) 0 0;
     font-family: var(--display);
     font-weight: var(--w-regular);
     font-size: 3.1em;
@@ -86,7 +86,7 @@ const { numbered = false, dropCap = false } = Astro.props
   .prose[data-numbered='on'] :global(h2)::before {
     counter-increment: sub;
     content: counter(sub, decimal-leading-zero);
-    margin-right: 12px;
+    margin-right: var(--space-s);
     color: var(--accent);
   }
 
@@ -145,7 +145,7 @@ const { numbered = false, dropCap = false } = Astro.props
   }
   .prose :global(pre) {
     margin: 0 0 1.45em;
-    padding: var(--space-md);
+    padding: var(--space-m);
     overflow-x: auto;
     border: 1px solid var(--line);
     background: var(--paper-2);
@@ -159,5 +159,12 @@ const { numbered = false, dropCap = false } = Astro.props
     margin: 2.4em 0;
     border: none;
     border-top: 1px solid var(--line);
+  }
+
+  /* à l'impression, un paragraphe orphelin sur deux lignes est illisible */
+  @media print {
+    .prose :global(p) { break-inside: avoid; }
+    .prose :global(h2),
+    .prose :global(h3) { break-after: avoid; }
   }
 </style>

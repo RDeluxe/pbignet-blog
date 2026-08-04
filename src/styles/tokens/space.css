@@ -14,15 +14,39 @@
   --maxw: 1180px;
   --gutter: clamp(20px, 4vw, 56px);
 
-  /* ---- échelle d'espacement ---- */
+  /* ---- échelle d'espacement — grille de 4px ----
+   * Nommée par TAILLE, jamais par usage : `--space-head` disait où la valeur servait, ce
+   * qui la rendait inutilisable ailleurs et masquait le fait que 18px n'est sur aucune
+   * échelle. Un pas est un cran de rythme, pas un rôle.
+   *
+   * Les crans retenus sont ceux que le gold emploie déjà — aucune valeur n'est inventée
+   * ni arrondie ici. Ce qui ne tombe pas sur un cran vit dans le bloc « hors échelle »
+   * ci-dessous, en attente d'arbitrage CD (design/briefs/2026-08-04-echelle-espacement.md).
+   */
   --space-2xs: 4px;
-  --space-xs: 6px;
-  --space-sm: 10px;
-  --space-md: 16px;    /* gap par défaut d'un en-tête de section */
-  --space-head: 18px;  /* espace sous un en-tête de section — valeur de paper.css */
-  --space-lg: 22px;    /* padding vertical d'une ligne de post */
-  --space-xl: 28px;
-  --space-2xl: 40px;
+  --space-xs: 8px;
+  --space-s: 12px;
+  --space-m: 16px;
+  --space-l: 20px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 40px;
+  --space-4xl: 56px;
+
+  /* ---- hors échelle — DETTE, ne pas employer dans du code neuf ----
+   * Sept valeurs du gold ne tombent sur aucun cran. Le nom porte le chiffre exprès : il
+   * grep en une commande et il dit qu'il est provisoire. Chacune est à ≤2px d'un cran
+   * (18px est à 2px de 16 comme de 20, 30px à 2px de 32), donc la convergence est bon
+   * marché — mais rapprocher une valeur validée par le design est une décision de CD, pas
+   * la nôtre (PROTOCOL §1). Tant qu'il n'a pas tranché, on garde la valeur exacte.
+   */
+  --space-off-6: 6px;
+  --space-off-10: 10px;
+  --space-off-14: 14px;
+  --space-off-18: 18px;    /* espace sous un en-tête de section — valeur de paper.css */
+  --space-off-22: 22px;    /* padding vertical d'une ligne de post */
+  --space-off-28: 28px;
+  --space-off-30: 30px;
 
   /* ---- grilles ---- */
   --gap-grid: 12px;    /* gouttière d'une grille de cartes/cadres. Unifie les 12px et 14px

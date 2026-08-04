@@ -50,12 +50,30 @@ function extract(file) {
   return out
 }
 
-/** `f( 90deg, x )` et `f(90deg, x)` sont la même valeur. */
-const normVal = v => v
-  .replace(/\s+/g, ' ')
-  .replace(/\(\s+/g, '(')
-  .replace(/\s+\)/g, ')')
-  .trim()
+/**
+ * `f( 90deg, x )` et `f(90deg, x)` sont la même valeur.
+ *
+ * Les nombres sont normalisés pour la même raison : `0.20` et `0.2` sont le même nombre,
+ * et `.5` aussi. Sans ça l'outil signalait un écart sur `--line` (CD écrit
+ * `rgba(27, 26, 22, 0.20)`, nous `0.2`) — du bruit qui coûte de la confiance au rapport,
+ * parce qu'un lecteur qui trouve un faux positif doute des vrais.
+ */
+const normNum = v => v.replace(/(?<![\w.])(\d*)\.(\d+)/g, (whole, int, frac) => {
+  const f = frac.replace(/0+$/, '')
+  const i = int === '' ? '0' : int
+  return f === '' ? i : `${i}.${f}`
+})
+
+const normVal = v => normNum(
+  v.replace(/\s+/g, ' ')
+    .replace(/\(\s+/g, '(')
+    .replace(/\s+\)/g, ')')
+    // `clamp(20px,2.4vw,28px)` et `clamp(20px, 2.4vw, 28px)` sont la même valeur. Sans
+    // ça, tout token dont la définition aère ses virgules ressortait en écart contre le
+    // littéral serré de CD — une quinzaine de faux positifs sur les échelles fluides.
+    .replace(/\s*,\s*/g, ',')
+    .trim(),
+)
 
 /**
  * Table des custom properties d'un côté. Sert à départager un vrai désaccord d'une
@@ -152,17 +170,39 @@ function index(files, { ignore = [] } = {}) {
   return map
 }
 
-function compare(A, B, varsA = new Map(), varsB = new Map()) {
+function compare(A, B, varsA = new Map(), varsB = new Map(), assumed = [], assumedSelectors = []) {
   const onlyA = []
   const onlyB = []
   const changed = []
   /** même valeur, écriture différente (token d'un côté, littéral de l'autre) */
   const equivalent = []
+  /** écart réel mais DÉLIBÉRÉ, déclaré dans le manifeste avec son motif */
+  const declared = []
+  /** sélecteur présent d'un seul côté, délibérément */
+  const declaredSel = []
+
+  /** un écart assumé est reconnu sur (propriété [, sélecteur]) — le motif vient du manifeste */
+  const assumedFor = (key, prop) => assumed.find(
+    r => r.prop === prop && (!r.selector || r.selector === key),
+  )
+
+  /**
+   * Idem au niveau du sélecteur. `match` est comparé littéralement, `prefix` couvre une
+   * famille (tout un bloc `@media`) : énumérer neuf sélecteurs de reduced-motion à la main
+   * serait une liste à maintenir, donc une liste qui pourrira.
+   */
+  const assumedSel = (key) => {
+    const r = assumedSelectors.find(x => (x.match && x.match === key)
+      || (x.prefix && key.startsWith(x.prefix)))
+    return r ? r.reason : null
+  }
 
   for (const [key, a] of A) {
     const b = B.get(key)
     if (!b) {
-      onlyA.push(key)
+      const why = assumedSel(key)
+      if (why) declaredSel.push({ key, side: 'CD', reason: why })
+      else onlyA.push(key)
       continue
     }
     for (const [prop, va] of a.decls) {
@@ -172,17 +212,26 @@ function compare(A, B, varsA = new Map(), varsB = new Map()) {
       }
       const vb = b.decls.get(prop)
       if (vb === va) continue
-      const ra = resolveVars(va, varsA)
-      const rb = resolveVars(vb, varsB)
-      if (ra === rb) equivalent.push({ key, prop, a: va, b: vb, resolved: ra })
+      // renormaliser APRÈS résolution : la substitution recolle des morceaux de tokens
+      // dont l'écriture n'a aucune raison de coïncider avec celle du littéral d'en face
+      const ra = normVal(resolveVars(va, varsA))
+      const rb = normVal(resolveVars(vb, varsB))
+      if (ra === rb) { equivalent.push({ key, prop, a: va, b: vb, resolved: ra }); continue }
+      const why = assumedFor(key, prop)
+      if (why) declared.push({ key, prop, a: va, b: vb, reason: why.reason })
       else changed.push({ key, prop, a: va, b: vb, ra, rb })
     }
     for (const [prop, vb] of b.decls) {
       if (!a.decls.has(prop)) changed.push({ key, prop, a: null, b: vb })
     }
   }
-  for (const key of B.keys()) if (!A.has(key)) onlyB.push(key)
-  return { onlyA, onlyB, changed, equivalent }
+  for (const key of B.keys()) {
+    if (A.has(key)) continue
+    const why = assumedSel(key)
+    if (why) declaredSel.push({ key, side: 'nous', reason: why })
+    else onlyB.push(key)
+  }
+  return { onlyA, onlyB, changed, equivalent, declared, declaredSel }
 }
 
 const dupes = side => [...side].filter(([, v]) => v.origins.size > 1)
@@ -242,7 +291,10 @@ function runManifest() {
 
   let aligned = 0
   let equivTotal = 0
+  let declaredTotal = 0
   const drifted = []
+  const assumed = man.assumedDiffs ?? []
+  const assumedSelectors = man.assumedSelectors ?? []
 
   for (const p of pairs) {
     const CD = index(p.cd, { ignore })
@@ -250,8 +302,10 @@ function runManifest() {
     // un composant peut définir ses propres customs en plus des tokens globaux
     const vCD = new Map([...varsCD, ...collectVars(p.cd)])
     const vOurs = new Map([...varsOurs, ...collectVars(p.astro)])
-    const { onlyA, onlyB, changed, equivalent } = compare(CD, OURS, vCD, vOurs)
+    const { onlyA, onlyB, changed, equivalent, declared, declaredSel }
+      = compare(CD, OURS, vCD, vOurs, assumed, assumedSelectors)
     equivTotal += equivalent.length
+    declaredTotal += declared.length + declaredSel.length
     const total = onlyA.length + onlyB.length + changed.length
     const eq = equivalent.length ? `  (+${equivalent.length} équivalents)` : ''
     if (total === 0) {
@@ -259,7 +313,7 @@ function runManifest() {
       console.log(`✓ ${p.name.padEnd(16)} aligné — ${CD.size} sélecteurs, ${countDecls(CD)} déclarations${eq}`)
       continue
     }
-    drifted.push({ ...p, onlyA, onlyB, changed, equivalent, total })
+    drifted.push({ ...p, onlyA, onlyB, changed, equivalent, declared, declaredSel, total })
     console.log(`● ${p.name.padEnd(16)} ${total} écart(s)${eq}`)
   }
 
@@ -284,11 +338,31 @@ function runManifest() {
         console.log(`    ${c.key}\n        ${c.prop}:  CD=${c.a}  →  nous=${c.b}${detail}`)
       })
     }
+    if (d.declared.length) {
+      console.log('  écarts assumés (déclarés au manifeste) :')
+      d.declared.forEach(c => console.log(`    ${c.key}\n        ${c.prop}:  CD=${c.a}  →  nous=${c.b}\n            motif : ${c.reason}`))
+    }
+    if (d.declaredSel.length) {
+      // groupé par motif : neuf sélecteurs de reduced-motion partagent une seule raison
+      const byReason = new Map()
+      d.declaredSel.forEach((c) => {
+        if (!byReason.has(c.reason)) byReason.set(c.reason, [])
+        byReason.get(c.reason).push(`${c.key} (${c.side})`)
+      })
+      console.log('  sélecteurs assumés d\'un seul côté :')
+      for (const [reason, keys] of byReason) {
+        console.log(`    ${keys.length} sélecteur(s) — ${reason}`)
+        keys.forEach(k => console.log(`      · ${k}`))
+      }
+    }
   }
 
   console.log(`\n${'═'.repeat(72)}`)
   console.log(`${aligned} aligné(s) · ${drifted.length} en écart · ${dette.length} de dette CD · ${horsPerimetre.length} hors périmètre`)
   console.log(`${equivTotal} déclaration(s) équivalentes — token d'un côté, littéral de l'autre, même valeur résolue`)
+  if (declaredTotal) {
+    console.log(`${declaredTotal} écart(s) assumé(s) — réels, délibérés, motivés au manifeste`)
+  }
   if (dette.length) {
     console.log('\nDette — CD l\'a spécifié, on ne l\'a pas porté :')
     dette.forEach(([n, c]) => console.log(`  ${n.padEnd(12)} ${c.note ?? ''}`))

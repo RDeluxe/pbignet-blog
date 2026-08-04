@@ -50,7 +50,7 @@ const { number, name, meta, href } = Astro.props
     position: relative;
     border: 1px solid var(--line);
     background: var(--paper); /* nue au repos, papier plein (banc `.tile`) */
-    padding: var(--space-md);
+    padding: var(--space-m);
     /* TODO token: 116px (hauteur plancher d'une tile de setup) → --tile-h-gear */
     min-height: 116px;
     display: flex;
@@ -113,7 +113,7 @@ const { number, name, meta, href } = Astro.props
     font-family: var(--sans);
     font-weight: 800;
     font-size: 17px;
-    margin-top: 8px;
+    margin-top: var(--space-xs);
   }
   .gmeta {
     font-family: var(--mono);

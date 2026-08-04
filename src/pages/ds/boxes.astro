@@ -5,7 +5,7 @@
  * Ces pages `ds/` servent à valider un composant et deviendront les `*.card.html`
  * poussées vers le projet Design System (cf. PIPELINE §6). Elles sont `noindex`.
  *
- * Chaque bloc = un `<Stack gap="md">` : label, boîte, contrat. Il FAUT cet espacement —
+ * Chaque bloc = un `<Stack gap="m">` : label, boîte, contrat. Il FAUT cet espacement —
  * l'étiquette du callout dépasse de 8px au-dessus de son cadre et le cadre de la plate
  * déborde de 13px, donc deux blocs collés se chevauchent.
  */
@@ -24,7 +24,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 
   <!-- PLATE · B6 — le cas décidé : cadre débordant + carreau ultra-léger sur papier nu -->
   <Section>
-    <Stack gap="md">
+    <Stack gap="m">
       <MonoLabel>Plate · surface="paper" (B6, le défaut)</MonoLabel>
       <Plate tag="Fig · 01">
         <MonoLabel tone="quiet">
@@ -42,7 +42,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 
   <!-- PLATE · sans carreau — le cas C1 : le contenu apporte déjà sa grille interne -->
   <Section>
-    <Stack gap="md">
+    <Stack gap="m">
       <MonoLabel>Plate · sans carreau (cas C1 — diagrammes)</MonoLabel>
       <Plate tag="Fig · 02" grid={false}>
         <MonoLabel tone="quiet">
@@ -55,7 +55,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 
   <!-- PLATE · B4 — le secondaire, à réserver aux environnements chargés -->
   <Section>
-    <Stack gap="md">
+    <Stack gap="m">
       <MonoLabel>Plate · surface="recessed" (B4, secondaire)</MonoLabel>
       <Plate tag="Fig · 03" surface="recessed">
         <MonoLabel tone="quiet">
@@ -72,7 +72,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 
   <!-- CALLOUT · E1 — note épinglée, deux croix, étiquette cassant le filet du haut -->
   <Section>
-    <Stack gap="md">
+    <Stack gap="m">
       <MonoLabel>Callout · E1 (note épinglée)</MonoLabel>
       <Callout title="La règle d'or">
         Chaque page choisit une encre pour son mobilier et son type — et la garde partout : le
@@ -88,7 +88,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
 
   <!-- le libellé de l'étiquette est une prop : la note peut annoncer autre chose -->
   <Section>
-    <Stack gap="md">
+    <Stack gap="m">
       <MonoLabel>Callout · variante d'étiquette</MonoLabel>
       <Callout tag="Méthode · 02">
         Sans titre et avec une autre étiquette : l'étiquette est une prop, son défaut est

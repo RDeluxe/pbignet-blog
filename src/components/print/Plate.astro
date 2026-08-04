@@ -51,7 +51,7 @@ const { surface = 'paper', grid = true, tag, as: Tag = 'div' } = Astro.props
 
     position: relative;
     /* TODO token: pas d'espacement 24px/20px dans --space-* — valeurs du banc (`.p0`) */
-    padding: 24px 20px;
+    padding: var(--space-xl) var(--space-l);
   }
 
   .plate[data-surface='paper'] { background-color: var(--paper); }

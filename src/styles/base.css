@@ -68,3 +68,27 @@ button:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
 }
+
+/* ---- impression ----
+ * Une feuille imprimée n'a ni matière ni encre de fond : les trois couches de texture
+ * tombent et le papier redevient blanc. Source : le bloc `@media print` d'`assets/paper.css`
+ * côté CD, dont on ne garde ici que ce qui relève du DOCUMENT. Les coupures de page
+ * (`break-inside`) et les masquages propres à un composant vivent dans le composant —
+ * `base.css` n'a pas à connaître `.figure` ni `.pull` (cf. design/PIPELINE.md).
+ */
+@media print {
+  .topo-layer,
+  .grain-layer,
+  .vignette {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* un lien imprimé n'est plus cliquable : le colorer en accent ne sert plus à rien */
+  a {
+    color: inherit;
+  }
+}

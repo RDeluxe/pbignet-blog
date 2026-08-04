@@ -52,4 +52,9 @@ const { source } = Astro.props
     text-transform: uppercase;
     color: var(--ink-3);
   }
+
+  /* la citation et sa source restent solidaires sur la même page */
+  @media print {
+    .pull { break-inside: avoid; }
+  }
 </style>
