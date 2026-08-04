@@ -585,6 +585,7 @@
     <table class="spec">
       <tr><td>One file per component</td><td>A component's CSS lives in <b>exactly one file</b>, <code>assets/components/&lt;Name&gt;.css</code>, imported by <code>paper.css</code>. Page <code>&lt;style&gt;</code> blocks stay <b>empty</b> — if a page needs something, it is a component or a variant of one. Page ink is <code>&lt;html data-ink='olive'|'sepia'&gt;</code>, values defined in <code>paper.css :root[data-ink]</code>. Only runtime values (<code>--grain</code>, set by texture.js) may be inline.</td></tr>
       <tr><td>Variants are <code>data-*</code></td><td>Never suffixed classes: <code>.tag[data-accent='on']</code> · <code>.rule[data-weight='thick']</code> · <code>.lede[data-size='intro'|'section']</code> · <code>.figure[data-width='wide']</code> · <code>.frame[data-dither='on']</code> · <code>.pframe[data-ratio]</code> · <code>footer.site[data-variant]</code>. Legacy class variants (<code>.plate.plain/.recessed</code>, <code>.btn.accent/.invert</code>, <code>.regmark.tl…br</code>) predate the rule — convert on their next pass.</td></tr>
+      <tr><td>Spacing scale</td><td>4px grid named by size (<code>--space-2xs</code> 4 → <code>--space-4xl</code> 56) plus two deliberate half-steps: <code>--space-sm</code> 14 / <code>--space-ml</code> 18, the mono-label rhythm. Tokens go in <code>padding/margin/gap</code>; <code>clamp()</code> ends and ≤6px optical nudges stay literal.</td></tr>
     </table>
 
     <h3 class="blk">New-page skeleton</h3>

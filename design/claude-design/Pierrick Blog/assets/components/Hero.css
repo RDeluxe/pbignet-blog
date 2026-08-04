@@ -1,7 +1,7 @@
 /* Hero — HERO v2: photo cropped at top, continues inside the type.
  * NOTE: photo URLs are relative to THIS file (../photos/ = assets/photos/). */
 .hero2 { position: relative; margin: var(--hero-gap,12px) 0 0; padding: 0; --hero-line: var(--hero-line-base,34%); }
-.hero-kick { position: relative; z-index: 5; display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--ink-2); padding: 8px 0 14px; }
+.hero-kick { position: relative; z-index: 5; display: flex; gap: var(--space-l); flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--ink-2); padding: var(--space-xs) 0 var(--space-sm); }
 .hero-kick b { color: var(--accent); }
 .hero2-stage { position: relative; width: 100%; height: var(--hero-h,min(82vh,760px)); overflow: hidden; background: transparent; }
 .photo-plane { position: absolute; inset: 0; background-image: url('../photos/arc-cdither.png'); background-size: cover; background-position: 50% 50%; background-repeat: no-repeat; z-index: 1; clip-path: inset(var(--hero-line,34%) 0 0 0); }

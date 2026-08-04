@@ -35,9 +35,36 @@ entièrement de la notation**. Trois conventions l'expliquent :
 
 ---
 
+## L'échelle est partagée depuis le 2026-08-04
+
+Brief `2026-08-04-echelle-espacement.md` envoyé, **arbitré et implémenté par CD** (27 fichiers
+de son côté). Son verdict sur les sept valeurs hors échelle :
+
+| valeur | verdict CD | conséquence chez nous |
+|---|---|---|
+| **14px** | promue **`--space-sm`** (demi-pas) | aucun pixel ne bouge |
+| **18px** | promue **`--space-ml`** (demi-pas) | aucun pixel ne bouge |
+| **6px** | reste **littéral optique** | gardée, renommée `--space-optical-6` |
+| 10px | snappée → `--space-s` (12px) | +2px |
+| 22px | snappée → `--space-xl` (24px) | +2px |
+| 28px | snappée → `--space-xl` (24px) | −4px |
+| 30px | snappée → `--space-2xl` (32px) | +2px |
+
+Il a aussi pris les trois autres demandes : **règle reduced-motion globale** adoptée et
+énumération supprimée, **règles d'impression déplacées** dans les composants (avec le
+`min-height: 0` que je lui avais signalé), **déclarations mortes et six styles en ligne
+résorbés**. `foundation` passe de 110 à **69 écarts**, les écarts assumés de 37 à **19**.
+
+Sa seule question en retour : les noms `sm`/`ml` des demi-pas sont ouverts — « les valeurs sont
+tranchées, les noms non ». On les a adoptés tels quels ; s'ils gênent, c'est le moment de
+proposer autre chose.
+
+En attente de sa part : l'adoption complète des tokens de type (il a pris l'échelle
+d'espacement, le type reste partiel).
+
 ## Ce qui a été corrigé le 2026-08-04
 
-Les 41 désaccords de valeur sont tombés à 21, dont 3 assumés (noms `@fontsource`). Les 18
+Les 41 désaccords de valeur sont tombés à 22, dont 3 assumés (noms `@fontsource`). Les 19
 restants sont tous classés : aucune dérive inexpliquée ne subsiste.
 
 | composant | dérive | corrigé en |
@@ -168,12 +195,20 @@ page. Leur CSS est correct, mais rien ne le rend — donc rien ne le vérifie.
 
 ## Les quatre questions pour CD (Q)
 
+Toujours ouvertes — elles n'étaient pas dans le brief de l'échelle, elles feront le suivant.
+
 1. **Encres de photo** — unifier les cinq nuances claires du gold, ou les garder distinctes ?
+   C'est la plus importante : c'est une question de méthode (§2), pas de valeur.
 2. **RegMarks** — `absolute` (sa version) ou `fixed` (la nôtre) ?
 3. **CollCard** — notre fond opaque, qui masque volontairement le filet d'une grille en
    `hairline`, contre son fond translucide à 2 % d'encre.
 4. **PostRow** — `.post .arrow` est-il un vestige, la doctrine de juillet ayant retiré la
    flèche ?
+
+Un nettoyage trivial à lui signaler au passage, sans en faire une question : son
+`.ph-cue { display: none !important }` d'impression garde un `!important` qui n'avait de sens
+que tant que la règle vivait dans `paper.css` global. Depuis qu'elle est dans le composant,
+plus rien ne la concurrence.
 
 ---
 

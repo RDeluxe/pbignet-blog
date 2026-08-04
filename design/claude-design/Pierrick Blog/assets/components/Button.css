@@ -5,7 +5,7 @@
   position: relative;
   display: inline-flex; align-items: center; gap: 7px;
   font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 11px 18px; border: 1px solid var(--ink);
+  padding: 11px var(--space-ml); border: 1px solid var(--ink);
   background: transparent; color: var(--ink); cursor: pointer;
 }
 .btn::before {

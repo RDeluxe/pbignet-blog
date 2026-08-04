@@ -88,3 +88,13 @@ Writing index · Article (long-form) · Photos (grid + swatches) · Now · Setup
 ## PullQuote — 4 août 2026 (écart §8 du protocole)
 - La barre d'accent à gauche PART : la doctrine de juillet fait foi, le CSS lui était antérieur. Nouveau geste (déjà dans le vocabulaire, cf. \`.art-end\`) : rule d'encre 2px × 64px au-dessus, citation au fer à gauche, source mono inchangée. \`PullQuote.css\` seul touché ; les archives research/ qui self-définissent \`.pull\` restent telles quelles (historique).
 - Callout confirmé : \`--cell: 24px\` est voulu (pitch des points = hauteur de ligne, spec E1) ; padding vertical = \`var(--cell)\`.
+
+## Échelle d'espacement — arbitrage 4 août 2026 (brief CC §1–§4)
+- Échelle adoptée dans paper.css : 4/8/12/16/20/24/32/40/56 + **deux vrais demi-pas** : `--space-sm: 14px` et `--space-ml: 18px` (rythme optique des labels mono — 12/16 et 16/20 les cassent). Pas des exceptions : des pas.
+- **6px : littéral, pas de token** — calages optiques (< 8px = optique, pas rythme). Pas une dette.
+- Snaps assumés (pixels bougent) : 10→12, 22→24, 30→32, 28→24. clamp() hors périmètre.
+- Type : seulement `--fs-tag`/`--fs-label`/`--fs-lead` adoptés (Tag, MonoLabel, Lede section) ; le reste attend le contenu de `styles/tokens/type.css` — pas de renommage aveugle.
+- Reduced-motion : règle globale (durées à 0), énumération supprimée.
+- Print : règles composants déplacées dans leurs fichiers ; `.post-hero` print reçoit `min-height: 0` (trouvaille CC — la règle était un no-op).
+- Morts supprimés : `.topo-layer{opacity:1}`, `.page{padding-bottom:0}`.
+- Inline styles gold éliminés : `.post-list` (PostRow), `.feature{display:block}`, `.foot-mark` (SiteFooter), `.prose[data-flow='continued']`. `--dither-line:30%` n'existait qu'en commentaire.

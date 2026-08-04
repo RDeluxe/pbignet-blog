@@ -1,5 +1,6 @@
 /* PullQuote — no left accent bar (doctrine juillet 2026). The gesture is the
  * .art-end amorce: a short 2px ink rule above, quote flush left, mono source. */
-.pull { margin: 2.4em 0; padding: 18px 0 0; font-family: var(--serif); font-style: italic; font-weight: 500; font-size: clamp(21px, 2.8vw, 27px); line-height: 1.32; color: var(--ink); text-wrap: balance; position: relative; }
+.pull { margin: 2.4em 0; padding: var(--space-ml) 0 0; font-family: var(--serif); font-style: italic; font-weight: 500; font-size: clamp(21px, 2.8vw, 27px); line-height: 1.32; color: var(--ink); text-wrap: balance; position: relative; }
 .pull::before { content: ""; position: absolute; top: 0; left: 0; width: 64px; height: 2px; background: var(--ink); }
-.pull .src { display: block; font-family: var(--mono); font-style: normal; font-weight: 400; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-top: 14px; }
+.pull .src { display: block; font-family: var(--mono); font-style: normal; font-weight: 400; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-top: var(--space-sm); }
+@media print { .pull { break-inside: avoid; } }

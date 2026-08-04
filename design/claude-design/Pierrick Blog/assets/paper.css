@@ -65,6 +65,16 @@ button { font: inherit; color: inherit; }
 :root[data-ink='olive'] { --accent: #3d491d; --topo: rgba(61, 73, 29, 0.06); }
 :root[data-ink='sepia'] { --accent: #9a7838; --topo: rgba(154, 120, 56, 0.06); }
 
+/* ---- spacing scale — 4px grid named by size; sm/ml are deliberate half-steps
+ * (the mono-label rhythm, arbitrated 2026-08-04). ≤6px optical nudges stay literal. ---- */
+:root {
+  --space-2xs: 4px; --space-xs: 8px; --space-s: 12px; --space-sm: 14px;
+  --space-m: 16px; --space-ml: 18px; --space-l: 20px; --space-xl: 24px;
+  --space-2xl: 32px; --space-3xl: 40px; --space-4xl: 56px;
+}
+/* ---- type tokens (partial — full adoption pending repo type.css) ---- */
+:root { --fs-tag: 10px; --fs-label: 11px; --fs-lead: clamp(20px, 2.4vw, 28px); }
+
 /* ---- paper surface + texture layering ---- */
 body {
   background: var(--paper);
@@ -77,12 +87,12 @@ body {
   overflow-x: hidden;
 }
 /* topo contour canvas — fixed, faint, behind everything */
-.topo-layer { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 1; }
+.topo-layer { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 /* grain overlay — sits above paper, below content, multiply for tooth */
 .grain-layer { position: fixed; inset: 0; z-index: 1; pointer-events: none; background-image: var(--grain); background-repeat: repeat; mix-blend-mode: multiply; opacity: 0.9; }
 /* subtle vignette so edges feel like a printed sheet */
 .vignette { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(120% 100% at 50% 0%, transparent 60%, rgba(40,36,28,0.06) 100%); }
-.page { position: relative; z-index: 2; padding-bottom: 0; }
+.page { position: relative; z-index: 2; }
 
 /* ---- page rhythm (section spacing between blocks) ---- */
 section.block { margin-top: clamp(64px, 8vw, 110px); }
@@ -110,14 +120,11 @@ a:focus-visible, button:focus-visible, image-slot:focus-visible {
 }
 
 @media print {
-  .topo-layer, .grain-layer, .vignette, .ph-cue, .topbar .progress { display: none !important; }
+  .topo-layer, .grain-layer, .vignette { display: none !important; }
   body { background: #fff; }
-  .post-hero { height: 70vh; }
-  .article, .prose > p, .figure, .pull { break-inside: avoid; }
   a { color: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .post, .coll, .coll::after, .gear::after, .btn::before, .topbar, .topbar .progress, .frame .dither-canvas { transition: none; }
-  .btn:hover::before { animation: none; }
+  * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
 }

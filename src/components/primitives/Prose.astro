@@ -63,7 +63,7 @@ const { numbered = false, dropCap = false } = Astro.props
   }
   .prose[data-drop-cap='on'] :global(> p:first-child::first-letter) {
     float: left;
-    padding: 6px var(--space-s) 0 0;
+    padding: var(--space-optical-6) var(--space-s) 0 0;
     font-family: var(--display);
     font-weight: var(--w-regular);
     font-size: 3.1em;
@@ -74,7 +74,7 @@ const { numbered = false, dropCap = false } = Astro.props
   /* sous-titres : mono tracké sur filet — le registre « spec sheet », pas un titre display */
   .prose :global(h2) {
     margin: 2.4em 0 1.1em;
-    padding-bottom: 10px;
+    padding-bottom: var(--space-s);
     border-bottom: 1px solid var(--line);
     font-family: var(--mono);
     font-size: var(--fs-data);
@@ -104,7 +104,7 @@ const { numbered = false, dropCap = false } = Astro.props
      2026 : « No left accent bar anywhere »). */
   .prose :global(blockquote) {
     margin: 2.2em 0;
-    padding: 22px 0;
+    padding: var(--space-xl) 0;
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
   }

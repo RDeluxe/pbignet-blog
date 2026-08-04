@@ -1,4 +1,4 @@
 /* SectionHead — display h2 + mono meta */
-.shead { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.shead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-m); margin-bottom: var(--space-ml); }
 .shead h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(28px, 5vw, 56px); line-height: 0.94; letter-spacing: 0.005em; text-transform: uppercase; }
 .shead .shead-meta { font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.1em; }

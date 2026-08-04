@@ -19,34 +19,33 @@
    * qui la rendait inutilisable ailleurs et masquait le fait que 18px n'est sur aucune
    * échelle. Un pas est un cran de rythme, pas un rôle.
    *
-   * Les crans retenus sont ceux que le gold emploie déjà — aucune valeur n'est inventée
-   * ni arrondie ici. Ce qui ne tombe pas sur un cran vit dans le bloc « hors échelle »
-   * ci-dessous, en attente d'arbitrage CD (design/briefs/2026-08-04-echelle-espacement.md).
+   * Échelle **partagée avec Claude Design** : elle est définie à l'identique dans
+   * `assets/paper.css` du miroir. Les deux demi-pas `sm` (14px) et `ml` (18px) sont
+   * délibérés — CD les a promus plutôt que de les arrondir, parce qu'ils portaient
+   * 15 usages du gold à eux deux. Arbitrage du 2026-08-04, brief
+   * `design/briefs/2026-08-04-echelle-espacement.md` : 10→12, 22→24, 28→24, 30→32,
+   * 6 reste optique. Ne rien changer ici sans repasser par lui.
    */
   --space-2xs: 4px;
   --space-xs: 8px;
   --space-s: 12px;
+  --space-sm: 14px;    /* demi-pas — arbitrage CD du 2026-08-04 */
   --space-m: 16px;
+  --space-ml: 18px;    /* demi-pas — arbitrage CD du 2026-08-04 */
   --space-l: 20px;
   --space-xl: 24px;
   --space-2xl: 32px;
   --space-3xl: 40px;
   --space-4xl: 56px;
 
-  /* ---- hors échelle — DETTE, ne pas employer dans du code neuf ----
-   * Sept valeurs du gold ne tombent sur aucun cran. Le nom porte le chiffre exprès : il
-   * grep en une commande et il dit qu'il est provisoire. Chacune est à ≤2px d'un cran
-   * (18px est à 2px de 16 comme de 20, 30px à 2px de 32), donc la convergence est bon
-   * marché — mais rapprocher une valeur validée par le design est une décision de CD, pas
-   * la nôtre (PROTOCOL §1). Tant qu'il n'a pas tranché, on garde la valeur exacte.
+  /* ---- valeur optique ----
+   * 6px est la seule valeur hors échelle que CD a gardée : il l'a tranchée « littéral
+   * optique », c'est-à-dire un écart trop petit pour être un cran de rythme (l'espace entre
+   * une valeur mono et son libellé, la gouttière de ligne d'un nav). L'arrondir à 4 ou 8
+   * aurait été visible là où le rythme ne l'est pas. Le nom le dit, pour qu'on ne le prenne
+   * pas pour un pas oublié.
    */
-  --space-off-6: 6px;
-  --space-off-10: 10px;
-  --space-off-14: 14px;
-  --space-off-18: 18px;    /* espace sous un en-tête de section — valeur de paper.css */
-  --space-off-22: 22px;    /* padding vertical d'une ligne de post */
-  --space-off-28: 28px;
-  --space-off-30: 30px;
+  --space-optical-6: 6px;
 
   /* ---- grilles ---- */
   --gap-grid: 12px;    /* gouttière d'une grille de cartes/cadres. Unifie les 12px et 14px

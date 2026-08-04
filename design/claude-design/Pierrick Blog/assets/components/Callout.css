@@ -5,7 +5,7 @@
   --cell: 24px;
   position: relative;
   border: 1px solid var(--line);
-  padding: var(--cell) 20px;
+  padding: var(--cell) var(--space-l);
   background-color: var(--paper);
   background-image: radial-gradient(color-mix(in srgb, var(--ink) 13%, transparent) 1px, transparent 1.4px);
   background-size: var(--cell) var(--cell);

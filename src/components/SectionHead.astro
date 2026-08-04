@@ -26,7 +26,7 @@ const { title, meta, align = 'row' } = Astro.props
   .shead {
     display: flex;
     gap: var(--space-m);
-    margin-bottom: var(--space-off-18);
+    margin-bottom: var(--space-ml);
   }
   .shead[data-align='row'] {
     align-items: baseline;
@@ -35,7 +35,7 @@ const { title, meta, align = 'row' } = Astro.props
   .shead[data-align='stack'] {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--space-off-6);
+    gap: var(--space-optical-6);
   }
 
   h2 {
@@ -64,7 +64,7 @@ const { title, meta, align = 'row' } = Astro.props
     .shead[data-align='row'] {
       flex-direction: column;
       align-items: flex-start;
-      gap: var(--space-off-6);
+      gap: var(--space-optical-6);
     }
     .shead-meta { white-space: normal; }
   }

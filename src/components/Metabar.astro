@@ -21,10 +21,10 @@ const { date = '02.06.26', location = 'Lyon, FR' } = Astro.props
     display: grid;
     grid-template-columns: repeat(5, 1fr) auto;
     /* TODO token: 18px → --space-… ? (vaut --space-head, réservé aux en-têtes de section) */
-    gap: 0 18px;
+    gap: 0 var(--space-ml);
     border-bottom: 2px solid var(--ink);
     /* TODO token: 14px / 11px → --space-… ? (absents de l'échelle) */
-    padding: 14px 0 11px;
+    padding: var(--space-sm) 0 11px;
     align-items: end;
   }
   .m .k {

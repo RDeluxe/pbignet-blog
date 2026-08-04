@@ -48,3 +48,7 @@
   .ph-word { top: 23%; }
   .ph-vcap { display: none; }
 }
+@media print {
+  .ph-cue { display: none !important; }
+  .post-hero { height: 70vh; min-height: 0; }
+}

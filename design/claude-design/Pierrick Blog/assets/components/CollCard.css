@@ -1,5 +1,5 @@
 /* CollCard — collection (evergreen) card + fused 3-up grid */
-.coll { border: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 10px; position: relative; background: color-mix(in srgb, var(--ink) 2%, transparent); transition: border-color 0.25s ease, background 0.25s ease; }
+.coll { border: 1px solid var(--line); padding: var(--space-l); display: flex; flex-direction: column; gap: var(--space-s); position: relative; background: color-mix(in srgb, var(--ink) 2%, transparent); transition: border-color 0.25s ease, background 0.25s ease; }
 .coll:hover { background: var(--paper-2); border-color: var(--ink-2); z-index: 1; }
 .coll h3 { margin: 0; font-family: var(--sans); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; }
 .coll p { margin: 0; font-family: var(--serif); font-size: 14px; color: var(--ink-2); line-height: 1.5; }

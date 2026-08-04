@@ -50,6 +50,6 @@ const { src, alt, caption, number, ratio = 'tall' } = Astro.props
     background: linear-gradient(transparent, rgba(var(--photo-scrim-rgb), 0.7));
     /* TODO token: 18px (= --space-head, réservé aux en-têtes) et 8px absents de l'échelle
        générique — seul le 10px latéral est tokenisé */
-    padding: 18px var(--space-off-10) 8px;
+    padding: var(--space-ml) var(--space-s) var(--space-xs);
   }
 </style>

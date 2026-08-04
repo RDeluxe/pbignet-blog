@@ -20,5 +20,6 @@
 .figure { margin: clamp(36px,5vw,56px) 0; }
 .figure[data-width='wide'] { width: min(100vw, calc(var(--maxw) - 2 * var(--gutter) + 220px)); margin-left: 50%; transform: translateX(-50%); max-width: 1080px; }
 .figure[data-width='wide'] .frame { aspect-ratio: 1066/720; }
-.figcap { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-top: 12px; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.figcap { display: flex; justify-content: space-between; gap: var(--space-ml); flex-wrap: wrap; margin-top: var(--space-s); font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
 .figcap .r { color: var(--accent); }
+@media print { .figure { break-inside: avoid; } }

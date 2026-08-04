@@ -1,5 +1,5 @@
 /* Metabar — top RETRO metadata bar */
-.metabar { display: grid; grid-template-columns: repeat(5, 1fr) auto; gap: 0 18px; border-bottom: 2px solid var(--ink); padding: 14px 0 11px; align-items: end; }
+.metabar { display: grid; grid-template-columns: repeat(5, 1fr) auto; gap: 0 var(--space-ml); border-bottom: 2px solid var(--ink); padding: var(--space-sm) 0 11px; align-items: end; }
 .metabar .m .k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
 .metabar .m .v { font-family: var(--mono); font-size: 12px; color: var(--ink); margin-top: 3px; }
 .metabar .brand { font-family: var(--display); font-size: 26px; letter-spacing: 0.02em; line-height: 1; text-align: right; }

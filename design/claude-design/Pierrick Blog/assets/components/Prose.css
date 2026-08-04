@@ -5,6 +5,8 @@
 .prose > p b, .prose > p strong { color: var(--ink); font-weight: 600; }
 /* first paragraph's lead-in, slightly larger + drop cap */
 .prose > p.lede { font-size: 18.5px; line-height: 1.5; color: var(--ink); }
-.prose > p.lede::first-letter { font-family: var(--display); font-weight: 400; float: left; font-size: 3.1em; line-height: .74; padding: 6px 12px 0 0; color: var(--accent); }
-h2.sub { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); margin: 2.4em 0 1.1em; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.prose > p.lede::first-letter { font-family: var(--display); font-weight: 400; float: left; font-size: 3.1em; line-height: .74; padding: 6px var(--space-s) 0 0; color: var(--accent); }
+h2.sub { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); margin: 2.4em 0 1.1em; padding-bottom: var(--space-s); border-bottom: 1px solid var(--line); }
 h2.sub .n { color: var(--accent); margin-right: 12px; }
+.prose[data-flow='continued'] { margin-top: 0; }
+@media print { .article, .prose > p { break-inside: avoid; } }

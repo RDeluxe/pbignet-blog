@@ -30,7 +30,7 @@ const { source } = Astro.props
     margin: 2.4em 0;
     /* le gold ne rembourre que le haut (`18px 0 0`) : le filet du bas serre la source,
        celui du haut respire. On avait 22px symétriques. */
-    padding: 18px 0 0;
+    padding: var(--space-ml) 0 0;
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
   }
@@ -47,7 +47,7 @@ const { source } = Astro.props
   }
 
   .src {
-    margin-top: 14px;
+    margin-top: var(--space-sm);
     font-family: var(--mono);
     font-size: var(--fs-label);
     letter-spacing: var(--tr-data);

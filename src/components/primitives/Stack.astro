@@ -40,8 +40,8 @@ const { gap = 'none', spaced = false } = Astro.props
   .stack[data-gap='m'] { gap: var(--space-m); }
   .stack[data-gap='l'] { gap: var(--space-l); }
 
-  /* 28px : la valeur du gold entre un en-tête de section et sa liste (01_Home, section
-     Writing → `margin-top:28px`). Hors échelle — le cran voisin est 24px, et rapprocher
-     une valeur du gold est un arbitrage CD, pas le nôtre. */
-  .stack[data-spaced='on'] { margin-top: var(--space-off-28); }
+  /* Espace entre un en-tête de section et sa liste. Valait 28px, hérité d'un style en ligne
+     de `01_Home` ; CD l'a snappé sur le cran voisin en arbitrant l'échelle (2026-08-04) et
+     l'a résorbé chez lui en `.post-list`. */
+  .stack[data-spaced='on'] { margin-top: var(--space-xl); }
 </style>
