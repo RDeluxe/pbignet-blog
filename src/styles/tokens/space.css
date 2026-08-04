@@ -1,8 +1,9 @@
 /* space.css — largeurs, gouttières, rythme vertical.
  *
- * SOURCES : `assets/paper.css` du miroir (--maxw, --gutter) + les espacements réellement
- * employés par les pages gold. Le NORTHSTAR pose `--maxw: 1080px`, mais c'est la mise en
- * page du specimen : les pages gold disent 1180px, comme paper.css.
+ * CE FICHIER EST LA SOURCE DES VALEURS (pivot 2026-08-04 : le code fait foi).
+ * Provenance historique : `paper.css` (--maxw, --gutter) + les espacements des pages gold
+ * de l'ancien projet CD. Le NORTHSTAR pose `--maxw: 1080px`, mais c'est la mise en page
+ * de son specimen : le site dit 1180px.
  *
  * ⚠️ L'échelle ci-dessous est une invention LOCALE : la source utilise des valeurs libres.
  * En cas de conflit, **la valeur de la source gagne** — on ajoute un pas plutôt que de

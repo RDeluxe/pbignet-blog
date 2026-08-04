@@ -1,5 +1,7 @@
 # build output
 dist/
+# export lisible pour Claude Design (pnpm build:cd)
+dist-cd/
 # generated types
 .astro/
 

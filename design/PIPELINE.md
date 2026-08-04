@@ -1,12 +1,12 @@
-# PIPELINE — de la research Claude Design au design system en prod
+# PIPELINE — de l'idéation Claude Design au design system en prod
 
 > **Ce document est la doctrine CODE.** La doctrine DESIGN est dans
-> `claude-design/Pierrick Blog/0_NORTHSTAR.html` (north star, couleur, type, anatomie de
-> page, guardrails). Le NORTHSTAR dit **quoi**, ce document dit **comment ça devient du
-> code maintenable**.
+> [`doctrine/0_NORTHSTAR.html`](doctrine/0_NORTHSTAR.html) (north star, couleur, type,
+> anatomie de page, guardrails). Le NORTHSTAR dit **quoi**, ce document dit **comment ça
+> devient du code maintenable**.
 >
-> L'**interface** avec Claude Design — qui décide quoi, le miroir CSS, les procédures de
-> sync, la vérification — est dans [`PROTOCOL.md`](./PROTOCOL.md).
+> Le **protocole** — le code est la source de vérité, CD est un atelier d'idéation par
+> sessions — est dans [`PROTOCOL.md`](./PROTOCOL.md) (pivot du 2026-08-04).
 
 ---
 
@@ -28,28 +28,24 @@ Ce document est la règle de passage.
 ## 2. Le flux, en une image
 
 ```
-┌─ Claude Design : « Pierrick Blog » ─┐   gold (validé) + research (bancs d'essai)
-│  HTML/CSS autonome                  │   ── JAMAIS édité depuis le repo ──
-└──────────────┬──────────────────────┘
-               │ DOWN — zip via MCP Playwright (PROTOCOL §4.1)
-               ▼
-    design/claude-design/Pierrick Blog/    MIROIR pur, écrasé à chaque sync
-               │         ▲
-               │ TRI     │ le miroir porte un fichier CSS par composant :
-               │ (§3)    │ assets/components/<Nom>.css ↔ <Nom>.astro
-               ▼         │
-    src/styles/tokens/*.css · src/components/** · src/lib/**
-               │         │
-               └─────────┘ pnpm mirror:diff — compare les deux côtés
-                           par déclaration (PROTOCOL §4.3)
+    src/  ══ LA SOURCE DE VÉRITÉ ══════════════════════════════╗
+      │                                                        ║
+      │ EXPORT — pnpm build:cd → dist-cd/ (lisible),           ║
+      │ importé dans CD par Pierrick (PROTOCOL §3)             ║
+      ▼                                                        ║
+┌─ Claude Design : « Pierrick Blog » ─┐                        ║
+│  session d'idéation (jetable) :     │                        ║
+│  studies sur copies + CHANGES.md    │                        ║
+└──────────────┬──────────────────────┘                        ║
+               │ RETOUR — Pierrick tranche ce qui entre        ║
+               ▼                                               ║
+             TRI (§3) — token / primitive / composant /        ║
+             effet / poubelle, puis vérif au rendu ════════════╝
 ```
 
-**Asymétrie volontaire** : on lit CD, on n'y écrit jamais. Ce qui remonte prend la forme
-d'un **brief en prose** (`design/briefs/`), et c'est CD qui l'applique — jamais un bundle
-poussé depuis le repo. Détail et raisons dans `PROTOCOL.md` §4.2.
-
-Le miroir n'est donc pas seulement une copie de lecture : comme les deux côtés portent le
-même découpage, un écart devient un **diff lisible** au lieu d'une intuition.
+Ce qui traverse le TRI atterrit dans `src/styles/tokens/*.css`, `src/components/**` et
+`src/lib/**`. Ce qui ne le traverse pas meurt avec la session — le projet CD entre deux
+sessions n'engage personne.
 
 ---
 
@@ -215,12 +211,17 @@ occurrence apparaît, le TODO devient un token.
 
 ## 5. Conflits de sources : l'ordre de préséance
 
-1. **`Design Notes.md` pour les décisions datées** — c'est le journal de bord :
-   « DECIDED (final, July 2026) », « Couleur Paper — décision août 2026 ». Le plus récent gagne.
-2. **`assets/paper.css` + le `:root` des pages gold** (`01_Home`, `02_Article`) pour les
-   **valeurs** — hex, tailles, espacements.
-3. **`0_NORTHSTAR.html`** pour la **doctrine** — règles, anatomie, guardrails.
+Depuis le pivot du 2026-08-04 :
+
+1. **`src/styles/tokens/*.css` + le CSS des composants** pour les **valeurs** — hex,
+   tailles, espacements. Le code EST la source ; il n'y a rien d'autre à consulter.
+2. **`doctrine/0_NORTHSTAR.html`** pour la **doctrine** — règles, anatomie, guardrails.
+3. **`doctrine/Design Notes.md`** pour l'**historique** des décisions datées (audit des
+   boîtes, couleur papier) ; les décisions postérieures au pivot sont dans les commits.
 4. Le reste de `Design Notes.md` (refs d'inspiration) en dernier.
+
+Une session d'idéation CD ne fait jamais foi : ce qu'elle propose n'existe qu'une fois
+tranché par Pierrick et porté dans `src/`.
 
 > ⚠️ **L'erreur à ne pas refaire.** Le NORTHSTAR `@import`e `assets/paper.css` **puis
 > l'override** dans son propre `<style>` : `--ink: #18170f`, `--ink-3: #8b8672`,
@@ -231,9 +232,10 @@ occurrence apparaît, le TODO devient un token.
 > exactement ce que `CLAUDE.md` disait déjà ; j'ai sur-appliqué la règle générale de
 > préséance contre l'instruction précise.
 
-**Lire les dates.** Un miroir de six semaines a suffi pour manquer : le nouveau papier
-(`#f6f5f1`), le renommage de la marque en **exhale**, tout le vocabulaire de boîtes
-(plate/tile/callout), la suppression des arrondis et de la flèche de `.post`.
+> Les sous-sections qui suivent (écarts assumés, normalisations, arbitrages, décisions à
+> porter) datent de la migration **d'avant le pivot**, quand CD était la source et le code
+> devait lui rendre des comptes. Gardées comme historique : les « arbitrages ouverts » et
+> les cases non cochées restent d'actualité, le reste est du contexte.
 
 ### Écarts assumés en prod
 
@@ -305,16 +307,13 @@ dans le code (les trois premières le sont depuis le re-base) :
 
 ## 6. Le protocole avec Claude Design
 
-**Déplacé dans son propre document : [`PROTOCOL.md`](./PROTOCOL.md).**
+**Dans son propre document : [`PROTOCOL.md`](./PROTOCOL.md)** — le code est la source de
+vérité, CD est un atelier d'idéation par sessions (export `build:cd` → prompt
+`SESSION-CD.md` → idéation sur copies + `CHANGES.md` → retour trié par Pierrick).
 
-C'est la référence partagée entre Claude Code et Claude Design — le partage des rôles
-(qui décide quoi, ce qu'on peut légitimement demander à CD), la forme du miroir CSS et
-ses deux conventions, le manifeste de périmètre, les quatre procédures (DOWN, brief UP,
-`pnpm mirror:diff`, captures avant/après), les limites de l'outillage et le journal
-daté des décisions de protocole.
-
-Ce document-ci garde ce qui lui appartient : comment le CSS de CD devient du code Astro
-maintenable — le tri, les règles dures, l'anatomie d'un composant, l'état de la migration.
+Ce document-ci garde ce qui lui appartient : comment le CSS d'idéation devient du code
+Astro maintenable — le tri, les règles dures, l'anatomie d'un composant, l'état de la
+migration.
 
 ## 7. Anatomie d'un composant
 
@@ -383,17 +382,16 @@ focus. Elle vaut pour ça seul : ce n'est pas un artefact à pousser vers CD (§
 
 ---
 
-## 9. La source de vérité est CD — inventaire des divergences
+## 9. Qui tranche quoi — et les questions de design ouvertes
 
-**Aujourd'hui, Claude Design fait foi.** Le code n'a pas le droit de trancher une question de
-design : il l'implémente. Ce qui n'est pas dans CD n'est pas validé, même si c'est meilleur.
-
-D'où la distinction à tenir :
+**Le code est la source de vérité, mais il ne s'auto-décide pas** : une décision de design
+appartient à Pierrick, que le code se contente d'implémenter. La distinction à tenir reste
+la même qu'avant le pivot :
 
 | Décision de **design** | Décision de **code** |
 |---|---|
 | une couleur, une échelle de type, une forme, un espacement, une composition | une API de props, un mécanisme, une correction de performance ou d'accessibilité |
-| → doit venir de CD, ou y remonter avant d'être considérée comme acquise | → n'a pas à passer par CD |
+| → appartient à Pierrick (en session CD ou en direct) | → n'a l'accord de personne à demander |
 
 Exemple de la frontière : animer la jauge de lecture en `transform: scaleX()` au lieu de
 `width` est une décision de **code** (le rendu est identique, seul le coût change). Ramener
@@ -409,12 +407,14 @@ En relisant le gold, trois de mes « normalisations » se sont révélées être
 | `--lh-lead: 1.33` | `1.32` | **annulé** |
 | `--fs-shead-md` + variante `size="md"` de `SectionHead` | **zéro occurrence** dans tout CD, et la variante n'était utilisée nulle part | **supprimé** (invention + code mort) |
 
-### Divergences MAINTENUES — à arbitrer avec Pierrick
+### Questions de design ouvertes — à trancher par Pierrick
 
-Elles restent en place parce que les annuler dégraderait la cohérence, mais **elles ne sont
-pas validées** : elles doivent soit être approuvées, soit remonter dans CD, soit être annulées.
+Décisions prises côté code avant le pivot, sans validation explicite. Depuis le pivot,
+elles sont **la vérité en vigueur** (elles sont dans `src/`), mais elles restent des
+décisions de design que Pierrick n'a pas regardées — les lui présenter à l'occasion.
+La colonne « ce que CD disait » est le contexte historique de l'ancien gold.
 
-| Divergence | Ce que CD dit | Pourquoi c'est maintenu |
+| Divergence | Ce que CD disait (ancien gold) | Pourquoi c'est maintenu |
 |---|---|---|
 | Une seule encre crème sur photo (`--cover-ink-light`) | `01_Home.html` porte **trois** crèmes (`#f0e9d8`, `#f3ecdb`, `#f1ead8`) et `02_Article.html` une quatrième (`#ece6d8`) — cinq avec le `#f4efe3` du banc | Restaurer cinq crèmes pour « du texte crème sur photo » réintroduirait cinq vérités. Écart max 11/255, invisible. |
 | Mesure de lecture = 66ch de **texte** (`calc(66ch + 2*gutter)`) | `max-width: 66ch` + `padding: … var(--gutter)` en `box-sizing: border-box`, soit ~52ch de texte sur desktop | Le NORTHSTAR documente « measure 66ch » comme mesure de **lecture** ; l'implémentation du gold la contredit. |
@@ -423,14 +423,11 @@ pas validées** : elles doivent soit être approuvées, soit remonter dans CD, s
 
 ### La conséquence
 
-Tant que CD est la source, **ces divergences sont une dette**, pas des acquis. La sortie est
-simple : **Pierrick les tranche**, et ce qui est validé remonte dans CD (banc ou gold), par une
-décision de design — pas par un script.
-
-Le tableau ci-dessus **est** l'outil. Six lignes qui disent où le code s'est écarté et pourquoi.
-J'ai d'abord cru qu'il fallait un système bidirectionnel pour rendre ces écarts visibles ; c'est
-faux, et §6 raconte ce que ça a coûté. La seule chose qui empêche la dérive, c'est de ne pas
-décider de design côté code — et quand ça arrive quand même, de l'écrire ici.
+Le tableau ci-dessus **est** l'outil : quelques lignes qui disent où le code a décidé du
+design sans validation, et pourquoi. La seule chose qui empêche la dérive, c'est de ne pas
+décider de design côté code — et quand ça arrive quand même, de l'écrire ici jusqu'à ce
+que Pierrick tranche. Une ligne tranchée sort du tableau (validée : elle devient un acquis
+du code ; refusée : on corrige).
 
 ---
 

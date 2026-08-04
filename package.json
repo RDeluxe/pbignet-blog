@@ -8,10 +8,10 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:cd": "CD_EXPORT=1 astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "lint": "eslint .",
-    "mirror:diff": "node design/mirror/css-diff.mjs --manifest"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@astrojs/markdoc": "^1.0.6",
@@ -28,7 +28,6 @@
   "devDependencies": {
     "@antfu/eslint-config": "^9.0.0",
     "eslint": "^10.3.0",
-    "eslint-plugin-astro": "1.7.0",
-    "postcss": "^8.5.25"
+    "eslint-plugin-astro": "1.7.0"
   }
 }

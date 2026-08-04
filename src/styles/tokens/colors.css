@@ -1,8 +1,8 @@
 /* colors.css — base fixe + encres d'accent.
  *
- * SOURCE DES VALEURS : `assets/paper.css` du miroir + le `:root` des pages **gold**
- * (`01_Home.html`, `02_Article.html`), qui sont d'accord entre elles.
- * SOURCE DE LA DOCTRINE : `0_NORTHSTAR.html` §05 Color.
+ * CE FICHIER EST LA SOURCE DES VALEURS (pivot 2026-08-04 : le code fait foi).
+ * Provenance historique : `paper.css` + le `:root` des pages gold de l'ancien projet CD.
+ * SOURCE DE LA DOCTRINE : `design/doctrine/0_NORTHSTAR.html` §05 Color.
  *
  * ⚠️ Le NORTHSTAR porte ses PROPRES valeurs (`--ink: #18170f`, `--ink-3: #8b8672`,
  * `--maxw: 1080px`…) : c'est un document-specimen, mis en page pour être lu. Elles ne

@@ -25,7 +25,7 @@ const { src, alt, caption, number, ratio = 'tall' } = Astro.props
     background: var(--photo-ground);
     border: 1px solid var(--line);
   }
-  /* Variantes en `data-*` des deux côtés (PROTOCOL §2) : le gold a converti
+  /* Variantes en `data-*` (PROTOCOL §4) : le gold historique avait converti
      `.pframe.tall/.wide` en `[data-ratio]` en août 2026, on suivait encore en classes. */
   .pframe[data-ratio='tall'] { aspect-ratio: 3 / 4; }
   .pframe[data-ratio='wide'] { aspect-ratio: 4 / 5; }

@@ -1,113 +1,72 @@
 # exhale — CLAUDE.md
 
 > **Nom de marque : `exhale`** (logotype en minuscules, Anton — plus de `·●paper`).
-> Domaine : **exhale.blog**. L'ancien nom « dot·paper » est mort (zéro occurrence côté
-> Claude Design depuis le sync du 2026-08-03).
+> Domaine : **exhale.blog**. L'ancien nom « dot·paper » est mort.
 
-## SOURCE DE VÉRITÉ DESIGN : `design/claude-design/Pierrick Blog/`
+## LE CODE EST LA SOURCE DE VÉRITÉ DU DESIGN — pivot du 2026-08-04
 
-Le projet distant est organisé en deux étages depuis juillet 2026 :
+**Ce qui est dans `src/` est le site.** Les valeurs (hex, tailles, espacements) vivent
+dans `src/styles/tokens/*.css` et le CSS scopé des composants — il n'y a plus d'autre
+source de valeurs.
 
-- **racine = « gold »** — validé et tenu à jour : `0_NORTHSTAR.html`, `01_Home.html`,
-  `02_Article.html`, `Pâte graphique*.html`, les deux `Test Export`, `assets/`.
-- **`research/`** — studies & bancs d'essai. « A validated result graduates to root. »
+**Claude Design n'est plus un référentiel** : c'est un **atelier d'idéation par sessions**
+(modèle branche jetable — on y importe l'état réel, on explore, on ramène ce qui vaut).
+Le protocole complet : **[`design/PROTOCOL.md`](design/PROTOCOL.md)** ; le prompt de début
+de session : [`design/SESSION-CD.md`](design/SESSION-CD.md). L'ancien protocole de
+convergence continue (miroir par composant, `mirror:diff`, briefs, gate à deux modes) a
+été démonté — l'historique est au commit `d40181b` et avant.
 
-**LE document de référence : `0_NORTHSTAR.html`** — le northstar specimen. Il consolide :
-north star · brand & voice · **color** (base fixe + accent inks, règle « one ink per page ») ·
-type · print furniture · components · page anatomy · inspiration motifs · build conventions ·
-guardrails. **Le lire en premier**, avant toute décision de design.
+> ⛔ **La gate, forme actuelle** : rien de visible n'entre dans `src/` sans l'œil de
+> Pierrick. C'est lui qui idéationne dans CD et lui qui décide ce qui revient. Ne
+> demandent l'accord de personne : le rangement à valeur constante, un mécanisme dont on
+> a **mesuré** que le rendu ne bouge pas, les corrections de bug. En cas de doute, ça ne
+> passe pas. La mesure (Playwright : styles calculés, avant/après, captures) est de mon côté.
 
-⚠️ **Le NORTHSTAR porte ses propres valeurs de specimen** (`--ink: #18170f`,
-`--ink-3: #8b8672`, `--maxw: 1080px`) qui ne valent **pas** pour le site. Les hex de
-production sont ceux d'`assets/paper.css` + du `:root` des pages gold (`01_Home`,
-`02_Article`), qui sont d'accord entre elles. Le NORTHSTAR fait foi sur la **doctrine**,
-jamais sur les valeurs.
+**La doctrine design est rapatriée dans le repo : `design/doctrine/`**
 
-Avant de toucher à quoi que ce soit (composant, style, layout, animation), chercher la réponse dans ce dossier. Ne jamais improviser une décision de design.
+- **`design/doctrine/0_NORTHSTAR.html`** — LE document de doctrine : north star, brand &
+  voice, couleur (« one ink per page »), type, mobilier d'impression, anatomie de page,
+  guardrails. **Le lire en premier** avant toute décision de design.
+  ⚠️ Ses valeurs (`--ink: #18170f`, `--maxw: 1080px`…) sont celles de son **specimen** :
+  doctrine oui, hex jamais.
+- **`design/doctrine/Design Notes.md`** — le journal historique des décisions datées
+  (audit des boîtes, couleur papier). Les nouvelles décisions se journalisent en
+  **commits du repo**, une décision ramenée de session = un commit qui la nomme.
 
-**Protocole CC ↔ CD : `design/PROTOCOL.md`** — la référence partagée entre Claude Code et
-Claude Design : qui décide quoi, le miroir CSS par composant (un fichier CD par composant
-Astro, variantes en `data-*`), le manifeste de périmètre, les procédures de sync et de
-vérification, et le journal daté des décisions de protocole. **À lire avant tout échange
-avec CD.**
-
-> ⛔ **GATE HUMAINE (PROTOCOL §1.1, décidée le 2026-08-04) — la règle qui prime sur les
-> autres.** Deux modes de travail :
->
-> - **Mode A — Pierrick et moi avons la main.** Il demande un changement, ou l'a fait à la
->   main : la décision est la sienne, j'implémente sans rien demander à CD. Reste à
->   **back-porter** vers CD pour qu'il ne reparte pas d'un gold périmé.
-> - **Mode B — boucle avec CD.** Dès que **CD veut changer quelque chose de visible** :
->   **je m'arrête et j'appelle Pierrick** (« CD veut faire ça, il t'attend »). **Pierrick en
->   discute directement avec CD** — je ne relaie pas, je n'arbitre pas une question de
->   design. La boucle reprend après validation.
->
-> **CD démontre sur une nouvelle page de `research/`, jamais en éditant le gold** : il n'a
-> pas de diff, donc ses effets de bord sont invisibles jusqu'au prochain DOWN. Une démo
-> isolée est vérifiable, une retouche du gold est un acte de foi.
->
-> Ne demandent l'accord de personne, parce que ce ne sont pas des décisions de design : le
-> rangement à valeur constante, un mécanisme dont on a **mesuré** que le rendu ne bouge pas,
-> le retour d'une de nos valeurs vers une valeur **déjà validée** du gold, les corrections
-> de bug. **En cas de doute, ça ne passe pas.** La mesure (Playwright : styles calculés,
-> avant/après, breakpoints, captures) est de mon côté.
-
-**Doctrine CODE : `design/PIPELINE.md`** — comment la research Claude Design (HTML/CSS de page)
-devient un design system maintenable : le tri (token / primitive / composant / effet / poubelle),
-les règles dures (zéro `<style>` de page, `:global()` interdit, props = intentions, les 3
-mécanismes props→style d'Astro et le piège `define:vars`), les écarts assumés face au NORTHSTAR,
-et les deux procédures de sync. Le NORTHSTAR dit **quoi**, PIPELINE.md dit **comment ça devient
-du code**. À lire avant d'écrire un composant.
+**Doctrine CODE : [`design/PIPELINE.md`](design/PIPELINE.md)** — comment le HTML/CSS
+d'idéation devient du code maintenable : le tri (token / primitive / composant / effet /
+poubelle), les règles dures (zéro `<style>` de page, `:global()` interdit, props =
+intentions, les 3 mécanismes props→style d'Astro et le piège `define:vars`). À lire avant
+d'écrire un composant.
 
 ```
 design/
-  PIPELINE.md                    ← ★ doctrine code : research → design system
-  claude-design/Pierrick Blog/   ← MIROIR 100% Claude Design (écrasé à chaque sync, ne rien y éditer à la main)
-    0_NORTHSTAR.html             ← ★ doctrine : northstar specimen, à lire en premier
-    01_Home.html                 ← gold : la home (hero « la photo traverse les lettres »)
-    02_Article.html              ← gold : le gabarit d'article (cover + corps)
-    assets/paper.css             ← ★ SOURCE DES VALEURS (hex, tokens) avec le :root des pages gold
-    assets/texture.js            ← Grain + Topo originaux
-    assets/dither.js · assets/diagram.js · assets/image-slot.js · assets/spot-hero.js
-    assets/photos/               ← les sources photo du gold (JPG + PNG dithérés)
-    Pâte graphique*.html · Test Export*.html   ← exports (LinkedIn, tokens, sections)
-    Design Notes.md              ← ★ JOURNAL DE DÉCISIONS (audit des boîtes, couleur paper, orga) — daté
-    research/                    ← studies & bancs : directions 01–04, Bold Studies,
-                                   « Article - hero studies », « Article - spot colour »,
-                                   « Boxes - banc d'essai », « Paper - couleur », index.html
-    uploads/ · screenshots/ · thumbs/
-  impeccable/                    ← artefacts Impeccable (hors miroir, jamais écrasés par le sync)
+  PROTOCOL.md                    ← ★ le protocole : code = vérité, sessions d'idéation CD
+  SESSION-CD.md                  ← prompt à coller dans CD en début de session
+  PIPELINE.md                    ← ★ doctrine code : idéation → design system
+  doctrine/
+    0_NORTHSTAR.html             ← ★ doctrine design (canonique ici depuis le 2026-08-04)
+    Design Notes.md              ← journal historique des décisions de design
+  claude-design/Pierrick Blog/   ← ARCHIVE du dernier état ramené de CD (plus une référence)
+  briefs/                        ← archive de l'ancien flux UP (plus alimenté)
+  impeccable/                    ← artefacts Impeccable
 ```
 
-**Règle** : si une décision de design n'est pas dans ce dossier, elle n'a pas été validée. Proposer avant d'implémenter.
+**Règle inchangée sur le fond** : ne jamais improviser une décision de design. Ce qui a
+changé, c'est où on la cherche — la doctrine dans `design/doctrine/`, les valeurs dans
+`src/styles/tokens/` et les composants. Si une réponse n'y est pas, la question est pour
+Pierrick (en session CD ou directement), pas pour moi.
 
-**Préséance en cas de conflit** :
-1. **`Design Notes.md`** pour les décisions **datées** (c'est le journal : « DECIDED (final, July 2026) », « décision août 2026 ») ;
-2. **`assets/paper.css` + le `:root` des pages gold** pour les **valeurs** (hex, tailles) ;
-3. **`0_NORTHSTAR.html`** pour la **doctrine** (règles, anatomie, guardrails) — mais pas pour ses hex, qui sont ceux du specimen ;
-4. le reste de `Design Notes.md` (refs d'inspiration) en dernier.
+### La session d'idéation CD, en bref (détail : PROTOCOL §3)
 
-Un narratif périmé ne fait jamais foi contre les valeurs. **Lire les dates** : `Design Notes.md` contient des décisions de juillet et août 2026 qui invalident des sections plus anciennes.
-
-### Sync avec Claude Design → `design/PROTOCOL.md`
-
-**Le protocole complet est dans [`design/PROTOCOL.md`](design/PROTOCOL.md)** : le partage
-des rôles, le miroir CSS par composant, le manifeste de périmètre, les quatre procédures
-(DOWN, brief UP, `pnpm mirror:diff`, captures avant/après), les limites de l'outillage et
-le journal daté des décisions.
-
-L'essentiel à retenir sans y aller :
-
-- Projet distant : `Pierrick Blog` — `https://claude.ai/design/p/e60b80b7-668a-4d7c-a86d-36bb397d9245`
-- **Le sync passe par le MCP Playwright**, seul navigateur passé Cloudflare. Un `curl`
-  avec cookies échoue (`cf_clearance` est lié à l'empreinte TLS du navigateur). La session
-  expire (~6 semaines) : un 401 sur l'URL de download est le symptôme.
-- **Lire un fichier distant ne demande pas de sync** : `DesignSync get_file` / `list_files`
-  lisent à l'unité, sans navigateur. Mais `DesignSync` **ne peut pas écrire** ici (le projet
-  est un `PROJECT_TYPE_PROJECT`, type immuable).
-- **Rien ne remonte sous forme de bundle poussé.** Ce qui remonte est un **brief en prose**
-  dans `design/briefs/`, que CD applique et qu'on vérifie ensuite au diff.
-- Le miroir est **100 % distant** : ne rien y éditer à la main, `rsync --delete` l'écrase.
+1. `pnpm build:cd` → `dist-cd/` (build lisible : non minifié, CSS en fichiers) ;
+   Pierrick l'importe dans CD.
+2. Coller `design/SESSION-CD.md` dans le composer.
+3. CD idéationne sur des copies/nouvelles pages et tient un `CHANGES.md` au fil de l'eau.
+4. Retour : lire `CHANGES.md` pour l'intention, **les fichiers pour le contenu** ; Pierrick
+   tranche ; je porte dans `src/` selon le tri de PIPELINE §3 et je vérifie au rendu.
+   Rapatriement : `DesignSync get_file` à l'unité (sans navigateur) ; en bloc via MCP
+   Playwright (seul passé Cloudflare, session ~6 semaines, `ditto -x -k` pas `unzip`).
 
 ### Captures de vérification : toujours dans `.screenshots/`
 
@@ -121,40 +80,42 @@ racine ni ailleurs dans l'arbre. Ne pas laisser de `homepage-*.png` & co traîne
 
 - **Framework** : Astro 6 + Svelte 5
 - **CSS** : CSS pur, scopé par composant (pas de framework utilitaire — UnoCSS a été retiré).
-  Global = `src/styles/tokens/{colors,type,space}.css` (custom properties **uniquement**, artefact
-  partagé tel quel avec Claude Design) + `base.css` (reset, surface papier, a11y), agrégés par
-  `src/styles/index.css`. Plus **aucune** classe globale hors `base.css` (l'ex-`paper.css` a
-  atteint zéro). Variantes de composant = `data-*` + union TS. Détails et règles dures :
-  `design/PIPELINE.md`.
+  Global = `src/styles/tokens/{colors,type,space}.css` (custom properties **uniquement**) +
+  `base.css` (reset, surface papier, a11y), agrégés par `src/styles/index.css`. Plus
+  **aucune** classe globale hors `base.css`. Variantes de composant = `data-*` + union TS.
+  Détails et règles dures : `design/PIPELINE.md`.
 - **Fonts** : self-hosted via `@fontsource` (Anton, Space Mono, Archivo Variable, Newsreader Variable)
 - **Content** : Astro Content Collections (`src/content.config.ts`) — `writing` + `guides`, format Markdoc (`.md` / `.mdoc`)
 - **Photos** : PNGs dithérés dans `public/photos/` — **ne jamais recompresser ni optimiser** les images dithérées, l'effet serait détruit
 
 ## Direction design lockée
 
-Détails complets dans **`0_NORTHSTAR.html`** (north star, color, type, page anatomy, guardrails). En une phrase : index personnel sur papier, hero `01_Home.html` (la photo **traverse les lettres**, `background-clip: text`), dithering Bayer riso, un seul accent par page, mobilier d'impression (repères, code-barre, coords), typo Anton · Archivo · Space Mono · Newsreader.
+Détails complets dans **`design/doctrine/0_NORTHSTAR.html`** (north star, color, type, page
+anatomy, guardrails). En une phrase : index personnel sur papier, hero home (la photo
+**traverse les lettres**, `background-clip: text`), dithering Bayer riso, un seul accent par
+page, mobilier d'impression (repères, code-barre, coords), typo Anton · Archivo · Space Mono ·
+Newsreader.
 
-**Valeurs concrètes (couleurs, tokens) : ne pas les recopier — lire la source.** `assets/paper.css` (`:root`) + le `:root` des pages gold pour les hex exacts ; le NORTHSTAR pour la doctrine seulement (ses hex sont ceux du specimen).
+**Valeurs concrètes (couleurs, tokens) : ne pas les recopier — lire `src/styles/tokens/`.**
+Le NORTHSTAR pour la doctrine seulement (ses hex sont ceux du specimen).
 
-> **Papier (décision août 2026, banc `research/Paper - couleur.html`)** : `--paper: #f6f5f1` « Blanc cassé · silence » + `--paper-2: #edebe4`. Les anciennes valeurs `#ece6da`/`#e3dccd` sont mortes. `--paper-2` reste **réservé** aux panneaux en retrait et aux remplissages de hover.
+> **Papier (décision août 2026)** : `--paper: #f6f5f1` « Blanc cassé · silence » + `--paper-2: #edebe4`. Les anciennes valeurs `#ece6da`/`#e3dccd` sont mortes. `--paper-2` reste **réservé** aux panneaux en retrait et aux remplissages de hover.
 
 > L'accent home est **olive `#3d491d`** ; les articles roulent en **sépia `#9a7838`**. L'ancien bleu `#2230c2` est abandonné.
 
-### Vocabulaire des boîtes — DÉCIDÉ juillet 2026 (`Design Notes.md`, audit des boîtes)
+### Vocabulaire des boîtes — DÉCIDÉ juillet 2026 (`doctrine/Design Notes.md`, audit des boîtes)
 
-- **plate** (présentation statique) = **B6** : cadre « grille empruntée » (lignes 1.2px ink dépassant ~13px des angles) sur papier nu + grille ultra-légère (majeure 64px @.05, mineure 16px @.022). La variante sur `paper-2` n'est qu'un secondaire « en retrait ».
+- **plate** (présentation statique) = **B6** : cadre « grille empruntée » (lignes 1.2px ink dépassant ~13px des angles) sur papier nu + grille ultra-légère. La variante sur `paper-2` n'est qu'un secondaire « en retrait ».
 - **tile** (interactif) = **D2** : nu au repos (bordure 1px `--line`) → croix d'angle 1px + bordure ink + fond `paper-2` au hover. Les angles sont le signal de focus.
 - **callout** = **E1** : note épinglée, filet, 2 croix (tl+br), points estompés, tag mono « N.B. » cassant la bordure du haut.
 - **boutons** : hover = remplissage dither animé (boil, steps, reduced-motion safe) ; l'inversion en ink reste un mode secondaire.
-- **Interdits ajoutés** : aucune **barre d'accent à gauche**, **aucune ombre portée**, **zéro arrondi** (`.tag`/`.badge` ont perdu leur radius), `.frame-marks` (encoches film) retiré du gold. `.post` garde son glissement de 14px mais **plus de flèche au hover**.
-
-> **Doctrine couleur (NORTHSTAR §05/§08) : « one ink per page » ne régit que le MOBILIER + le TYPE** (dot, liens, topo, tags, accents ; jamais bleu, jamais deux accents ; olive=home, sépia=articles). **Le ton du dither photographique en est exempté** : il peut être keyé à l'image (ex. ciel bleu → duotone marine sur un article sépia, c'est voulu, pas une faute). Corollaire : la couleur forte est un **événement de hero** — les plates du corps d'article restent en duotone sépia calme. Les covers d'article sont **art-directées par image** (placement titre à la main + override mobile + point focal `object-position`, contraste ≥3:1 par breakpoint).
+- **Interdits** : aucune **barre d'accent à gauche**, **aucune ombre portée**, **zéro arrondi** (`.tag`/`.badge` ont perdu leur radius). `.post` garde son glissement de 14px mais **plus de flèche au hover**.
 
 ### Vocabulaire (utiliser celui de Claude Design, pas du jargon dev)
 
-**cover** = le hero d'un article · **recipe** = la config par image d'un hero (dither tone, placement et couleur du titre, point focal) · **study** = une exploration/variante · **plate** = image du corps d'article · **tile** = boîte interactive · **hero pop color** = le hero d'article qui fait popper une couleur extraite de l'image (`assets/spot-hero.js`, banc `research/Article - spot colour.html`). Le mot « polymorphe » est banni.
+**cover** = le hero d'un article · **recipe** = la config par image d'un hero (dither tone, placement et couleur du titre, point focal) · **study** = une exploration/variante · **plate** = image du corps d'article · **tile** = boîte interactive · **hero pop color** = le hero d'article qui fait popper une couleur extraite de l'image (`src/lib/spot-hero.ts`). Le mot « polymorphe » est banni.
 
-> **Doctrine couleur (mise à jour 2026-06-24, NORTHSTAR §05/§08) : « one ink per page » ne régit que le MOBILIER + le TYPE** (dot, liens, topo, tags, accents ; jamais bleu, jamais deux accents ; olive=home, sépia=articles). **Le ton du dither photographique en est exempté** : il peut être keyé à l'image (ex. ciel bleu → duotone marine sur un article sépia, c'est voulu, pas une faute). Les heros d'article sont **art-directés par image** (placement titre à la main + override mobile + point focal `object-position`, contraste ≥3:1 par breakpoint). Donc : **un dither non-olive/non-sépia n'est PAS une violation.**
+> **Doctrine couleur (NORTHSTAR §05/§08) : « one ink per page » ne régit que le MOBILIER + le TYPE** (dot, liens, topo, tags, accents ; jamais bleu, jamais deux accents ; olive=home, sépia=articles). **Le ton du dither photographique en est exempté** : il peut être keyé à l'image (ex. ciel bleu → duotone marine sur un article sépia, c'est voulu, pas une faute). Corollaire : la couleur forte est un **événement de hero** — les plates du corps d'article restent en duotone sépia calme. Les covers d'article sont **art-directées par image** (placement titre à la main + override mobile + point focal `object-position`, contraste ≥3:1 par breakpoint, **mesuré**). Donc : **un dither non-olive/non-sépia n'est PAS une violation.**
 
 ## Anti-patterns à éviter
 
