@@ -7,7 +7,7 @@
 > `claude-design/Pierrick Blog/assets/paper.css`, la doctrine dans `0_NORTHSTAR.html`,
 > et la façon dont le CSS devient du code Astro dans `PIPELINE.md`.
 >
-> Dernière révision : **3 août 2026**.
+> Dernière révision : **4 août 2026** — ajout de la **gate humaine** (§1.1).
 
 ---
 
@@ -17,11 +17,63 @@
 | --- | --- | --- |
 | Où | `claude.ai/design`, projet `Pierrick Blog` | ce dépôt |
 | Produit | des pages HTML/CSS autonomes | un site Astro 6 + Svelte 5 |
-| Rôle | **décide du design** | **implémente**, et vérifie |
+| Rôle | **propose le design** | **implémente**, et vérifie |
 | Miroir local | `design/claude-design/Pierrick Blog/` — 100 % distant, **ne rien y éditer à la main** | `src/` |
 
-**La source de vérité du design est CD.** Quand une décision de design n'existe pas
-côté CD, elle n'a pas été prise : on la demande, on ne l'invente pas.
+**Le décideur est Pierrick.** CD est la source de vérité du design *proposé* : quand une
+décision n'existe pas côté CD, elle n'a pas été prise, et on la demande au lieu de
+l'inventer. Mais proposer n'est pas trancher — voir §1.1, qui est la règle la plus
+importante de ce document.
+
+### 1.1 La gate humaine — décidée le 2026-08-04
+
+> **Aucune décision de design n'entre dans le produit sans deux choses : une preuve
+> qu'elle a été testée, et l'accord de Pierrick. Dans cet ordre.**
+
+CD a le goût et la doctrine, mais il n'a pas le dernier mot. Ce qu'il renvoie est une
+**proposition**, même quand il l'a déjà écrite dans ses propres fichiers, et même quand
+son raisonnement est bon. Trois obligations en découlent :
+
+**Pour CD.** Ne pas trancher seul, et ne rien présenter comme acquis. Écrire le changement
+dans le projet distant est acceptable — c'est son atelier, et c'est souvent le seul moyen de
+le tester — mais ça ne le valide pas.
+
+Sur la preuve, la règle a été ajustée le 2026-08-04 après une objection de CD, qui était
+juste : ses vérifications passent par un vérificateur d'arrière-plan dont il ne voit le
+détail que si un problème est trouvé. Exiger de lui un relevé par breakpoint l'aurait poussé
+à décrire ce qu'il n'observe pas. Donc **la charge se partage selon ce que chacun peut
+réellement voir** :
+
+| Qui | Doit fournir |
+| --- | --- |
+| **CD** | l'intention, ce sur quoi elle se fonde, **quelle page il a envoyée en vérification**, et **les points de contrôle** : ce qui doit bouger, et surtout ce qui ne doit PAS bouger |
+| **CC** | la mesure. Nous avons Playwright : styles calculés, comparaison avant/après, breakpoints, captures. C'est à nous de rendre les points de contrôle vérifiables |
+
+C'est plus solide que de l'auto-déclaration : CD dit ce qu'il attend, CC constate ce qui
+arrive, et un écart entre les deux est un signal en soi. Une proposition sans points de
+contrôle reste irrecevable — sans eux il n'y a rien à mesurer.
+
+**Pour CC.** Ne jamais demander à CD d'appliquer : lui demander de **proposer**. Et ne
+jamais porter dans `src/` une décision de design que Pierrick n'a pas approuvée, même
+quand elle vient de CD, même quand elle corrige une de nos dérives. Le sync DOWN rapatrie
+la proposition ; il ne l'autorise pas. Quand un arbitrage arrive, CC le **présente à
+Pierrick avec ses conséquences mesurées** et attend.
+
+**Pour Pierrick.** Le point de contrôle. Les questions purement mécaniques (ranger,
+découper, déplacer à valeur constante) n'ont pas besoin de lui : elles ne changent rien de
+visible, et c'est justement ce qui les rend mécaniques.
+
+**Ce qui passe la gate sans permission** — parce que ce n'est pas une décision de
+design : le rangement à valeur constante, un changement de mécanisme dont on a mesuré que
+le rendu ne bouge pas, la correction d'une de nos valeurs vers une valeur **déjà validée**
+du gold (là, on ne décide rien, on cesse de dévier), et les corrections de bug pur.
+
+**Ce qui ne traverse pas** : une valeur nouvelle, l'unification de valeurs existantes, un
+placement, une variante, une suppression d'élément visible — même proposée par CD, même
+argumentée, même déjà écrite chez lui.
+
+> Le doute se résout dans le sens de la gate : si on hésite à classer un changement en
+> « mécanique », il ne l'est pas.
 
 ### Ce que CC peut demander à CD
 
@@ -133,12 +185,17 @@ Un **brief en prose**, jamais un bundle de fichiers poussé.
    `rsync --delete` ne l'efface pas : c'est le journal daté de ce qu'on a demandé.
 2. Le faire parvenir à CD — uploadé par Pierrick, ou tapé par CC dans le composer via
    le MCP Playwright.
-3. CD exécute, et tranche ce qui est de son ressort.
+3. CD exécute ce qui est mécanique, et **propose** ce qui est du design — avec la preuve
+   de ce qu'il a rendu et regardé (§1.1).
 4. **DOWN, puis vérifier.** Jamais sur parole.
+5. **Gate humaine.** CC présente à Pierrick les propositions de design, avec leurs
+   conséquences mesurées, et attend son accord avant de les porter dans `src/`. Le
+   mécanique passe directement.
 
 Un bon brief : une règle dure en tête (« ne change aucune valeur »), les arbitrages déjà
-faits pour ce qui est mécanique, et **les seules vraies questions de design isolées** —
-avec « on reflétera ta décision, on n'en inventera pas ».
+faits pour ce qui est mécanique, et **les seules vraies questions de design isolées**. Il
+demande explicitement une **proposition testée**, pas une application — et il sépare
+visiblement les deux, pour que CD sache où il peut avancer seul et où il doit s'arrêter.
 
 > **Pièges du composer via Playwright** : utiliser `keyboard.insertText`, jamais `type`
 > — chaque `\n` déclencherait l'envoi et le message partirait en morceaux. Et `require`
@@ -213,28 +270,76 @@ Un narratif périmé ne fait jamais foi contre les valeurs. **Lire les dates.**
 | 2026-08-03 | **Le bloc `@media print` est partagé** dans `paper.css`. L'article est inchangé au caractère près ; la home n'avait aucune règle print et gagne un rendu propre. L'écran n'est pas touché. |
 | 2026-08-03 | **Pas de flux UP par bundle.** Un projet Design System avait été créé pour y pousser tokens et contrats `.d.ts` : illisible dans un outil de design, supprimé le jour même. Le NORTHSTAR fait ce travail mieux. |
 | 2026-08-03 | Le chevauchement RESPIRE / lede sur la home est **délibéré** (lede à `z-index: 0`, les lettres du type photo-clippé passent devant). Reflété tel quel. |
+| 2026-08-04 | **Échelle d'espacement partagée.** CD arbitre : 14px et 18px promus en demi-pas `--space-sm` / `--space-ml` plutôt qu'arrondis (15 usages à eux deux), 6px reste littéral optique, 10→12, 22→24, 28→24, 30→32. Règle reduced-motion globale adoptée, règles d'impression déplacées dans les composants. Brief : `briefs/2026-08-04-echelle-espacement.md`. |
+| 2026-08-04 | **`--cell` est un interligne, pas un pas d'espacement.** Le carreau de la plate B6 et la trame du callout E1 en dérivent (mineure = un cell, majeure = quatre, padding = un cell) et les blocs de texte reçoivent `line-height: var(--cell)` — c'est ce qui fait tomber les lignes SUR la trame. On l'avait scindé en trois tokens sans lier l'interligne : la trame était devenue décorative. |
+| 2026-08-04 | **Encres de photo : trois rôles.** CD tranche « accumulation, not intention » — les cinq nuances claires du gold étaient accidentelles. `--cover-ink-light: #f1ebdd`, `--cover-ink-quiet: #cfc9bb`, `--cover-ink-dark: #14110a` ; la cue est la claire à 70 % en `color-mix`, pas une quatrième encre. Nos anciennes valeurs venaient de `research/` : faute de méthode, la research ne fait jamais foi. |
+| 2026-08-04 | **Une boîte dans la prose ne coupe pas la colonne.** `Callout` et `Plate` vivent DANS `.prose`, à largeur de colonne, au rythme de la citation (2.2em) ; seule la `.figure` en débord mérite `data-flow="continued"`. La marge contextuelle vit dans la boîte (`.prose .callout` dans `Callout.css`), pas dans `Prose`. |
+| 2026-08-04 | **Les règles de bloc de `Prose` ciblent les enfants directs** (`> p`, `> h2`…). En descendant, elles écrasaient la typographie des boîtes imbriquées : le `<p>` d'un callout sortait à 16,5px/25,575px au lieu de 14,5px/24px, donc hors trame. Corollaire : le `<article>` que Markdoc pose autour du document est retiré (`document: { ...nodes.document, render: null }`), sinon plus rien n'est enfant direct. |
+| 2026-08-04 | **Gate humaine (§1.1).** CD **propose**, Pierrick tranche. Rien de visible n'entre dans `src/` sans une preuve de test et son accord. Le mécanique à valeur constante et la correction d'une de nos dérives vers une valeur déjà validée du gold passent sans permission ; une valeur nouvelle, une unification, un placement, une variante ou une suppression visible, non. |
+| 2026-08-04 | **La preuve se partage.** Ajustement du §1.1 après une objection recevable de CD : ses vérifications passent par un vérificateur d'arrière-plan dont il ne voit le détail qu'en cas de problème, donc lui réclamer un relevé par breakpoint l'aurait poussé à décrire ce qu'il n'observe pas. CD fournit désormais l'intention, la page envoyée en vérification et **les points de contrôle** (ce qui doit bouger, ce qui ne doit pas) ; **CC fournit la mesure** avec Playwright. Un écart entre les deux devient un signal. |
 
 ---
 
-## 8. Écarts ouverts au 3 août 2026
+## 8. État au 4 août 2026
 
-`pnpm mirror:diff` : **2 alignés · 24 en écart · 4 de dette · 3 hors périmètre.**
+`pnpm mirror:diff` : **2 alignés · 24 en écart · 4 de dette · 3 hors périmètre** — mais le
+compteur de sélecteurs trompe, et le bilan détaillé est dans `mirror/BILAN.md`. Les
+**désaccords de valeur** sont le chiffre utile : passés de 41 à 12, et les 12 restants sont
+tous de la notation, du paramètre de recipe art-directée, ou un `!important` vestigial.
+**Aucune dérive inexpliquée, aucune question ouverte.**
 
-Chaque écart se tranche en répondant à une seule question : **est-ce notre dérive, ou
-une décision de CD ?** Les deux premiers cas illustrent les deux sens.
+### ⚠️ En attente de l'accord de Pierrick (rétroactif)
 
-- **Notre dérive** — `Callout` : CD porte `--cell: 24px` (pas des points calé sur la
-  hauteur de ligne, conforme à la spec E1) là où nous avons `--dot-step: 16px`, avec un
-  padding de 24 contre 18. Notre trame est plus serrée que la spec. **CD a confirmé 24px**
-  le 4 août : à corriger côté code.
-- **Sa dérive, tranchée** — `PullQuote` : CD écrivait `border-left: 3px solid var(--accent)`
-  alors que sa propre doctrine de juillet 2026 interdit la barre d'accent à gauche. Signalé
-  le 4 août, **il a tranché en faveur de la doctrine** : la barre part de son CSS, notre
-  implémentation était la bonne. Rien à changer côté code.
+La gate humaine (§1.1) a été décidée **après** les arbitrages du 4 août. Ces décisions ont
+donc été portées dans `src/` sans passer la gate. Elles ne sont pas annulées, mais elles
+sont **à revoir** — chacune est isolée dans un commit, donc réversible :
 
-C'est le premier aller-retour où l'outil a trouvé une contradiction **interne à CD** — sa
-feuille contre son propre journal. Ça vaut d'être noté : le diff ne sert pas seulement à
-rattraper nos dérives.
+| Décision | Commit | Effet visible |
+|---|---|---|
+| Échelle : snaps 10→12, 22→24, 28→24, 30→32 | `57935ef` | padding de h2 et de citation, marge de titre, pied, espace sous en-tête |
+| `--cell` : trame 16→24px, majeure 64→96px, interlignes liés | `6e0fa58` | plate B6 et callout E1 nettement plus aérés |
+| Valeurs alignées sur le gold (HeroPopColor, PullQuote, CollCard, type) | `6e0fa58` | 20 valeurs, écarts de 1 à 20px |
+| Encres de photo : cinq nuances → trois rôles | `0d3a0bb` | type sur cover et sur hero |
+| RegMarks `fixed` → `absolute` | `0d3a0bb` | les repères défilent avec la feuille au lieu de rester à l'écran |
+
+Ce qui **n'avait pas besoin** de la gate, pour mémoire : le renommage de l'échelle à valeur
+constante (mesuré neutre sur 476 éléments), les règles d'impression portées, le lint, le
+`markdoc.config.mjs`, la correction du sélecteur descendant de `Prose` — un bug — et le
+retrait du `<article>` de Markdoc, qui rétablit une structure et n'ajoute aucun style.
+
+### À passer sous la gate au moment du portage
+
+CD a signalé ces deux animations de lui-même en souscrivant au §1.1 — exactement le
+comportement attendu. Les deux répondent à une demande de Pierrick (« une animation de
+dithering sympa »), mais leurs **paramètres sont le choix de CD et n'ont été regardés qu'en
+desktop**. Aucune n'est dans `src/`, donc rien n'est en jeu tant qu'on ne les porte pas.
+
+| Où | Paramètres | État |
+| --- | --- | --- |
+| **`Button`** — hover « boil » | 4 étapes, `0.42s`, `steps(1, end)`, trame `background-size: 4px 4px` | `cd-only` au manifeste, jamais porté |
+| **`ArticleBar`** — barre index qui se résout en dither | `bar-dither-in` / `bar-dither-out`, `0.42s steps(1, end)`, 4 étapes, `mask-size: 5px 5px` | dans le gold (`01_Home`), variante `[data-context='index']` absente de `src/` |
+
+> **Leçon de méthode, notée parce qu'elle a failli coûter cher.** J'ai d'abord cru que CD
+> décrivait une animation inexistante : mon miroir ne contenait qu'une seule `@keyframes` et
+> aucun `mask-size`. C'était vrai de **ma copie**, périmée d'une heure, et faux du projet.
+> Un DOWN frais avant de le contredire a évité une accusation infondée. **Ne jamais opposer
+> le miroir à CD sans l'avoir resynchronisé** — c'est déjà la règle §4.1 « jamais sur
+> parole », qui vaut dans les deux sens.
+
+**Bug d'accessibilité à trancher, signalé à CD le 2026-08-04.** La barre index porte
+`aria-hidden="true"` **en dur dans le markup**, et le JS ne bascule que des classes. Quand
+elle est visible (`.is-on`, `pointer-events: auto`), elle contient six liens de navigation
+focalisables à l'intérieur d'un conteneur masqué aux technologies d'assistance : du contenu
+focalisable dans un `aria-hidden` est une violation, et la navigation devient inatteignable
+au clavier comme au lecteur d'écran. À ne pas porter tel quel.
+
+### Le diff sait aussi trouver les contradictions de CD
+
+Premier aller-retour où l'outil a pris CD contre lui-même : `PullQuote` portait
+`border-left: 3px solid var(--accent)` alors que sa propre doctrine de juillet 2026
+interdit la barre d'accent à gauche. Signalé, **il a tranché en faveur de la doctrine** —
+la barre part de son CSS, notre implémentation était la bonne. Le diff ne sert pas seulement
+à rattraper nos dérives.
 
 ---
 
@@ -248,9 +353,23 @@ donc en deux exemplaires :
 | `design/PROTOCOL.md` (ce dépôt) | **l'original.** Toute modification se fait ici. |
 | `PROTOCOL.md` à la racine du projet CD | la copie que CD lit à chaque session |
 
-**Règle : toute modification de ce document est renvoyée à CD dans le même mouvement.**
-Pas « à la prochaine occasion » — dans le même mouvement. Un protocole désynchronisé est
-pire que pas de protocole : les deux côtés croient suivre la même règle.
+**Règle : toute modification du CONTRAT est renvoyée à CD dans le même mouvement.** Pas « à
+la prochaine occasion » — dans le même mouvement. Un protocole désynchronisé est pire que
+pas de protocole : les deux côtés croient suivre la même règle.
+
+Le contrat, ce sont les §1 à §7 et le §9 : qui décide, la gate, les conventions, les
+procédures, la préséance, le journal. Le **§8 est un état**, pas une règle — un instantané
+des écarts et des points en attente, qui bouge à chaque session.
+
+Précision ajoutée le 2026-08-04, après quatre renvois en une heure : **une mise à jour du
+seul §8 ne déclenche pas de renvoi immédiat**, elle voyage avec le prochain échange. La règle
+du même mouvement existe pour qu'aucun des deux côtés ne suive une règle périmée ; l'appliquer
+à un instantané d'état ne protège rien et coûte assez cher pour qu'on finisse par la
+contourner. Une règle trop chère est une règle qu'on n'applique pas.
+
+`pnpm mirror:diff` avertit toujours dès que les deux copies diffèrent, quelle que soit la
+section : c'est le rappel, pas l'obligation. À l'inverse, un avertissement qui persiste alors
+que seul le §8 a bougé est normal — et il se referme au renvoi suivant.
 
 Comment la copie arrive chez CD : joindre le fichier au composer via le MCP Playwright
 (`setInputFiles` sur l'input file, sans passer par le bouton) et demander à CD de

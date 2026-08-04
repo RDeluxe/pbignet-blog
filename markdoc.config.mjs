@@ -34,11 +34,13 @@ export default defineMarkdocConfig({
      *
      * Le `<article>` sémantique existe déjà dans le gabarit de page, autour du hero et du
      * corps — ce n'est pas au contenu de le poser.
+     *
+     * Le spread n'est pas cosmétique, et la doc Astro insiste dessus : le nœud par défaut
+     * porte aussi `children` — la liste blanche des types admis à la racine, donc la
+     * validation de structure — et `attributes: { frontmatter: { render: false } }`. Écrire
+     * `{ render: null }` seul les jetterait.
      */
-    document: { render: null },
-
-    // le rendu par défaut des titres reste celui de Markdoc, mais on garde ses ancres
-    heading: nodes.heading,
+    document: { ...nodes.document, render: null },
   },
 
   tags: {

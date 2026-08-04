@@ -27,6 +27,18 @@
 <div class="regmark bl"></div><div class="regmark br"></div>
 
 <div class="page">
+
+  <!-- index bar — absent at the top (metabar + nav.main own it); dithers in once RESPIRE is scrolled past -->
+  <header class="topbar" data-context="index" id="indexbar" aria-hidden="true">
+    <div class="tb-in">
+      <a class="brand" href="#top">exhale</a>
+      <nav class="tb-nav">
+        <a href="#">Writing</a><a href="#">Projects</a><a href="#">Now</a><a href="#">Setup</a><a href="#">Photos</a><a href="#">About</a>
+      </nav>
+      <span class="tb-back">Nº 001 · INDEX</span>
+    </div>
+  </header>
+
   <header class="wrap">
     <div class="metabar">
       <div class="m"><div class="k">Title</div><div class="v">Personal Index</div></div>
@@ -150,6 +162,24 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(align);
     setTimeout(align, 250);
     setTimeout(align, 800);
+  })();
+
+  // index bar — dithers in once the hero stage is fully above the viewport, dissolves out on the way back
+  (function () {
+    var bar = document.getElementById('indexbar');
+    var hero = document.querySelector('.hero2-stage');
+    if (!bar || !hero || !('IntersectionObserver' in window)) return;
+    var on = false;
+    var io = new IntersectionObserver(function (entries) {
+      var e = entries[0];
+      var past = !e.isIntersecting && e.boundingClientRect.bottom < 0;
+      if (past === on) return;
+      on = past;
+      bar.classList.toggle('is-on', on);
+      bar.classList.toggle('is-off', !on);
+      bar.setAttribute('aria-hidden', on ? 'false' : 'true');
+    });
+    io.observe(hero);
   })();
 </script>
 </body>

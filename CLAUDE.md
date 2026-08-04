@@ -31,6 +31,19 @@ Astro, variantes en `data-*`), le manifeste de périmètre, les procédures de s
 vérification, et le journal daté des décisions de protocole. **À lire avant tout échange
 avec CD.**
 
+> ⛔ **GATE HUMAINE (PROTOCOL §1.1, décidée le 2026-08-04) — la règle qui prime sur les
+> autres.** CD **propose**, **Pierrick tranche**. Aucune décision de design n'entre dans
+> `src/` sans une preuve qu'elle a été testée **et** son accord. Un sync DOWN rapatrie une
+> proposition, il ne l'autorise pas — même quand la décision vient de CD, même quand elle
+> corrige une de nos dérives. Ne jamais demander à CD d'**appliquer** : lui demander de
+> **proposer**, avec ce qu'il a rendu et regardé pour vérifier.
+>
+> Passent sans permission, parce que ce ne sont pas des décisions de design : le rangement
+> à valeur constante, un mécanisme dont on a **mesuré** que le rendu ne bouge pas, le retour
+> d'une de nos valeurs vers une valeur **déjà validée** du gold, et les corrections de bug.
+> Ne passent pas : une valeur nouvelle, une unification, un placement, une variante, une
+> suppression visible. **En cas de doute, ça ne passe pas.**
+
 **Doctrine CODE : `design/PIPELINE.md`** — comment la research Claude Design (HTML/CSS de page)
 devient un design system maintenable : le tri (token / primitive / composant / effet / poubelle),
 les règles dures (zéro `<style>` de page, `:global()` interdit, props = intentions, les 3
