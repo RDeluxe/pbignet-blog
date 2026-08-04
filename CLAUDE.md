@@ -32,17 +32,25 @@ vérification, et le journal daté des décisions de protocole. **À lire avant 
 avec CD.**
 
 > ⛔ **GATE HUMAINE (PROTOCOL §1.1, décidée le 2026-08-04) — la règle qui prime sur les
-> autres.** CD **propose**, **Pierrick tranche**. Aucune décision de design n'entre dans
-> `src/` sans une preuve qu'elle a été testée **et** son accord. Un sync DOWN rapatrie une
-> proposition, il ne l'autorise pas — même quand la décision vient de CD, même quand elle
-> corrige une de nos dérives. Ne jamais demander à CD d'**appliquer** : lui demander de
-> **proposer**, avec ce qu'il a rendu et regardé pour vérifier.
+> autres.** Deux modes de travail :
 >
-> Passent sans permission, parce que ce ne sont pas des décisions de design : le rangement
-> à valeur constante, un mécanisme dont on a **mesuré** que le rendu ne bouge pas, le retour
-> d'une de nos valeurs vers une valeur **déjà validée** du gold, et les corrections de bug.
-> Ne passent pas : une valeur nouvelle, une unification, un placement, une variante, une
-> suppression visible. **En cas de doute, ça ne passe pas.**
+> - **Mode A — Pierrick et moi avons la main.** Il demande un changement, ou l'a fait à la
+>   main : la décision est la sienne, j'implémente sans rien demander à CD. Reste à
+>   **back-porter** vers CD pour qu'il ne reparte pas d'un gold périmé.
+> - **Mode B — boucle avec CD.** Dès que **CD veut changer quelque chose de visible** :
+>   **je m'arrête et j'appelle Pierrick** (« CD veut faire ça, il t'attend »). **Pierrick en
+>   discute directement avec CD** — je ne relaie pas, je n'arbitre pas une question de
+>   design. La boucle reprend après validation.
+>
+> **CD démontre sur une nouvelle page de `research/`, jamais en éditant le gold** : il n'a
+> pas de diff, donc ses effets de bord sont invisibles jusqu'au prochain DOWN. Une démo
+> isolée est vérifiable, une retouche du gold est un acte de foi.
+>
+> Ne demandent l'accord de personne, parce que ce ne sont pas des décisions de design : le
+> rangement à valeur constante, un mécanisme dont on a **mesuré** que le rendu ne bouge pas,
+> le retour d'une de nos valeurs vers une valeur **déjà validée** du gold, les corrections
+> de bug. **En cas de doute, ça ne passe pas.** La mesure (Playwright : styles calculés,
+> avant/après, breakpoints, captures) est de mon côté.
 
 **Doctrine CODE : `design/PIPELINE.md`** — comment la research Claude Design (HTML/CSS de page)
 devient un design system maintenable : le tri (token / primitive / composant / effet / poubelle),

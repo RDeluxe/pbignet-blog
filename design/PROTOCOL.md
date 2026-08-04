@@ -27,53 +27,51 @@ importante de ce document.
 
 ### 1.1 La gate humaine — décidée le 2026-08-04
 
-> **Aucune décision de design n'entre dans le produit sans deux choses : une preuve
-> qu'elle a été testée, et l'accord de Pierrick. Dans cet ordre.**
+Il y a **deux modes de travail**, et la gate ne concerne que le second.
 
-CD a le goût et la doctrine, mais il n'a pas le dernier mot. Ce qu'il renvoie est une
-**proposition**, même quand il l'a déjà écrite dans ses propres fichiers, et même quand
-son raisonnement est bon. Trois obligations en découlent :
+#### Mode A — Pierrick et CC ont la main
 
-**Pour CD.** Ne pas trancher seul, et ne rien présenter comme acquis. Écrire le changement
-dans le projet distant est acceptable — c'est son atelier, et c'est souvent le seul moyen de
-le tester — mais ça ne le valide pas.
+Pierrick demande un changement de design à CC, ou l'a fait lui-même à la main. **La décision
+est prise, elle est la sienne.** CC implémente sans rien demander à CD. Le seul travail qui
+reste est de **back-porter proprement** vers CD, pour qu'il ne parte pas d'un gold périmé
+(procédure §4.2).
 
-Sur la preuve, la règle a été ajustée le 2026-08-04 après une objection de CD, qui était
-juste : ses vérifications passent par un vérificateur d'arrière-plan dont il ne voit le
-détail que si un problème est trouvé. Exiger de lui un relevé par breakpoint l'aurait poussé
-à décrire ce qu'il n'observe pas. Donc **la charge se partage selon ce que chacun peut
-réellement voir** :
+#### Mode B — CC et CD en boucle
 
-| Qui | Doit fournir |
-| --- | --- |
-| **CD** | l'intention, ce sur quoi elle se fonde, **quelle page il a envoyée en vérification**, et **les points de contrôle** : ce qui doit bouger, et surtout ce qui ne doit PAS bouger |
-| **CC** | la mesure. Nous avons Playwright : styles calculés, comparaison avant/après, breakpoints, captures. C'est à nous de rendre les points de contrôle vérifiables |
+Quand CC et CD travaillent en autonomie et s'échangent des briefs, alors dès que **CD veut
+changer quelque chose de visible** :
 
-C'est plus solide que de l'auto-déclaration : CD dit ce qu'il attend, CC constate ce qui
-arrive, et un écart entre les deux est un signal en soi. Une proposition sans points de
-contrôle reste irrecevable — sans eux il n'y a rien à mesurer.
+1. **CC s'arrête et appelle Pierrick** — « CD veut faire tel changement, il t'attend ».
+2. **Pierrick en discute directement avec CD.** Ce n'est pas CC qui relaie ni qui arbitre :
+   Pierrick entre dans la boucle avec CD, CD lui propose des solutions, ils tranchent
+   ensemble.
+3. **Une fois validé, la boucle CC ↔ CD reprend.**
 
-**Pour CC.** Ne jamais demander à CD d'appliquer : lui demander de **proposer**. Et ne
-jamais porter dans `src/` une décision de design que Pierrick n'a pas approuvée, même
-quand elle vient de CD, même quand elle corrige une de nos dérives. Le sync DOWN rapatrie
-la proposition ; il ne l'autorise pas. Quand un arbitrage arrive, CC le **présente à
-Pierrick avec ses conséquences mesurées** et attend.
+Ce que CC ne fait pas : porter dans `src/` un changement visible que Pierrick n'a pas vu,
+ni jouer les intermédiaires sur une question de design. Ce que CC fait : **le signaler tôt**,
+et fournir la mesure quand elle éclaire le choix — styles calculés, avant/après, breakpoints,
+captures. On a Playwright, c'est notre moitié du travail.
 
-**Pour Pierrick.** Le point de contrôle. Les questions purement mécaniques (ranger,
-découper, déplacer à valeur constante) n'ont pas besoin de lui : elles ne changent rien de
-visible, et c'est justement ce qui les rend mécaniques.
+#### CD teste sur une page de research, pas sur le gold
 
-**Ce qui passe la gate sans permission** — parce que ce n'est pas une décision de
-design : le rangement à valeur constante, un changement de mécanisme dont on a mesuré que
-le rendu ne bouge pas, la correction d'une de nos valeurs vers une valeur **déjà validée**
-du gold (là, on ne décide rien, on cesse de dévier), et les corrections de bug pur.
+**La règle la plus utile en pratique.** CD n'a pas de diff : quand il modifie `01_Home.html`
+ou un fichier de `assets/components/`, personne ne voit ce qu'il a touché en passant, et ses
+effets de bord sont invisibles jusqu'au prochain DOWN.
 
-**Ce qui ne traverse pas** : une valeur nouvelle, l'unification de valeurs existantes, un
-placement, une variante, une suppression d'élément visible — même proposée par CD, même
-argumentée, même déjà écrite chez lui.
+Donc : **une proposition se démontre sur une nouvelle page dans `research/`**, pas en
+éditant le gold. Une page de démo isolée est vérifiable et ne casse rien ; une retouche du
+gold est un acte de foi. « A validated result graduates to root » — le gold n'est pas le
+brouillon, c'est l'arrivée.
 
-> Le doute se résout dans le sens de la gate : si on hésite à classer un changement en
-> « mécanique », il ne l'est pas.
+#### Ce qui ne demande l'accord de personne
+
+Parce que ce ne sont pas des décisions de design : le rangement à valeur constante, un
+changement de mécanisme dont on a **mesuré** que le rendu ne bouge pas, le retour d'une de
+nos valeurs vers une valeur **déjà validée** du gold (on ne décide rien, on cesse de
+dévier), et les corrections de bug.
+
+> En cas de doute, ça ne passe pas : si on hésite à classer un changement en « mécanique »,
+> il ne l'est pas.
 
 ### Ce que CC peut demander à CD
 
@@ -185,17 +183,17 @@ Un **brief en prose**, jamais un bundle de fichiers poussé.
    `rsync --delete` ne l'efface pas : c'est le journal daté de ce qu'on a demandé.
 2. Le faire parvenir à CD — uploadé par Pierrick, ou tapé par CC dans le composer via
    le MCP Playwright.
-3. CD exécute ce qui est mécanique, et **propose** ce qui est du design — avec la preuve
-   de ce qu'il a rendu et regardé (§1.1).
+3. CD exécute ce qui est mécanique, et **démontre sur une page de `research/`** ce qui est du
+   design — jamais en éditant le gold (§1.1).
 4. **DOWN, puis vérifier.** Jamais sur parole.
-5. **Gate humaine.** CC présente à Pierrick les propositions de design, avec leurs
-   conséquences mesurées, et attend son accord avant de les porter dans `src/`. Le
-   mécanique passe directement.
+5. **Gate.** Dès qu'il y a une proposition de design, **CC s'arrête et appelle Pierrick**,
+   qui en discute directement avec CD. Le mécanique passe sans s'arrêter.
 
 Un bon brief : une règle dure en tête (« ne change aucune valeur »), les arbitrages déjà
 faits pour ce qui est mécanique, et **les seules vraies questions de design isolées**. Il
-demande explicitement une **proposition testée**, pas une application — et il sépare
-visiblement les deux, pour que CD sache où il peut avancer seul et où il doit s'arrêter.
+sépare visiblement les deux, pour que CD sache où il avance seul et où il s'arrête — et il
+demande une **démo dans `research/`** pour tout ce qui relève du design, pas une retouche du
+gold.
 
 > **Pièges du composer via Playwright** : utiliser `keyboard.insertText`, jamais `type`
 > — chaque `\n` déclencherait l'envoi et le message partirait en morceaux. Et `require`
@@ -275,8 +273,9 @@ Un narratif périmé ne fait jamais foi contre les valeurs. **Lire les dates.**
 | 2026-08-04 | **Encres de photo : trois rôles.** CD tranche « accumulation, not intention » — les cinq nuances claires du gold étaient accidentelles. `--cover-ink-light: #f1ebdd`, `--cover-ink-quiet: #cfc9bb`, `--cover-ink-dark: #14110a` ; la cue est la claire à 70 % en `color-mix`, pas une quatrième encre. Nos anciennes valeurs venaient de `research/` : faute de méthode, la research ne fait jamais foi. |
 | 2026-08-04 | **Une boîte dans la prose ne coupe pas la colonne.** `Callout` et `Plate` vivent DANS `.prose`, à largeur de colonne, au rythme de la citation (2.2em) ; seule la `.figure` en débord mérite `data-flow="continued"`. La marge contextuelle vit dans la boîte (`.prose .callout` dans `Callout.css`), pas dans `Prose`. |
 | 2026-08-04 | **Les règles de bloc de `Prose` ciblent les enfants directs** (`> p`, `> h2`…). En descendant, elles écrasaient la typographie des boîtes imbriquées : le `<p>` d'un callout sortait à 16,5px/25,575px au lieu de 14,5px/24px, donc hors trame. Corollaire : le `<article>` que Markdoc pose autour du document est retiré (`document: { ...nodes.document, render: null }`), sinon plus rien n'est enfant direct. |
-| 2026-08-04 | **Gate humaine (§1.1).** CD **propose**, Pierrick tranche. Rien de visible n'entre dans `src/` sans une preuve de test et son accord. Le mécanique à valeur constante et la correction d'une de nos dérives vers une valeur déjà validée du gold passent sans permission ; une valeur nouvelle, une unification, un placement, une variante ou une suppression visible, non. |
-| 2026-08-04 | **La preuve se partage.** Ajustement du §1.1 après une objection recevable de CD : ses vérifications passent par un vérificateur d'arrière-plan dont il ne voit le détail qu'en cas de problème, donc lui réclamer un relevé par breakpoint l'aurait poussé à décrire ce qu'il n'observe pas. CD fournit désormais l'intention, la page envoyée en vérification et **les points de contrôle** (ce qui doit bouger, ce qui ne doit pas) ; **CC fournit la mesure** avec Playwright. Un écart entre les deux devient un signal. |
+| 2026-08-04 | **Gate humaine (§1.1), deux modes.** **Mode A** — Pierrick et CC ont la main : la décision est celle de Pierrick, CC implémente, et le seul travail restant est de back-porter vers CD. **Mode B** — CC et CD en boucle : dès que CD veut changer quelque chose de visible, **CC s'arrête et appelle Pierrick**, qui en discute *directement* avec CD ; la boucle reprend après validation. CC ne relaie pas et n'arbitre pas une question de design. |
+| 2026-08-04 | **CD démontre dans `research/`, jamais sur le gold.** La règle la plus utile en pratique : CD n'a pas de diff, donc une retouche de `01_Home.html` ou d'un `assets/components/*.css` rend ses effets de bord invisibles jusqu'au prochain DOWN. Une page de démo isolée est vérifiable ; une retouche du gold est un acte de foi. Corollaire de « a validated result graduates to root » : le gold est l'arrivée, pas le brouillon. |
+| 2026-08-04 | **La mesure est du côté de CC.** CD n'a qu'un vérificateur d'arrière-plan dont il ne voit le détail qu'en cas de problème : lui réclamer un relevé par breakpoint le pousserait à décrire ce qu'il n'observe pas. C'est donc à CC de mesurer avec Playwright — styles calculés, avant/après, breakpoints, captures — quand la mesure éclaire un choix. |
 
 ---
 
