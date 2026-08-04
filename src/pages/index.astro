@@ -1,10 +1,10 @@
 ---
 import { getCollection } from 'astro:content'
-import ArticleBar from '../components/article/ArticleBar.astro'
 import CollCard from '../components/CollCard.astro'
 import FeaturedEssay from '../components/FeaturedEssay.astro'
 import GearCard from '../components/GearCard.astro'
 import Hero from '../components/Hero.astro'
+import IndexBar from '../components/IndexBar.astro'
 import MainNav from '../components/MainNav.astro'
 import Metabar from '../components/Metabar.astro'
 import PhotoFrame from '../components/PhotoFrame.astro'
@@ -39,7 +39,7 @@ const photos = [
 ---
 
 <BaseLayout>
-  <ArticleBar context="index" />
+  <IndexBar />
 
   <Section as="header" rhythm="none">
     <Metabar />

@@ -1,0 +1,165 @@
+---
+/**
+ * IndexBar — la barre de navigation de la home.
+ *
+ * Absente en haut de page : elle se **résout en dither** une fois le hero passé, et se
+ * dissout au retour. Décision CD, août 2026.
+ *
+ * ⚠️ **Composant distinct d'`ArticleBar`, et c'est volontaire.** Les deux se ressemblent à
+ * l'œil et n'ont presque rien en commun en comportement : celle-ci est `fixed`, masquée par
+ * défaut, observe le **hero** et anime un masque ; l'autre est `sticky`, toujours visible,
+ * observe la **cover**, publie sa hauteur et anime une jauge de lecture. Les réunir sous un
+ * `data-context` mettait deux scripts et deux balisages derrière un `if` — deux composants
+ * déguisés en un.
+ *
+ * Le prix assumé : la base `.topbar`, la grille `.tb-in` et `.brand` sont écrites dans les
+ * deux composants (~20 lignes, toutes en tokens). Une primitive à slots ne marcherait pas
+ * proprement — le CSS scopé d'Astro ne peut pas styler un élément reçu en slot, et l'état
+ * « au-dessus de la cover » devrait remonter dans la primitive, qui n'a pas à le connaître.
+ * Si ces vingt lignes divergent un jour, `pnpm mirror:diff` le dira.
+ */
+import { barItems } from '../data/nav'
+
+interface Props {
+  /** le repère de droite — mobilier d'impression */
+  label?: string
+}
+
+const { label = 'Nº 001 · INDEX' } = Astro.props
+---
+
+{/*
+  `aria-hidden` et `inert` portent l'état INITIAL : en haut de page la barre n'existe pas
+  encore pour l'utilisateur. Le script bascule les deux avec les classes d'animation.
+*/}
+<header class="topbar" id="indexbar" aria-hidden="true" inert>
+  <div class="tb-in">
+    <a class="brand" href="#top" aria-label="exhale — haut de page">exhale</a>
+    <nav class="tb-nav" aria-label="Navigation">
+      {barItems.map(item => <a href={item.href}>{item.label}</a>)}
+    </nav>
+    <span class="tb-ref">{label}</span>
+  </div>
+</header>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('#indexbar')
+  const stage = document.querySelector<HTMLElement>('.hero2-stage')
+
+  /*
+   * Bascule trois choses ensemble, et les deux dernières sont indissociables : sans `inert`,
+   * les six liens restent atteignables au clavier dans une barre invisible, parce que
+   * `opacity: 0` et `pointer-events: none` ne retirent rien de l'ordre de tabulation.
+   */
+  if (bar && stage && 'IntersectionObserver' in window) {
+    let on = false
+    const io = new IntersectionObserver((entries) => {
+      const e = entries[0]
+      // « passé » = le hero est sorti par le HAUT, pas simplement hors champ
+      const past = !e.isIntersecting && e.boundingClientRect.bottom < 0
+      if (past === on)
+        return
+      on = past
+      bar.classList.toggle('is-on', on)
+      bar.classList.toggle('is-off', !on)
+      bar.setAttribute('aria-hidden', on ? 'false' : 'true')
+      bar.toggleAttribute('inert', !on)
+    })
+    io.observe(stage)
+  }
+</script>
+
+<style>
+  /* ---- châssis (cf. l'avertissement du frontmatter : partagé avec ArticleBar) ---- */
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tb-in {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 13px var(--gutter);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-ml);
+  }
+
+  .brand {
+    font-family: var(--display);
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  /* ---- propre à la barre index ---- */
+  .tb-nav {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-l);
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    min-width: 0;
+  }
+  .tb-nav a { color: var(--ink-2); }
+  .tb-nav a:hover { color: var(--accent); }
+
+  /* le repère n'est pas un lien : pas de hover, pas de cible tactile à ménager */
+  .tb-ref {
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-data);
+    text-transform: uppercase;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  /* ---- la résolution en dither ----
+   * Le dither est fait au MASQUE : la barre est peinte normalement, et c'est son masque qui
+   * grossit ses points d'étape en étape. `steps(1, end)` est ce qui lui donne son aspect
+   * d'impression — aucune interpolation, quatre états francs.
+   */
+  .topbar.is-on {
+    opacity: 1;
+    pointer-events: auto;
+    animation: bar-dither-in 0.42s steps(1, end);
+  }
+  .topbar.is-off {
+    animation: bar-dither-out 0.42s steps(1, end);
+  }
+
+  @keyframes bar-dither-in {
+    0% { mask-image: radial-gradient(circle, #000 0.6px, transparent 0.8px); mask-size: 5px 5px; }
+    30% { mask-image: radial-gradient(circle, #000 1.1px, transparent 1.3px); mask-size: 5px 5px; }
+    55% { mask-image: radial-gradient(circle, #000 1.7px, transparent 1.9px); mask-size: 5px 5px; }
+    80% { mask-image: radial-gradient(circle, #000 2.4px, transparent 2.6px); mask-size: 5px 5px; }
+  }
+  @keyframes bar-dither-out {
+    0% { opacity: 1; mask-image: radial-gradient(circle, #000 2.4px, transparent 2.6px); mask-size: 5px 5px; }
+    35% { opacity: 1; mask-image: radial-gradient(circle, #000 1.7px, transparent 1.9px); mask-size: 5px 5px; }
+    70% { opacity: 1; mask-image: radial-gradient(circle, #000 1px, transparent 1.2px); mask-size: 5px 5px; }
+  }
+
+  /* Six libellés mono ne tiennent pas en étroit : mesuré à 390px, la nav réclame 291px pour
+     222px disponibles, elle déborde et la barre passe de 47 à 82px de haut. Le gold n'a pas
+     de règle ici — LEQUEL des replis (masquer, passer à la ligne, rendre défilable) est un
+     arbitrage de design, en attente. En l'état on garde la marque et le repère. */
+  @media (max-width: 700px) {
+    .tb-nav { display: none; }
+    .tb-in { grid-template-columns: auto auto; }
+  }
+
+  @media print {
+    .topbar { display: none; }
+  }
+</style>

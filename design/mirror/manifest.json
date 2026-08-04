@@ -49,7 +49,9 @@
     "Barcode":        { "scope": "mirrored", "cd": "Barcode.css",        "astro": "components/print/Barcode.astro" },
     "RegMarks":       { "scope": "mirrored", "cd": "RegMarks.css",       "astro": "components/print/RegMarks.astro", "note": "CD garde .regmark.tl…br en classes, à convertir plus tard." },
     "MonoLabel":      { "scope": "mirrored", "cd": "MonoLabel.css",      "astro": "components/print/MonoLabel.astro" },
-    "ArticleBar":     { "scope": "mirrored", "cd": "ArticleBar.css",     "astro": "components/article/ArticleBar.astro" },
+    "ArticleBar":     { "scope": "mirrored", "cd": "ArticleBar.css",     "astro": "components/article/ArticleBar.astro", "note": "la barre de lecture d'un article seulement. La barre de la home est IndexBar : même châssis à l'œil, aucun comportement commun." },
+
+    "IndexBar":       { "scope": "ours-only", "astro": "components/IndexBar.astro", "note": "TEMPORAIRE — CD tient cette barre dans `ArticleBar.css` sous `[data-context='index']`, alors qu'elle n'a rien de commun avec la barre de lecture en comportement (fixe et masquée par défaut, observe le hero, anime un masque, contre sticky + jauge + observation de la cover). Découpage demandé le 2026-08-04 : à basculer en `mirrored` sur `IndexBar.css` dès qu'il existe. Déclaré `ours-only` en attendant pour ne pas comparer deux composants contre un seul fichier." },
     "ArticleHead":    { "scope": "mirrored", "cd": "ArticleHead.css",    "astro": "components/article/ArticleHead.astro" },
     "ArticlePlate":   { "scope": "mirrored", "cd": "ArticlePlate.css",   "astro": "components/article/ArticlePlate.astro", "note": "le dither est une variante : .frame[data-dither='on'] ; le ratio vient de .figure[data-width='wide']. Décision CD, août 2026." },
     "PullQuote":      { "scope": "mirrored", "cd": "PullQuote.css",      "astro": "components/article/PullQuote.astro", "note": "deux filets, jamais de barre d'accent à gauche." },
