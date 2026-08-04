@@ -69,14 +69,24 @@
   --cross-weight: 1px;
   --cross-out: 9px;
 
-  /* carreau de la plate B6 */
+  /* ---- le carreau : `--cell` ----
+   * `--cell` n'est PAS un pas d'espacement, c'est un **interligne**. Le gold le dit
+   * explicitement (`Plate.css` : « --cell (24px) = the body line-height, so text lines sit
+   * ON the grid ; majeure every 4 cells ») et il en tire tout le reste : la trame mineure
+   * vaut un cell, la majeure quatre, le padding un cell, et les blocs de texte reçoivent
+   * `line-height: var(--cell)` — c'est ce qui fait que les lignes s'assoient sur le carreau
+   * au lieu de flotter dessus.
+   *
+   * On avait scindé ce mécanisme en `--plate-step-minor: 16px` / `--plate-step-major: 64px`
+   * / `--dot-step: 16px` sans jamais lier l'interligne : la trame devenait un simple motif
+   * décoratif, et c'est précisément ce que le carreau n'est pas. Un seul token, partagé par
+   * la plate B6 et le callout E1, qui sont deux boîtes du même carreau.
+   */
+  --cell: 24px;
+
+  /* cadre de la plate B6 */
   --plate-overshoot: 13px;   /* de combien le trait de cadre dépasse les angles */
   --rule-frame: 1.2px;       /* épaisseur du trait de cadre */
-  --plate-step-major: 64px;
-  --plate-step-minor: 16px;
-
-  /* pas du carnet à points (callout E1) */
-  --dot-step: 16px;
 }
 
 /* ---- durées ----

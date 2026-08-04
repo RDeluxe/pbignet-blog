@@ -50,8 +50,15 @@ const { surface = 'paper', grid = true, tag, as: Tag = 'div' } = Astro.props
     --plate-rule-ink: var(--line-strong);
 
     position: relative;
-    /* TODO token: pas d'espacement 24px/20px dans --space-* — valeurs du banc (`.p0`) */
-    padding: var(--space-xl) var(--space-l);
+    /* le padding vaut un carreau, pour que le contenu démarre sur une ligne de trame */
+    padding: var(--cell);
+
+    /* Ce qui fait la « grille empruntée » : les lignes de texte tombent SUR le carreau.
+     * Sans ça la trame n'est qu'un fond quadrillé (cf. tokens/space.css, `--cell`).
+     * Le gold l'écrit `.plate p, .plate li { line-height: var(--cell) }` parce que son CSS
+     * est global ; ici la propriété est **héritée**, donc la poser sur la racine suffit et
+     * évite un `:global()` — que PIPELINE §4.3 réserve à `Prose`. */
+    line-height: var(--cell);
   }
 
   .plate[data-surface='paper'] { background-color: var(--paper); }
@@ -77,18 +84,21 @@ const { surface = 'paper', grid = true, tag, as: Tag = 'div' } = Astro.props
     border-right: var(--plate-rule) solid var(--plate-rule-ink);
   }
 
-  /* carreau de cahier : majeure 64px très pâle, mineure 16px presque invisible */
+  /* Carreau de cahier : mineure = un carreau, majeure tous les quatre — les deux dérivent de
+     `--cell`, elles ne sont pas deux réglages indépendants. */
   .plate[data-grid='on'] {
+    --cell-major: calc(var(--cell) * 4);
+
     background-image:
       linear-gradient(var(--plate-grid-major) 1px, transparent 1px),
       linear-gradient(90deg, var(--plate-grid-major) 1px, transparent 1px),
       linear-gradient(var(--plate-grid-minor) 1px, transparent 1px),
       linear-gradient(90deg, var(--plate-grid-minor) 1px, transparent 1px);
     background-size:
-      var(--plate-step-major) var(--plate-step-major),
-      var(--plate-step-major) var(--plate-step-major),
-      var(--plate-step-minor) var(--plate-step-minor),
-      var(--plate-step-minor) var(--plate-step-minor);
+      var(--cell-major) var(--cell-major),
+      var(--cell-major) var(--cell-major),
+      var(--cell) var(--cell),
+      var(--cell) var(--cell);
   }
 
   /* la référence de figure du banc (`.ptag` : 9.5px / 0.14em) : on prend le pas le plus

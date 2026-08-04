@@ -26,10 +26,13 @@
   --lh-hero: 0.8;
   --tr-hero: 0.012em;
 
-  /* cover d'article — le mot de couverture, posé sur la photo */
-  --fs-cover: clamp(56px, 16vw, 176px);
-  --lh-cover: 0.82;
-  --tr-cover: 0.02em;
+  /* cover d'article — le mot de couverture, posé sur la photo.
+   * Valeurs du GOLD (`assets/components/HeroPopColor.css`). On portait
+   * clamp(56px,16vw,176px) / 0.82 / 0.02em : trois approximations, pas des décisions.
+   */
+  --fs-cover: clamp(52px, 17vw, 176px);
+  --lh-cover: 0.8;
+  --tr-cover: 0.03em;
 
   --fs-shead: clamp(28px, 5vw, 56px);      /* ouverture de section */
   --lh-shead: 0.94;

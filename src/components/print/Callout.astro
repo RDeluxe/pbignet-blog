@@ -42,15 +42,18 @@ const { tag = 'N.B.', title, titleAs: Title = 'h4', as: Tag = 'aside' } = Astro.
     --cross-offset: calc(-1 * var(--cross-out));
 
     position: relative;
-    /* TODO token: pas d'espacement 18px/20px dans --space-* — valeurs du banc (`.co`) */
-    padding: 18px var(--space-l);
+    padding: var(--cell) var(--space-l);
     border: 1px solid var(--line);
 
-    /* points estompés, décalés d'un demi-pas pour que la trame ne touche pas le filet */
+    /* Le pas des points EST l'interligne (`--cell`), pas une valeur décorative : c'est ce qui
+     * fait qu'une note se lit comme écrite sur un carnet à points et non posée dessus. On
+     * était à 16px avec un décalage d'un demi-pas « pour que la trame ne touche pas le
+     * filet » — une justification cosmétique qui cassait l'alignement du texte. Le gold
+     * cadre à `0 0` (cf. tokens/space.css, `--cell`). */
     background-color: var(--paper);
     background-image: radial-gradient(var(--dot-ink) 1px, transparent 1.4px);
-    background-size: var(--dot-step) var(--dot-step);
-    background-position: calc(var(--dot-step) / 2) calc(var(--dot-step) / 2);
+    background-size: var(--cell) var(--cell);
+    background-position: 0 0;
   }
 
   /* les deux croix : un seul pseudo-élément chacune, la croix étant faite de deux
@@ -104,7 +107,10 @@ const { tag = 'N.B.', title, titleAs: Title = 'h4', as: Tag = 'aside' } = Astro.
     font-family: var(--serif);
     /* TODO token: 14.5px (banc) — entre --fs-body-xs (14px) et --fs-body-sm (15px) */
     font-size: 14.5px;
-    line-height: var(--lh-body-tight);
+    /* l'interligne vaut un carreau : les lignes s'assoient sur les points. C'était
+       `--lh-body-tight` (1.5), sans rapport avec le pas de la trame — donc du texte qui
+       flottait sur une grille au lieu d'y être écrit. */
+    line-height: var(--cell);
     color: var(--ink-2);
   }
 

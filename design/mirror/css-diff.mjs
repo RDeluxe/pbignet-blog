@@ -72,6 +72,9 @@ const normVal = v => normNum(
     // ça, tout token dont la définition aère ses virgules ressortait en écart contre le
     // littéral serré de CD — une quinzaine de faux positifs sur les échelles fluides.
     .replace(/\s*,\s*/g, ',')
+    // `content: ""` et `content: ''` aussi : six pseudo-écarts sur les croix d'angle et
+    // les cadres, là où les deux côtés écrivent exactement la même chaîne vide.
+    .replace(/"/g, '\'')
     .trim(),
 )
 
