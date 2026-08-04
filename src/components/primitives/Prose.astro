@@ -41,7 +41,21 @@ const { numbered = false, dropCap = false } = Astro.props
     counter-reset: sub;
   }
 
-  .prose :global(p) {
+  /* ⚠️ ENFANT DIRECT, jamais descendant — et ce n'est pas une préférence d'écriture.
+   *
+   * Markdoc rend nos composants DANS le flux de la prose (`{% callout %}`, `{% plate %}`),
+   * et un `<p>` écrit à l'intérieur d'un callout est alors aussi un descendant de `.prose`.
+   * En sélecteur descendant, cette règle bat l'héritage et impose au callout la taille et
+   * l'interligne du corps : mesuré à 16,5px/25,575px au lieu de 14,5px/24px, donc du texte
+   * qui ne tombe plus sur la trame de points — le mécanisme du carreau défait par le
+   * conteneur.
+   *
+   * Le gold écrit `.prose > p` pour cette raison exacte. Une boîte imbriquée porte sa propre
+   * typographie ; la prose n'habille que SES paragraphes. La même règle vaut pour tous les
+   * blocs ci-dessous (titres, citations, listes, filets) ; l'inline (`a`, `code`, `strong`)
+   * reste en descendant, c'est un traitement de texte courant valable partout.
+   */
+  .prose :global(> p) {
     margin: 0 0 1.45em;
     font-family: var(--serif);
     font-size: var(--fs-body);
@@ -72,7 +86,7 @@ const { numbered = false, dropCap = false } = Astro.props
   }
 
   /* sous-titres : mono tracké sur filet — le registre « spec sheet », pas un titre display */
-  .prose :global(h2) {
+  .prose :global(> h2) {
     margin: 2.4em 0 1.1em;
     padding-bottom: var(--space-s);
     border-bottom: 1px solid var(--line);
@@ -83,14 +97,14 @@ const { numbered = false, dropCap = false } = Astro.props
     text-transform: uppercase;
     color: var(--ink);
   }
-  .prose[data-numbered='on'] :global(h2)::before {
+  .prose[data-numbered='on'] :global(> h2)::before {
     counter-increment: sub;
     content: counter(sub, decimal-leading-zero);
     margin-right: var(--space-s);
     color: var(--accent);
   }
 
-  .prose :global(h3) {
+  .prose :global(> h3) {
     margin: 2em 0 0.8em;
     font-family: var(--sans);
     font-weight: var(--w-semibold);
@@ -102,13 +116,13 @@ const { numbered = false, dropCap = false } = Astro.props
   /* citation Markdown (`> …`) : même traitement que <PullQuote>, qui n'est pas atteignable
      depuis un `.md`. Deux filets, JAMAIS de barre d'accent à gauche (Design Notes, juillet
      2026 : « No left accent bar anywhere »). */
-  .prose :global(blockquote) {
+  .prose :global(> blockquote) {
     margin: 2.2em 0;
     padding: var(--space-xl) 0;
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
   }
-  .prose :global(blockquote p) {
+  .prose :global(> blockquote p) {
     margin: 0;
     font-style: italic;
     font-weight: 500;
@@ -125,8 +139,8 @@ const { numbered = false, dropCap = false } = Astro.props
     text-underline-offset: 3px;
   }
 
-  .prose :global(ul),
-  .prose :global(ol) {
+  .prose :global(> ul),
+  .prose :global(> ol) {
     margin: 0 0 1.45em;
     padding-left: 1.4em;
     font-family: var(--serif);
@@ -143,7 +157,7 @@ const { numbered = false, dropCap = false } = Astro.props
     background: var(--paper-2);
     padding: 1px 5px;
   }
-  .prose :global(pre) {
+  .prose :global(> pre) {
     margin: 0 0 1.45em;
     padding: var(--space-m);
     overflow-x: auto;
@@ -155,13 +169,19 @@ const { numbered = false, dropCap = false } = Astro.props
     padding: 0;
   }
 
-  .prose :global(hr) {
+  .prose :global(> hr) {
     margin: 2.4em 0;
     border: none;
     border-top: 1px solid var(--line);
   }
 
-  /* à l'impression, un paragraphe orphelin sur deux lignes est illisible */
+  /* À l'impression, un paragraphe orphelin sur deux lignes est illisible.
+   *
+   * Seul bloc où le sélecteur DESCENDANT est le bon, contrairement à tout ce qui précède :
+   * `break-inside` ne touche ni la taille ni le rythme, donc il ne peut pas écraser la
+   * typographie d'une boîte imbriquée — et un paragraphe dans un callout mérite autant de ne
+   * pas être coupé en deux qu'un paragraphe de corps.
+   */
   @media print {
     .prose :global(p) { break-inside: avoid; }
     .prose :global(h2),

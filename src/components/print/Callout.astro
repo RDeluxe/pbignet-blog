@@ -117,4 +117,18 @@ const { tag = 'N.B.', title, titleAs: Title = 'h4', as: Tag = 'aside' } = Astro.
   /* Aucune transition ni animation dans ce composant (la note est statique par contrat),
    * donc rien à couper pour `prefers-reduced-motion` — `base.css` couvre le reste du site.
    */
+
+  /* Dans un corps d'article, la note prend le rythme de la citation (2.2em) et reste à
+   * largeur de colonne : elle n'interrompt PAS le flux. Règle de CD, 2026-08-04 —
+   * « callouts do belong in essays ; what they don't do is interrupt the column ». Seule la
+   * `.figure` en débord mérite un `data-flow="continued"`.
+   *
+   * Le `:global()` porte sur l'ANCÊTRE, pas sur notre intérieur : le composant réagit à son
+   * contexte, il ne va pas bidouiller celui de `Prose`. C'est l'inverse du `:global()` que
+   * PIPELINE §4.3 interdit, et c'est la forme exacte de la règle de CD, qui vit elle aussi
+   * dans `Callout.css` et non dans `Prose.css` — la marge contextuelle appartient à la boîte.
+   */
+  :global(.prose) .callout {
+    margin: 2.2em 0;
+  }
 </style>

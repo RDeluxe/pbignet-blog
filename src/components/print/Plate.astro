@@ -118,4 +118,15 @@ const { surface = 'paper', grid = true, tag, as: Tag = 'div' } = Astro.props
   /* Aucune transition ni animation dans ce composant (la plate est statique par contrat),
    * donc rien à couper pour `prefers-reduced-motion` — `base.css` couvre le reste du site.
    */
+
+  /* Dans un corps d'article, la plate prend le rythme de la citation et reste à largeur de
+   * colonne — voir la note de `Callout.astro` sur ce `:global()` d'ancêtre, qui reproduit
+   * celui du gold (`.prose .plate` vit dans `Plate.css`, pas dans `Prose.css`).
+   *
+   * À cet endroit une plate B6 n'est pas une image mais un REGISTRE : le gold en donne le
+   * patron, un `tag` « Ledger · One Week » et des lignes en `MonoLabel`.
+   */
+  :global(.prose) .plate {
+    margin: 2.2em 0;
+  }
 </style>
