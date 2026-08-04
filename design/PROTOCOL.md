@@ -33,23 +33,20 @@ n'entre dans `src/` sans son œil**.
 
 ## 3. La session d'idéation
 
-1. **EXPORT** — produire un build lisible du site réel :
+**Le lancement est automatisé : le skill `session-cd`** (`.claude/skills/session-cd/`).
+Pierrick dit « lance une session d'idéation », et le skill enchaîne :
 
-   ```sh
-   pnpm build:cd        # → dist-cd/ : non minifié, CSS en fichiers (pas inliné)
-   ```
+1. **EXPORT** — `pnpm build:cd` → `dist-cd/` (non minifié, CSS en fichiers), zippé avec
+   `ditto -c -k` dans un dossier temporaire.
 
-   Pierrick importe le contenu dans le projet CD (upload). L'export embarque l'état
-   exact du site ; y joindre `doctrine/0_NORTHSTAR.html` si le projet CD n'a plus la
-   doctrine sous la main.
-
-2. **PROMPT** — coller [`SESSION-CD.md`](SESSION-CD.md) en début de session. Il donne à
-   CD son rôle, les règles et surtout le **format de sortie** : un `CHANGES.md` tenu au
-   fil de l'eau.
+2. **ENVOI** — le zip + `doctrine/0_NORTHSTAR.html` sont uploadés dans le projet CD
+   (**« blog »** — l'ancien « Pierrick Blog » est un backup, on n'y écrit plus), avec le
+   prompt de [`SESSION-CD.md`](SESSION-CD.md) : le rôle de CD, les règles, et le format
+   de sortie — un `ROUND-UP.md` tenu au fil de l'eau, consolidé en fin de session.
 
 3. **IDÉATION** — Pierrick et CD travaillent. Les explorations se font sur des **copies
-   ou de nouvelles pages**, jamais en modifiant les fichiers importés : l'import intact
-   est la référence « avant » qui rend le bilan vérifiable.
+   ou de nouvelles pages** (`study - <sujet>`), jamais en modifiant l'export importé :
+   l'import intact est la référence « avant » qui rend le round-up vérifiable.
 
 4. **RETOUR** — rapatrier ce que la session a produit :
    - à l'unité : `DesignSync get_file` (lecture directe, sans navigateur) ;
@@ -57,7 +54,7 @@ n'entre dans `src/` sans son œil**.
      un `curl` échoue, `cf_clearance` est lié à l'empreinte TLS), puis
      `ditto -x -k` (l'UTF-8 des noms accentués casse avec `unzip` sur macOS).
 
-   Lire `CHANGES.md` pour l'intention, **regarder les fichiers pour le contenu** — le
+   Lire `ROUND-UP.md` pour l'intention, **regarder les fichiers pour le contenu** — le
    bilan d'un LLM sans diff est une narration, pas un relevé. Pierrick tranche ce qui
    entre ; CC porte dans `src/` selon le tri de `PIPELINE.md` §3, et vérifie au rendu
    (captures dans `.screenshots/`, styles calculés via Playwright).
@@ -79,4 +76,5 @@ n'entre dans `src/` sans son œil**.
 | 2026-08-04 | **Pivot : le code devient la source de vérité ; CD devient un atelier d'idéation par sessions.** Décision de Pierrick, après analyse critique de l'ancien protocole : la vérité vivait dans le système le moins outillé (pas de git, pas de diff, pas d'API d'écriture, Cloudflare), et la plomberie de convergence continue — miroir par composant, `manifest.json` des scopes, `css-diff.mjs`, double copie du protocole, back-port permanent, gate à deux modes — compensait ce choix au lieu de le corriger. |
 | 2026-08-04 | **Démonté** : `design/mirror/` (manifeste, `css-diff.mjs`, BILAN), le script `pnpm mirror:diff`, la dépendance `postcss`, la double copie de PROTOCOL.md, le flux UP par briefs, les modes A/B de la gate. Tout reste lisible au commit `d40181b`. |
 | 2026-08-04 | **Rapatrié** : `0_NORTHSTAR.html` et `Design Notes.md` deviennent canoniques dans `design/doctrine/`. Les valeurs de production sont celles du code. |
-| 2026-08-04 | **Créé** : `pnpm build:cd` (export lisible pour CD) et `SESSION-CD.md` (prompt de session). Le bilan de session est le `CHANGES.md` produit par CD — à l'essai : s'il se révèle peu fiable, la vérification par diff reviendra, mais côté retour de session, pas en convergence continue. |
+| 2026-08-04 | **Créé** : `pnpm build:cd` (export lisible pour CD) et `SESSION-CD.md` (prompt de session). Le bilan de session est le `ROUND-UP.md` produit par CD — à l'essai : s'il se révèle peu fiable, la vérification par diff reviendra, mais côté retour de session, pas en convergence continue. |
+| 2026-08-04 | **Skill `session-cd`** : le lancement de session est automatisé (build, zip `ditto`, upload zip + NORTHSTAR dans le projet CD, prompt inséré). Nouveau projet CD **« blog »** à créer par Pierrick ; « Pierrick Blog » devient un backup en lecture seule. URL à renseigner dans le skill à la première invocation. |

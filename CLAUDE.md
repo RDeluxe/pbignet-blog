@@ -59,11 +59,12 @@ Pierrick (en session CD ou directement), pas pour moi.
 
 ### La session d'idéation CD, en bref (détail : PROTOCOL §3)
 
-1. `pnpm build:cd` → `dist-cd/` (build lisible : non minifié, CSS en fichiers) ;
-   Pierrick l'importe dans CD.
-2. Coller `design/SESSION-CD.md` dans le composer.
-3. CD idéationne sur des copies/nouvelles pages et tient un `CHANGES.md` au fil de l'eau.
-4. Retour : lire `CHANGES.md` pour l'intention, **les fichiers pour le contenu** ; Pierrick
+1. **Lancement automatisé : le skill `session-cd`** (« lance une session d'idéation ») —
+   `pnpm build:cd`, zip, upload du zip + NORTHSTAR dans le projet CD **« blog »** avec le
+   prompt de `design/SESSION-CD.md`.
+2. CD idéationne sur des copies/nouvelles pages (`study - <sujet>`) et tient un
+   `ROUND-UP.md` au fil de l'eau.
+3. Retour : lire `ROUND-UP.md` pour l'intention, **les fichiers pour le contenu** ; Pierrick
    tranche ; je porte dans `src/` selon le tri de PIPELINE §3 et je vérifie au rendu.
    Rapatriement : `DesignSync get_file` à l'unité (sans navigateur) ; en bloc via MCP
    Playwright (seul passé Cloudflare, session ~6 semaines, `ditto -x -k` pas `unzip`).
