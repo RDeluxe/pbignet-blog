@@ -287,11 +287,10 @@ compteur de sélecteurs trompe, et le bilan détaillé est dans `mirror/BILAN.md
 tous de la notation, du paramètre de recipe art-directée, ou un `!important` vestigial.
 **Aucune dérive inexpliquée, aucune question ouverte.**
 
-### ⚠️ En attente de l'accord de Pierrick (rétroactif)
+### ✅ Validé par Pierrick le 2026-08-04
 
-La gate humaine (§1.1) a été décidée **après** les arbitrages du 4 août. Ces décisions ont
-donc été portées dans `src/` sans passer la gate. Elles ne sont pas annulées, mais elles
-sont **à revoir** — chacune est isolée dans un commit, donc réversible :
+La gate (§1.1) a été décidée **après** les arbitrages du 4 août, qui sont donc entrés dans
+`src/` sans la passer. Présentés rétroactivement, **les cinq sont validés** :
 
 | Décision | Commit | Effet visible |
 |---|---|---|
