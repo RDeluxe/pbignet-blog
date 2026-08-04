@@ -1,9 +1,12 @@
 # PIPELINE — de la research Claude Design au design system en prod
 
 > **Ce document est la doctrine CODE.** La doctrine DESIGN est dans
-> `claude-design/Pierrick Blog/dot·paper - NORTHSTAR.html` (north star, couleur, type,
-> anatomie de page, guardrails). Le NORTHSTAR dit **quoi**, ce document dit **comment ça
-> devient du code maintenable**.
+> `claude-design/Pierrick Blog/0_NORTHSTAR.html` (north star, couleur, type, anatomie de
+> page, guardrails). Le NORTHSTAR dit **quoi**, ce document dit **comment ça devient du
+> code maintenable**.
+>
+> L'**interface** avec Claude Design — qui décide quoi, le miroir CSS, les procédures de
+> sync, la vérification — est dans [`PROTOCOL.md`](./PROTOCOL.md).
 
 ---
 
@@ -25,33 +28,28 @@ Ce document est la règle de passage.
 ## 2. Le flux, en une image
 
 ```
-┌─ Claude Design : « Pierrick Blog » ─┐        research, exploration, art direction
-│  HTML/CSS autonome, jetable         │        ── JAMAIS édité depuis le repo ──
+┌─ Claude Design : « Pierrick Blog » ─┐   gold (validé) + research (bancs d'essai)
+│  HTML/CSS autonome                  │   ── JAMAIS édité depuis le repo ──
 └──────────────┬──────────────────────┘
-               │ DOWN — zip via MCP Playwright (cf. CLAUDE.md § Sync)
+               │ DOWN — zip via MCP Playwright (PROTOCOL §4.1)
                ▼
-    design/claude-design/Pierrick Blog/        MIROIR pur, read-only, écrasé à chaque sync
-               │
-               │ TRI  (§3) — la seule étape qui demande du jugement
-               ▼
-    src/styles/tokens/*.css   ·   src/components/**   ·   src/lib/**
-               │
-               │ UP — DesignSync (§6)
-               ▼
-┌─ Claude Design : « dot·paper » (type Design System) ─┐   le DS que Claude Design consomme
-│  tokens/*.css · *.card.html · *.d.ts · SKILL.md      │   pour ses prochaines explorations
-└──────────────────────────────────────────────────────┘
+    design/claude-design/Pierrick Blog/    MIROIR pur, écrasé à chaque sync
+               │         ▲
+               │ TRI     │ le miroir porte un fichier CSS par composant :
+               │ (§3)    │ assets/components/<Nom>.css ↔ <Nom>.astro
+               ▼         │
+    src/styles/tokens/*.css · src/components/** · src/lib/**
+               │         │
+               └─────────┘ pnpm mirror:diff — compare les deux côtés
+                           par déclaration (PROTOCOL §4.3)
 ```
 
-**Asymétrie volontaire** : on lit la research, on n'y écrit jamais. On écrit dans le projet
-Design System, qui ne contient pas de research. Aucune collision possible, donc rien à
-écraser.
+**Asymétrie volontaire** : on lit CD, on n'y écrit jamais. Ce qui remonte prend la forme
+d'un **brief en prose** (`design/briefs/`), et c'est CD qui l'applique — jamais un bundle
+poussé depuis le repo. Détail et raisons dans `PROTOCOL.md` §4.2.
 
-> **Contrainte de plateforme** : le type d'un projet Claude Design est **immuable à la
-> création**. « Pierrick Blog » est un `PROJECT_TYPE_PROJECT`, donc `DesignSync` **ne peut
-> pas** y écrire — et un duplicata resterait du même type. Le projet Design System doit
-> être **créé** comme tel (`DesignSync create_project`), puis la research y est **copiée**
-> depuis le miroir local.
+Le miroir n'est donc pas seulement une copie de lecture : comme les deux côtés portent le
+même découpage, un écart devient un **diff lisible** au lieu d'une intuition.
 
 ---
 
@@ -305,83 +303,18 @@ dans le code (les trois premières le sont depuis le re-base) :
 
 ---
 
-## 6. Les deux procédures de sync
+## 6. Le protocole avec Claude Design
 
-### DOWN — research → miroir
+**Déplacé dans son propre document : [`PROTOCOL.md`](./PROTOCOL.md).**
 
-Inchangée, décrite dans `CLAUDE.md § Sync depuis Claude Design`. En bref : `browser_navigate`
-sur l'URL REST de download via le **MCP Playwright** (seul navigateur passé Cloudflare),
-puis `ditto` + `rsync -a --delete` vers le miroir. Le miroir est **pur** : rien ne s'y édite
-à la main.
+C'est la référence partagée entre Claude Code et Claude Design — le partage des rôles
+(qui décide quoi, ce qu'on peut légitimement demander à CD), la forme du miroir CSS et
+ses deux conventions, le manifeste de périmètre, les quatre procédures (DOWN, brief UP,
+`pnpm mirror:diff`, captures avant/après), les limites de l'outillage et le journal
+daté des décisions de protocole.
 
-### UP — un brief, pas un bundle (révisé 2026-08-03, le soir)
-
-**Ce qui a été abandonné le matin** : pousser un bundle de 40 fichiers dans un projet Design
-System — tokens, 23 contrats `.d.ts`, 5 notices, 3 cards, un `SKILL.md`. Pierrick l'a jugé
-illisible et il avait raison : des déclarations TypeScript et des pages de preview dans un
-outil de design ne montrent aucun composant, et il n'y avait aucune planche visuelle.
-`0_NORTHSTAR.html` fait ce travail mieux, en un document. Projet supprimé, script avec.
-
-La leçon reste : le problème n'était pas l'absence d'outillage, c'était que le code avait pris
-des décisions de design (trois crèmes unifiées, la mesure de lecture réinterprétée, un
-`--fs-lead` inventé). Un second artefact de vérité ne pouvait pas soigner ça.
-
-**Ce qui marche, décidé le soir** : un brief en prose, un miroir CSS, un diff.
-
-1. Écrire le brief dans `design/briefs/<date>-<sujet>.md`. Le dossier est **hors miroir**,
-   donc `rsync --delete` ne l'efface pas : ça devient le journal daté de ce qu'on a demandé.
-2. Le faire parvenir à CD — uploadé par Pierrick, ou tapé dans le composer via le MCP
-   Playwright. Dans ce cas utiliser **`keyboard.insertText`**, jamais `type` : chaque `\n`
-   déclencherait l'envoi et le message partirait en morceaux. (`require` n'existe pas dans le
-   sandbox `run_code_unsafe` : passer le texte en littéral.)
-3. CD exécute, et tranche ce qui est de son ressort.
-4. Sync DOWN, puis `pnpm mirror:diff` pour vérifier — jamais sur parole.
-
-**La règle qui ne change pas** : un brief demande du **rangement** ou un **mécanisme**, jamais
-un choix de design. Le brief du 3 août portait 4 collisions déjà arbitrées (des déplacements à
-valeur constante, donc pas des décisions) et posait à CD la seule vraie question de design :
-`.frame`, variante ou deux composants ? Il a répondu variante. C'est le partage à tenir.
-
-### Le miroir CSS — un fichier par composant des deux côtés
-
-CD ne portera jamais de composants Astro. Mais il porte **le même découpage** :
-
-```
-assets/paper.css              ← fondation : reset, :root, surface papier, focus, print
-                                 + la liste des @import (les 29 résolvent, vérifié)
-assets/components/<Nom>.css   ← un par composant, au nom du composant Astro
-```
-
-Deux conventions, inscrites côté CD dans `0_NORTHSTAR.html` §11 « Component conventions » :
-
-1. **Le fichier CD porte le nom du composant Astro**, à l'identique.
-2. **Les variantes s'écrivent en `data-*`** des deux côtés — `.tag[data-accent='on']`, pas
-   `.tag-accent`. C'est ce qui rend les sélecteurs comparables.
-
-`design/mirror/manifest.json` déclare le périmètre, sans quoi le diff hurle sur ce qui n'a pas
-à converger : `mirrored` (doit converger, tout écart est un signal) · `ours-only` (plomberie de
-layout, CD n'a rien à en dire) · `cd-only` (CD l'a spécifié, on ne l'a pas porté : c'est une
-dette, pas un écart).
-
-`design/mirror/css-diff.mjs` compare **par déclaration, pas par texte** — sinon rien ne
-correspondrait jamais. Il neutralise `[data-astro-cid-*]`, éclate les sélecteurs de groupe,
-indexe par contexte `@media`, uniformise les guillemets et les espaces dans les parenthèses.
-Et surtout il **résout les `var()` de chaque côté avec ses propres tokens** : `var(--fs-tag)`
-contre `10px` n'est pas un écart si le token vaut 10px. Ces cas sont comptés séparément comme
-« équivalents ».
-
-**Trois limites à connaître avant de croire un rapport :**
-
-- **Le CSS inline est invisible.** Un `style` sur `<html>` n'apparaît dans aucune feuille, donc
-  échappe au diff. C'est pourquoi l'ink de page doit vivre dans `:root[data-ink]` — sinon la
-  seule valeur qui distingue un article de la home est la seule qu'on ne peut pas contrôler.
-- **`calc()` n'est pas évalué.** `calc(-1 * 9px)` et `-9px` seront signalés comme différents.
-- **La comparaison pixel a un plancher sur toute page dithérée.** `dither.js` et le grain de
-  `texture.js` (`Math.random`) ne sont pas reproductibles : deux rendus de la *même* page
-  d'article diffèrent de 16,6 %. Toujours mesurer ce plancher avant de conclure à une
-  régression, et masquer `.grain-layer` / `.topo-layer` / `.vignette` pour comparer.
-
----
+Ce document-ci garde ce qui lui appartient : comment le CSS de CD devient du code Astro
+maintenable — le tri, les règles dures, l'anatomie d'un composant, l'état de la migration.
 
 ## 7. Anatomie d'un composant
 
@@ -403,7 +336,7 @@ Trois familles :
 
 Une `preview.astro` (les pages `/ds/*`) sert à **juger un composant sur pièce** avant de
 l'utiliser en page : variantes côte à côte, contraste mesurable, comportement au survol et au
-focus. Elle vaut pour ça seul — il n'y a pas de flux UP à alimenter (§6).
+focus. Elle vaut pour ça seul : ce n'est pas un artefact à pousser vers CD (§6).
 
 ---
 

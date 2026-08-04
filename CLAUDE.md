@@ -25,6 +25,12 @@ jamais sur les valeurs.
 
 Avant de toucher à quoi que ce soit (composant, style, layout, animation), chercher la réponse dans ce dossier. Ne jamais improviser une décision de design.
 
+**Protocole CC ↔ CD : `design/PROTOCOL.md`** — la référence partagée entre Claude Code et
+Claude Design : qui décide quoi, le miroir CSS par composant (un fichier CD par composant
+Astro, variantes en `data-*`), le manifeste de périmètre, les procédures de sync et de
+vérification, et le journal daté des décisions de protocole. **À lire avant tout échange
+avec CD.**
+
 **Doctrine CODE : `design/PIPELINE.md`** — comment la research Claude Design (HTML/CSS de page)
 devient un design system maintenable : le tri (token / primitive / composant / effet / poubelle),
 les règles dures (zéro `<style>` de page, `:global()` interdit, props = intentions, les 3
@@ -62,59 +68,25 @@ design/
 
 Un narratif périmé ne fait jamais foi contre les valeurs. **Lire les dates** : `Design Notes.md` contient des décisions de juillet et août 2026 qui invalident des sections plus anciennes.
 
-### Sync depuis Claude Design (piloté via MCP Playwright)
+### Sync avec Claude Design → `design/PROTOCOL.md`
 
-Source distante : **claude.ai/design**, projet `Pierrick Blog`
-(`https://claude.ai/design/p/e60b80b7-668a-4d7c-a86d-36bb397d9245`).
+**Le protocole complet est dans [`design/PROTOCOL.md`](design/PROTOCOL.md)** : le partage
+des rôles, le miroir CSS par composant, le manifeste de périmètre, les quatre procédures
+(DOWN, brief UP, `pnpm mirror:diff`, captures avant/après), les limites de l'outillage et
+le journal daté des décisions.
 
-> **Pourquoi pas un script standalone ?** L'export est pourtant un simple GET REST
-> (`https://claude.ai/design/v1/design/projects/<id>/download` → `.zip`), mais
-> **Cloudflare bloque tout login depuis un navigateur lancé par Playwright** (détection bot,
-> challenge infini). Seul le **navigateur du MCP Playwright** — où Pierrick s'est connecté à la
-> main — passe Cloudflare. On pilote donc le sync via le MCP, à la demande.
+L'essentiel à retenir sans y aller :
 
-> ⛔ **Le sync est DOWN uniquement. Ne pas construire de flux UP.** Un projet Claude Design
-> de type Design System a été créé le 2026-08-03 pour y pousser le code (tokens, contrats
-> `.d.ts`, cards) : Pierrick l'a jugé **illisible** — des déclarations TypeScript et des pages
-> de preview dans un outil de design — et il a été supprimé le jour même. `0_NORTHSTAR.html`
-> fait ce travail, mieux. Le remède aux écarts du code est la **discipline** (ne pas décider
-> de design côté code), pas un second artefact de vérité. Détail : `PIPELINE.md` §6.
-
-> **Lire UN fichier distant ne demande PAS de sync.** L'outil **`DesignSync get_file`**
-> (`projectId` + `path`) lit le projet à l'unité via le login Claude Code, **sans navigateur
-> et sans Cloudflare** — et `DesignSync list_files` donne l'arborescence distante, donc de
-> quoi détecter en un appel que le miroir a dérivé. Validé 2026-08-03. Le zip ne sert qu'au
-> miroir complet (binaires, screenshots, photos).
-> ⚠️ `DesignSync` ne peut pas **écrire** dans ce projet : il est de type
-> `PROJECT_TYPE_PROJECT`, et seuls les `PROJECT_TYPE_DESIGN_SYSTEM` sont writable (type
-> immuable à la création — dupliquer n'y change rien).
-
-Procédure (Claude la déroule quand Pierrick demande un sync) :
-
-1. **`browser_navigate`** vers l'URL du projet. Si redirection vers `/login` → demander à
-   Pierrick de se connecter dans la fenêtre MCP. La session **expire** (constaté ~6 semaines) :
-   un 401 sur l'URL de download est le symptôme, il faut alors relancer la fenêtre et
-   redemander le login.
-2. **Export** — deux voies :
-   - ✅ **Voie rapide (préférée, ~1 appel, peu de tokens, validée 2026-06-24)** : `browser_navigate`
-     directement vers l'**URL REST de download** →
-     `https://claude.ai/design/v1/design/projects/<id>/download` (id du projet ci-dessus).
-     Le navigateur MCP est déjà passé Cloudflare, donc le GET télécharge le zip dans
-     `.playwright-mcp/Pierrick-Blog.zip` sans la danse UI. (Un `curl` externe avec cookies
-     échoue : `cf_clearance` est lié à l'empreinte TLS du navigateur + cookies httpOnly.)
-   - Voie UI (fallback si l'URL change) : cliquer `Share` → onglet **Export** →
-     **Project archive `.zip`** → **Download**.
-   ⚠️ Pas dans le menu projet (Rename/Duplicate/Delete) ni via `DesignSync` (pas d'export zip).
-3. **Miroir** (le dossier est 100% distant → miroir pur, pas d'`--exclude`). `ditto` gère l'UTF-8
-   des noms accentués que `unzip` casse sur macOS :
-   ```sh
-   STAGE="$(mktemp -d)"
-   ditto -x -k ".playwright-mcp/Pierrick-Blog.zip" "$STAGE"
-   rsync -a --delete "$STAGE/" "design/claude-design/Pierrick Blog/"
-   rm -rf "$STAGE" .playwright-mcp/Pierrick-Blog.zip
-   ```
-   `--delete` purge ce qui a disparu côté distant (ex. l'ancien `_ds/`). Les artefacts hors
-   miroir (`design/impeccable/…`) ne sont pas touchés.
+- Projet distant : `Pierrick Blog` — `https://claude.ai/design/p/e60b80b7-668a-4d7c-a86d-36bb397d9245`
+- **Le sync passe par le MCP Playwright**, seul navigateur passé Cloudflare. Un `curl`
+  avec cookies échoue (`cf_clearance` est lié à l'empreinte TLS du navigateur). La session
+  expire (~6 semaines) : un 401 sur l'URL de download est le symptôme.
+- **Lire un fichier distant ne demande pas de sync** : `DesignSync get_file` / `list_files`
+  lisent à l'unité, sans navigateur. Mais `DesignSync` **ne peut pas écrire** ici (le projet
+  est un `PROJECT_TYPE_PROJECT`, type immuable).
+- **Rien ne remonte sous forme de bundle poussé.** Ce qui remonte est un **brief en prose**
+  dans `design/briefs/`, que CD applique et qu'on vérifie ensuite au diff.
+- Le miroir est **100 % distant** : ne rien y éditer à la main, `rsync --delete` l'écrase.
 
 ### Captures de vérification : toujours dans `.screenshots/`
 
