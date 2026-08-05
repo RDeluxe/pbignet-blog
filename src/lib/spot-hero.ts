@@ -167,6 +167,12 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
   let dir = chromaDir(P.keepColor)
 
   let src: Uint8ClampedArray | null = null
+  // le topo (canvas.topo-on) vit AU-DESSUS du canvas dither : en keepSharp, ses traits
+  // se retrouveraient devant la photo nette. On le masque avec l'ALPHA du canvas dither
+  // lui-même (opaque = sol tramé, troué = zone nette). L'alpha ne dépend pas du boil,
+  // donc le masque n'est régénéré que quand les paramètres de sélection changent.
+  let topoMaskDirty = true
+  let topoMasked = false
   let lw = 0
   let lh = 0
   let builtCell = 0
@@ -246,6 +252,7 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
     canvas!.width = lw
     canvas!.height = lh
     canvas!.style.display = 'block'
+    topoMaskDirty = true
     builtCell = P.cell
     builtFocalX = P.focalX
     builtFocalY = P.focalY
@@ -317,6 +324,32 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
       }
     }
     ctx.putImageData(out, 0, 0)
+    syncTopoMask()
+  }
+
+  /** applique (ou retire) le masque alpha du dither sur le canvas topo sibling */
+  function syncTopoMask(): void {
+    const topo = container.querySelector<HTMLCanvasElement>('canvas.topo-on')
+    if (!topo)
+      return
+    if (P.keepSharp) {
+      if (!topoMaskDirty)
+        return
+      const url = `url(${canvas!.toDataURL()})`
+      topo.style.webkitMaskImage = url
+      topo.style.maskImage = url
+      topo.style.webkitMaskSize = '100% 100%'
+      topo.style.maskSize = '100% 100%'
+      topoMaskDirty = false
+      topoMasked = true
+    }
+    else if (topoMasked) {
+      topo.style.webkitMaskImage = ''
+      topo.style.maskImage = ''
+      topo.style.webkitMaskSize = ''
+      topo.style.maskSize = ''
+      topoMasked = false
+    }
   }
 
   /** rebuild si la géométrie a changé, puis rend une image */
@@ -398,6 +431,7 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
       Object.assign(P, next)
       if (next.keepColor != null)
         dir = chromaDir(P.keepColor)
+      topoMaskDirty = true
       if (geometryChanged)
         build()
       draw()
