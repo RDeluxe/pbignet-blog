@@ -11,7 +11,8 @@
  *   pnpm build:od --no-build   → sync seul (quand le build est déjà frais)
  *
  * Le dossier projet Open Design est une donnée de MACHINE, pas de repo : il vient de
- * la variable d'environnement `OD_PROJECT_DIR` (à exporter dans le profil shell).
+ * la variable d'environnement `OD_PROJECT_DIR` — posée dans le `.env` du repo
+ * (gitignored) ou exportée dans le shell, au choix ; le shell gagne s'il l'a déjà.
  *
  * La copie est allégée : sortent `sitemap*.xml` et les `.woff` dont le `.woff2` jumeau
  * existe (@fontsource livre les deux, le moteur ne lit que le second ; le fallback
@@ -33,12 +34,20 @@ import esbuild from 'esbuild'
 const REPO = resolve(import.meta.dirname, '..')
 const BUILD = join(REPO, 'dist-cd')
 
+// le shell gagne ; à défaut, le `.env` du repo (gitignored) fournit la donnée de machine
+if (!process.env.OD_PROJECT_DIR) {
+  try {
+    process.loadEnvFile(join(REPO, '.env'))
+  }
+  catch {}
+}
+
 const OD = process.env.OD_PROJECT_DIR
 if (!OD) {
   console.error(
     'OD_PROJECT_DIR manquant — le dossier projet Open Design est une donnée de machine.\n'
-    + 'Exemple (profil shell) :\n'
-    + '  export OD_PROJECT_DIR="$HOME/Library/Application Support/Open Design/namespaces/release-stable/data/projects/<id>"',
+    + 'À poser dans le `.env` du repo (gitignored) :\n'
+    + '  OD_PROJECT_DIR="/Users/<vous>/Library/Application Support/Open Design/namespaces/release-stable/data/projects/<id>"',
   )
   process.exit(2)
 }
