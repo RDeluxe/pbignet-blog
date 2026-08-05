@@ -57,7 +57,8 @@ interface Props {
   /** afficher l'indice de défilement */
   cue?: boolean
 
-  /** placement du titre — art direction par image */
+  /** placement du titre — art direction par image. Défaut : la gouttière. */
+  titleX?: string
   titleY?: string
   /** override du placement en étroit (≤700px) */
   titleYMobile?: string
@@ -86,6 +87,7 @@ const {
   method,
   vcap,
   cue = true,
+  titleX,
   titleY = '11%',
   titleYMobile,
   titleInk = 'light',
@@ -105,6 +107,7 @@ const groundRgb = Array.isArray(ground) ? ground.join(', ') : String(ground)
 const vars = {
   phGround: groundRgb,
   phHeight: height,
+  phTitleX: titleX ?? 'var(--gutter)',
   phTitleYBase: titleY,
   phTitleYMobile: titleYMobile ?? titleY,
 }
@@ -149,13 +152,19 @@ const engine = {
 <div class="hero-fade" aria-hidden="true"></div>
 
 <script>
+import type { SpotHeroHandle } from '../../lib/spot-hero'
 import { mount } from '../../lib/spot-hero'
 import { Topo } from '../../scripts/texture'
 
 // une page peut porter plusieurs covers (page de preview) : on monte chacune.
 document.querySelectorAll<HTMLElement>('.post-hero').forEach((hero) => {
   const recipe = JSON.parse(hero.dataset.recipe ?? '{}')
-  mount(hero, recipe)
+  const handle = mount(hero, recipe)
+
+  // le handle est exposé sur l'élément pour l'outillage de design (SpotTweaks, /ds) —
+  // mécanisme invisible au rendu, aucun style ne bouge
+  ;(hero as HTMLElement & { spotHero?: SpotHeroHandle }).spotHero = handle
+  hero.dispatchEvent(new CustomEvent('spot-hero:ready', { bubbles: true }))
 
   // les contours du hero suivent l'encre du fond, éclaircis pour rester lisibles dessus
   const topo = hero.querySelector<HTMLCanvasElement>('canvas.topo-on')
@@ -242,7 +251,7 @@ document.querySelectorAll<HTMLElement>('.post-hero').forEach((hero) => {
 
   .ph-word {
     position: absolute;
-    left: var(--gutter);
+    left: var(--phTitleX);
     top: var(--ph-title-y);
     z-index: 7;
     max-width: calc(100% - 2 * var(--gutter));
@@ -256,7 +265,7 @@ document.querySelectorAll<HTMLElement>('.post-hero').forEach((hero) => {
   }
   .ph-kicker {
     position: absolute;
-    left: var(--gutter);
+    left: var(--phTitleX);
     top: calc(var(--ph-title-y) - 30px);
     z-index: 7;
     font-family: var(--mono);

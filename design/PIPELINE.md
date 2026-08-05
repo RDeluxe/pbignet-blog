@@ -373,9 +373,24 @@ focus. Elle vaut pour ça seul : ce n'est pas un artefact à pousser vers CD (§
       `transform: scaleX()` au lieu de `width` · hauteur de la barre **mesurée**
       (`--bar-h`, ResizeObserver) au lieu du `calc(-1 * (48px + 2px))` hardcodé ·
       cible tactile du retour portée à 45px.
+- [x] **Heros interchangeables** (décision 2026-08-05) : `cover.kind` au schéma (union
+      discriminée dès le deuxième hero) + `CoverSlot.astro` qui assemble — **pas de
+      contrat commun** entre heros, chacun son schéma et sa traduction frontmatter→props.
+      La route article ne connaît aucun hero.
+- [x] `HeroPopColor` : prop `titleX` (art direction par image, comme `titleY`) + le handle
+      du moteur exposé sur l'élément (`hero.spotHero`, événement `spot-hero:ready`) pour
+      l'outillage de design.
+- [x] **`SpotTweaks`** (`components/ds/`) : le panneau de réglages de l'atelier OD porté
+      et typé, monté sur `/ds/hero-pop-color` (touche T, recipe en syntaxe de props,
+      sonde de lisibilité des pixels). Réservé aux pages `/ds/*`. L'atelier OD reçoit
+      les mises à jour par l'export, pas l'inverse.
+- [x] Recipe « Building Bridges » art-directée au panneau OD appliquée à l'article du
+      pont (cell 2, contrast 1.5, 100vh, focal y 0.34). Contraste du titre **mesuré**
+      (§4.6b) : 7,21:1 au pire pixel, à 1440px et 390px — pas besoin de `titleYMobile`.
 - [ ] `PullQuote` n'est pas atteignable depuis un `.md` : les citations Markdown (`>`) sont
       stylées dans `Prose`. Pour l'invoquer, il faudrait passer les articles en `.mdoc` et
-      déclarer un tag Markdoc.
+      déclarer un tag Markdoc. L'article « One red thing » de l'atelier (callout, plate,
+      pull, figure) attend ce chantier pour être porté en contenu réel.
 - [ ] Portage de `dither.js` en TS — les plates du corps utilisent les PNG pré-cuits, ce qui
       suffit ; à faire si l'on veut qu'elles suivent `--paper` en direct.
 - [ ] Les 30 erreurs de lint restantes (toutes antérieures à ce chantier).

@@ -3,7 +3,7 @@ import type { GetStaticPaths } from 'astro'
 import { getCollection, render } from 'astro:content'
 import ArticleBar from '../../components/article/ArticleBar.astro'
 import ArticleHead from '../../components/article/ArticleHead.astro'
-import HeroPopColor from '../../components/hero/HeroPopColor.astro'
+import CoverSlot from '../../components/hero/CoverSlot.astro'
 import Prose from '../../components/primitives/Prose.astro'
 import SiteFooter from '../../components/SiteFooter.astro'
 import BaseLayout from '../../layouts/BaseLayout.astro'
@@ -33,23 +33,7 @@ const stats = [
 <BaseLayout title={`${d.title} — exhale`} description={d.dek ?? d.description} ink="sepia">
   <ArticleBar title={d.title} overCover={!!d.cover} />
 
-  {d.cover && (
-    <HeroPopColor
-      photo={{ src: d.cover.src, alt: d.cover.alt }}
-      title={d.cover.word ?? d.title}
-      kicker={d.cover.kicker}
-      place={d.cover.place}
-      method={d.cover.method}
-      vcap={d.cover.vcap}
-      titleY={d.cover.titleY}
-      titleYMobile={d.cover.titleYMobile}
-      titleInk={d.cover.titleInk}
-      height={d.cover.height}
-      underBar
-      focal={d.cover.focal}
-      spot={d.cover.spot}
-    />
-  )}
+  {d.cover && <CoverSlot cover={d.cover} fallbackTitle={d.title} />}
 
   <article>
     <ArticleHead

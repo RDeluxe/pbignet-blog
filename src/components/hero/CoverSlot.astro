@@ -1,0 +1,39 @@
+---
+/**
+ * CoverSlot — l'assemblage : le frontmatter dit `kind`, ce composant pose le bon hero.
+ *
+ * Il n'y a PAS de contrat commun entre les heros (décision 2026-08-05) : chacun a son
+ * schéma dans `content.config.ts` et sa traduction frontmatter → props ici. Ajouter un
+ * hero = un membre d'union au schéma + une branche ci-dessous. La route article ne
+ * connaît aucun hero.
+ */
+import type { CollectionEntry } from 'astro:content'
+import HeroPopColor from './HeroPopColor.astro'
+
+interface Props {
+  cover: NonNullable<CollectionEntry<'writing'>['data']['cover']>
+  /** le titre de l'article — le mot de couverture par défaut */
+  fallbackTitle: string
+}
+
+const { cover, fallbackTitle } = Astro.props
+---
+
+{cover.kind === 'pop-color' && (
+  <HeroPopColor
+    photo={{ src: cover.src, alt: cover.alt }}
+    title={cover.word ?? fallbackTitle}
+    kicker={cover.kicker}
+    place={cover.place}
+    method={cover.method}
+    vcap={cover.vcap}
+    titleX={cover.titleX}
+    titleY={cover.titleY}
+    titleYMobile={cover.titleYMobile}
+    titleInk={cover.titleInk}
+    height={cover.height}
+    underBar
+    focal={cover.focal}
+    spot={cover.spot}
+  />
+)}

@@ -4,6 +4,7 @@
  * Ces pages `ds/` servent à valider un composant et deviendront les `*.card.html`
  * poussées vers le projet Design System (cf. PIPELINE §6). Elles sont `noindex`.
  */
+import SpotTweaks from '../../components/ds/SpotTweaks.astro'
 import HeroPopColor from '../../components/hero/HeroPopColor.astro'
 import Section from '../../components/primitives/Section.astro'
 import MonoLabel from '../../components/print/MonoLabel.astro'
@@ -78,6 +79,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
       satBoost: 0.4,
     }}
   />
+
+  {/* le panneau de réglages (touche T) pilote la PREMIÈRE cover de la page —
+      porté de l'atelier OD le 2026-08-05, il sort la recipe en syntaxe de props */}
+  <SpotTweaks />
 
   <Section>
     <MonoLabel tone="quiet">

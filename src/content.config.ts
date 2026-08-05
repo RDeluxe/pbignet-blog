@@ -18,7 +18,14 @@ const spotRecipe = z.object({
   satBoost: z.number().optional(),
 })
 
-const cover = z.object({
+/**
+ * Chaque hero d'article a SON schéma — pas de contrat commun (décision 2026-08-05) :
+ * les heros peuvent être très différents. Le frontmatter porte `kind`, et
+ * `CoverSlot.astro` assemble le bon composant. Ajouter un hero = un membre d'union
+ * ici + une branche dans CoverSlot.
+ */
+const popColorCover = z.object({
+  kind: z.literal('pop-color').default('pop-color'),
   /** source EN COULEUR, jamais un PNG déjà dithéré — cf. `public/photos/source/` */
   src: z.string(),
   alt: z.string(),
@@ -29,6 +36,7 @@ const cover = z.object({
   method: z.string().optional(),
   vcap: z.string().optional(),
   /** art direction par image — vérifier ≥3:1 à CHAQUE breakpoint */
+  titleX: z.string().optional(),
   titleY: z.string().optional(),
   titleYMobile: z.string().optional(),
   titleInk: z.enum(['light', 'dark']).optional(),
@@ -36,6 +44,8 @@ const cover = z.object({
   focal: z.object({ x: z.number(), y: z.number() }).partial().optional(),
   spot: spotRecipe.optional(),
 })
+
+const cover = popColorCover // z.discriminatedUnion('kind', [...]) dès le deuxième hero
 
 const writing = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdoc}', base: './src/content/writing' }),
