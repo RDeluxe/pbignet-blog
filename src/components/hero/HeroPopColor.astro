@@ -258,7 +258,8 @@ document.querySelectorAll<HTMLElement>('.post-hero').forEach((hero) => {
     left: var(--phTitleX);
     top: var(--ph-title-y);
     z-index: 7;
-    max-width: calc(100% - 2 * var(--gutter));
+    /* le mot de couverture ne dépasse jamais ~60% du cadre : il casse à la ligne */
+    max-width: min(60%, calc(100% - 2 * var(--gutter)));
     margin: 0;
     font-family: var(--display);
     font-weight: var(--w-regular);
