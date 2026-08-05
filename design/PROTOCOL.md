@@ -13,7 +13,10 @@ site ; il n'y a rien à faire converger en permanence.
 
 **Claude Design est un atelier d'idéation**, utilisé par sessions bornées, sur le modèle
 de la branche jetable : on y importe l'état réel du site, on explore, on ramène ce qui
-vaut, le reste meurt avec la session. Le projet CD entre deux sessions n'engage personne.
+vaut. **Ce qui est jetable, c'est la référence exportée**, remplacée à chaque session —
+pas le projet : `research/`, les studies passées, `uploads/` et les anciens round-ups
+s'accumulent, c'est la mémoire de l'atelier. Elle n'engage personne pour autant : une
+study passée n'a jamais force de décision, seul l'export dit l'état réel du site.
 
 **Pierrick est dans la boucle par construction** : c'est lui qui idéationne dans CD et lui
 qui décide ce qui revient. La gate se résume à sa forme naturelle — **rien de visible
