@@ -9,12 +9,14 @@
 dans `src/styles/tokens/*.css` et le CSS scopé des composants — il n'y a plus d'autre
 source de valeurs.
 
-**Claude Design n'est plus un référentiel** : c'est un **atelier d'idéation par sessions**
-(modèle branche jetable — on y importe l'état réel, on explore, on ramène ce qui vaut).
-Le protocole complet : **[`design/PROTOCOL.md`](design/PROTOCOL.md)** ; le prompt de début
-de session : [`design/SESSION-CD.md`](design/SESSION-CD.md). L'ancien protocole de
-convergence continue (miroir par composant, `mirror:diff`, briefs, gate à deux modes) a
-été démonté — l'historique est au commit `d40181b` et avant.
+**L'atelier d'idéation est Open Design** (depuis le 2026-08-05) : une app desktop locale
+qui lit une copie du build sur le disque — le transport claude.ai/Claude Design (zip,
+upload, Cloudflare, `DesignSync`, rapatriement Playwright) est **mort**, il coûtait trop
+de tokens. Le protocole complet : **[`design/PROTOCOL.md`](design/PROTOCOL.md)**.
+L'ancien protocole de convergence continue (miroir par composant, `mirror:diff`, briefs,
+gate à deux modes) avait déjà été démonté — historique au commit `d40181b` et avant ;
+l'ère claude.ai (skill `session-cd`, `SESSION-CD.md`) est l'étape intermédiaire du
+2026-08-04, morte le lendemain.
 
 > ⛔ **La gate, forme actuelle** : rien de visible n'entre dans `src/` sans l'œil de
 > Pierrick. C'est lui qui idéationne dans CD et lui qui décide ce qui revient. Ne
@@ -57,17 +59,21 @@ changé, c'est où on la cherche — la doctrine dans `design/doctrine/`, les va
 `src/styles/tokens/` et les composants. Si une réponse n'y est pas, la question est pour
 Pierrick (en session CD ou directement), pas pour moi.
 
-### La session d'idéation CD, en bref (détail : PROTOCOL §3)
+### La boucle Open Design, en bref (détail : PROTOCOL §3)
 
-1. **Lancement automatisé : le skill `session-cd`** (« lance une session d'idéation ») —
-   `pnpm build:cd`, zip, upload du zip + NORTHSTAR dans le projet CD **« blog »** avec le
-   prompt de `design/SESSION-CD.md`.
-2. CD idéationne sur des copies/nouvelles pages (`study - <sujet>`) et tient un
-   `ROUND-UP.md` au fil de l'eau.
-3. Retour : lire `ROUND-UP.md` pour l'intention, **les fichiers pour le contenu** ; Pierrick
-   tranche ; je porte dans `src/` selon le tri de PIPELINE §3 et je vérifie au rendu.
-   Rapatriement : `DesignSync get_file` à l'unité (sans navigateur) ; en bloc via MCP
-   Playwright (seul passé Cloudflare, session ~6 semaines, `ditto -x -k` pas `unzip`).
+```
+éditer src/  →  pnpm build:od  →  rafraîchir l'onglet d'aperçu Open Design
+```
+
+- `pnpm build:od` = `build:cd` + copie vers `<OD_PROJECT_DIR>/site/` + réécriture des
+  chemins en relatif (le moteur OD rend en `file://` ; `OD_PROJECT_DIR` est une variable
+  d'env, donnée de machine). `--no-build` pour resync seul.
+- **L'aperçu est fidèle pour type/couleur/espacement/images, pas pour les effets JS** :
+  les scripts module sont bloqués par CORS en `file://` — pas de grain/topo/canvas
+  dither, les covers montrent leur `<img>` fallback. Les effets se jugent sur `pnpm dev`.
+- Retour : l'atelier travaille en local, le rapatriement est une lecture de dossier.
+  Pierrick tranche ; je porte dans `src/` selon le tri de PIPELINE §3 et je vérifie au
+  rendu.
 
 ### Captures de vérification : toujours dans `.screenshots/`
 

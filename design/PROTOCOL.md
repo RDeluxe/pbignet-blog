@@ -11,12 +11,13 @@
 **Le code (`src/`) est la source de vérité du design.** Ce qui est dans le repo est le
 site ; il n'y a rien à faire converger en permanence.
 
-**Claude Design est un atelier d'idéation**, utilisé par sessions bornées, sur le modèle
-de la branche jetable : on y importe l'état réel du site, on explore, on ramène ce qui
-vaut. **Ce qui est jetable, c'est la référence exportée**, remplacée à chaque session —
-pas le projet : `research/`, les studies passées, `uploads/` et les anciens round-ups
-s'accumulent, c'est la mémoire de l'atelier. Elle n'engage personne pour autant : une
-study passée n'a jamais force de décision, seul l'export dit l'état réel du site.
+**L'atelier d'idéation est Open Design** (depuis le 2026-08-05) : une app desktop locale
+qui lit un dossier projet sur le disque — plus de claude.ai, plus de Cloudflare, plus de
+transport. L'atelier reçoit une **copie du build réel** (`pnpm build:od`), explore dessus,
+et on ramène ce qui vaut. Les principes de la branche jetable tiennent : la copie du site
+dans l'atelier est **remplacée à chaque sync** et n'est jamais éditée là-bas ; ce que
+l'atelier accumule (studies, notes) est sa mémoire, mais n'a jamais force de décision —
+seul le build dit l'état réel du site.
 
 **Pierrick est dans la boucle par construction** : c'est lui qui idéationne dans CD et lui
 qui décide ce qui revient. La gate se résume à sa forme naturelle — **rien de visible
@@ -30,37 +31,52 @@ n'entre dans `src/` sans son œil**.
 | **Doctrine** (règles, anatomie, guardrails) | [`doctrine/0_NORTHSTAR.html`](doctrine/0_NORTHSTAR.html) | Canonique ici depuis le 2026-08-04. Ses hex sont ceux du specimen, jamais ceux du site. |
 | **Journal des décisions de design** | [`doctrine/Design Notes.md`](doctrine/Design%20Notes.md) (historique) + les commits du repo (désormais) | Une décision ramenée de session = un commit qui la nomme. |
 | **Comment le CSS d'idéation devient du code** | [`PIPELINE.md`](PIPELINE.md) | Le tri, les règles dures — inchangé. |
-| Prompt de début de session CD | [`SESSION-CD.md`](SESSION-CD.md) | À coller dans CD en ouvrant une session. |
-| `claude-design/Pierrick Blog/` | archive du **dernier état ramené** de CD | Plus une référence : un instantané, daté par son commit. |
+| Sync vers l'atelier Open Design | [`scripts/sync-od.mjs`](../scripts/sync-od.mjs) (`pnpm build:od`) | Le dossier projet vient de `OD_PROJECT_DIR`. |
+| [`SESSION-CD.md`](SESSION-CD.md) | archive de l'ère claude.ai | Plus de destinataire depuis le 2026-08-05. |
+| `claude-design/Pierrick Blog/` | archive du **dernier état ramené** de CD (ère claude.ai) | Plus une référence : un instantané, daté par son commit. |
 | `briefs/` | archive de l'ancien flux UP | Historique, plus alimenté. |
 
-## 3. La session d'idéation
+## 3. La boucle de travail avec Open Design
 
-**Le lancement est automatisé : le skill `session-cd`** (`.claude/skills/session-cd/`).
-Pierrick dit « lance une session d'idéation », et le skill enchaîne :
+```
+éditer src/  →  pnpm build:od  →  rafraîchir l'onglet d'aperçu Open Design
+```
 
-1. **EXPORT** — `pnpm build:cd` → `dist-cd/` (non minifié, CSS en fichiers), zippé avec
-   `ditto -c -k` dans un dossier temporaire.
+`pnpm build:od` ([`scripts/sync-od.mjs`](../scripts/sync-od.mjs)) fait trois gestes :
+`pnpm build:cd`, copie de `dist-cd/` vers `<projet OD>/site/`, puis réécriture des
+chemins racine-absolus en relatif. `--no-build` pour resync sans rebuild. Le dossier
+projet vient de **`OD_PROJECT_DIR`** (variable d'environnement — donnée de machine,
+jamais commitée).
 
-2. **ENVOI** — le zip + `doctrine/0_NORTHSTAR.html` sont uploadés dans le projet CD
-   (**« blog »** — l'ancien « Pierrick Blog » est un backup, on n'y écrit plus), avec le
-   prompt de [`SESSION-CD.md`](SESSION-CD.md) : le rôle de CD, les règles, et le format
-   de sortie — un `ROUND-UP.md` tenu au fil de l'eau, consolidé en fin de session.
+### Les trois contraintes du moteur Open Design (constatées le 2026-08-05)
 
-3. **IDÉATION** — Pierrick et CD travaillent. Les explorations se font sur des **copies
-   ou de nouvelles pages** (`study - <sujet>`), jamais en modifiant l'export importé :
-   l'import intact est la référence « avant » qui rend le round-up vérifiable.
+1. **Le dossier projet est la seule racine autorisée** — rien ne se lit en dehors.
+2. **Les symlinks qui sortent du projet sont refusés** (`path escapes project dir`).
+   Il faut de vrais fichiers : d'où la copie.
+3. **Le rendu résout en `file://`** : les chemins racine-absolus d'Astro (`/_astro/…`)
+   partent à la racine du disque et la page se rend **nue**. D'où la réécriture en
+   relatif — y compris les `url(/…)` du CSS (les fonts passent par là) et les liens de
+   nav (`/setup` → `setup.html`, format `file` oblige).
 
-4. **RETOUR** — rapatrier ce que la session a produit :
-   - à l'unité : `DesignSync get_file` (lecture directe, sans navigateur) ;
-   - en bloc : download zip via le MCP Playwright (seul navigateur passé Cloudflare ;
-     un `curl` échoue, `cf_clearance` est lié à l'empreinte TLS), puis
-     `ditto -x -k` (l'UTF-8 des noms accentués casse avec `unzip` sur macOS).
+### Ce que l'aperçu montre — et ne montre pas
 
-   Lire `ROUND-UP.md` pour l'intention, **regarder les fichiers pour le contenu** — le
-   bilan d'un LLM sans diff est une narration, pas un relevé. Pierrick tranche ce qui
-   entre ; CC porte dans `src/` selon le tri de `PIPELINE.md` §3, et vérifie au rendu
-   (captures dans `.screenshots/`, styles calculés via Playwright).
+Mesuré au calculé (Playwright sur `site/index.html` en `file://`) : styles, fonts
+self-hostées et photos chargent — l'aperçu est **fidèle pour le type, la couleur,
+l'espacement, les images**. En revanche les **scripts module sont bloqués par CORS en
+`file://`** : pas de grain, pas de topo, pas de canvas dither — les covers d'article
+montrent leur `<img>` fallback (`photos/source/`, qui reste dans la copie pour ça).
+Les effets JS se jugent sur `pnpm dev`, pas dans l'aperçu.
+
+Les routes non construites (`/projects`, `/now`, `/travel`, `/about`) restent des liens
+morts **volontairement** : un lien mort en preview est honnête, ces pages n'existent pas.
+
+### Le retour
+
+L'atelier travaille en local : ce qu'il produit est déjà sur le disque, le rapatriement
+est une lecture de dossier — plus de transport. Le reste ne change pas : Pierrick tranche
+ce qui entre ; CC porte dans `src/` selon le tri de `PIPELINE.md` §3 et vérifie au rendu
+(captures dans `.screenshots/`, styles calculés via Playwright). Les modalités fines du
+bilan de session côté Open Design restent à roder à l'usage.
 
 ## 4. Les invariants qui survivent à l'ancien protocole
 
@@ -81,3 +97,6 @@ Pierrick dit « lance une session d'idéation », et le skill enchaîne :
 | 2026-08-04 | **Rapatrié** : `0_NORTHSTAR.html` et `Design Notes.md` deviennent canoniques dans `design/doctrine/`. Les valeurs de production sont celles du code. |
 | 2026-08-04 | **Créé** : `pnpm build:cd` (export lisible pour CD) et `SESSION-CD.md` (prompt de session). Le bilan de session est le `ROUND-UP.md` produit par CD — à l'essai : s'il se révèle peu fiable, la vérification par diff reviendra, mais côté retour de session, pas en convergence continue. |
 | 2026-08-04 | **Skill `session-cd`** : le lancement de session est automatisé (build, zip `ditto`, upload zip + NORTHSTAR dans le projet CD, prompt inséré). Nouveau projet CD **« blog »** à créer par Pierrick ; « Pierrick Blog » devient un backup en lecture seule. URL à renseigner dans le skill à la première invocation. |
+| 2026-08-05 | **L'atelier devient Open Design** (app desktop locale sur dossier projet). Le transport claude.ai — zip, upload, Cloudflare, `DesignSync`, rapatriement Playwright — coûtait trop de tokens et marchait mal : tout est mort. `pnpm build:cd` reste le bon matériau ; `scripts/sync-od.mjs` (`pnpm build:od`) copie le build dans `<OD_PROJECT_DIR>/site/` et réécrit les chemins en relatif (le moteur OD rend en `file://`, refuse les symlinks sortants, et une seule racine). |
+| 2026-08-05 | **Décisions de Pierrick** : le skill `session-cd` est **retiré** (le transport claude.ai n'a plus de raison d'être ; historique et scripts Playwright en git, `SESSION-CD.md` reste en archive). Les `public/photos/source/*.jpg` dans le build de prod sont **intentionnels** — sources exposées exprès, pas un reliquat du pipeline de dithering. |
+| 2026-08-05 | **Copie allégée, sauf `photos/source/`.** Sortent : `sitemap*.xml`, les `.woff` doublonnés par leur `.woff2` (hashes différents, détection par nom de base). `photos/source/` **reste**, contre l'intuition du handoff : mesuré en `file://`, le `<img>` fallback du hero pop color pointe dessus — et c'est lui qu'on voit en preview, les scripts module étant bloqués par CORS. Rendu stylé prouvé au calculé : fond `#f6f5f1`, 4 familles de fontes, images 4/4. |

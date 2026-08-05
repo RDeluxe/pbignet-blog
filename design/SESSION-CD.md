@@ -1,3 +1,9 @@
+> ⚠️ **OBSOLÈTE depuis le 2026-08-05** — l'idéation ne passe plus par claude.ai/Claude
+> Design : l'atelier est **Open Design**, en local (PROTOCOL §3). Ce prompt n'a plus de
+> destinataire. Le skill `session-cd` qui l'envoyait a été retiré le même jour (décision
+> de Pierrick ; l'historique et les scripts Playwright restent en git). Ce fichier est
+> conservé en archive.
+
 # Prompt de session — envoyé automatiquement par le skill `session-cd`
 
 > Tout ce qui suit la ligne est le message que le skill envoie à Claude Design, avec en
