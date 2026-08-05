@@ -40,6 +40,19 @@ export interface SpotHeroOptions {
   hueSpan: number
   /** saturation ajoutée aux pixels conservés. */
   satBoost: number
+  /**
+   * Mode INVERT (décision 2026-08-05) : le masque se retourne — c'est la teinte keyée
+   * qui part dans le duotone dithéré, et tout le RESTE qui garde sa couleur.
+   */
+  invert: boolean
+  /**
+   * keepSharp (décision 2026-08-05, optionnel — à l'essai) : la zone gardée en couleur
+   * n'est PAS dégradée à la taille de cellule. Le canvas devient transparent là où la
+   * couleur est conservée (alpha = 1−w) et la photo PLEINE RÉSOLUTION transparaît —
+   * elle vit déjà sous le canvas. Nuance assumée : `satBoost` ne s'applique plus à
+   * cette zone (c'est la photo brute qu'on voit).
+   */
+  keepSharp: boolean
   /** point focal du recadrage, 0..1. Ne déforme jamais : ne fait que panner. */
   focalX: number
   focalY: number
@@ -62,6 +75,8 @@ const DEFAULTS: SpotHeroOptions = {
   hueLo: 34,
   hueSpan: 62,
   satBoost: 0.35,
+  invert: false,
+  keepSharp: false,
   focalX: 0.5,
   focalY: 0.5,
 }
@@ -268,9 +283,24 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
         let G = on ? ink[1] : paper[1]
         let B = on ? ink[2] : paper[2]
 
-        // couleur sélective : on garde les pixels dont la teinte correspond, bord adouci
+        // couleur sélective : on garde les pixels dont la teinte correspond, bord adouci.
+        // En invert, le masque se retourne : la teinte keyée part dans le duotone,
+        // tout le reste garde sa couleur.
         const match = (r - lum) * dir[0] + (g - lum) * dir[1] + (b - lum) * dir[2]
-        const w = smooth(P.hueLo, hueHi, match)
+        let w = smooth(P.hueLo, hueHi, match)
+        if (P.invert)
+          w = 1 - w
+
+        if (P.keepSharp) {
+          // la zone gardée n'est pas repeinte : le canvas s'y troue (alpha = 1−w) et
+          // la photo pleine résolution transparaît par en dessous
+          d[i] = R
+          d[i + 1] = G
+          d[i + 2] = B
+          d[i + 3] = Math.round((1 - w) * 255)
+          continue
+        }
+
         if (w > 0) {
           const kr = clamp(r + (r - lum) * P.satBoost, 0, 255)
           const kg = clamp(g + (g - lum) * P.satBoost, 0, 255)

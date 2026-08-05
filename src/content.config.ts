@@ -16,6 +16,10 @@ const spotRecipe = z.object({
   hueLo: z.number().optional(),
   hueSpan: z.number().optional(),
   satBoost: z.number().optional(),
+  /** mode INVERT : la teinte keyée part dans le dither, tout le reste garde sa couleur */
+  invert: z.boolean().optional(),
+  /** la zone gardée en couleur reste à la résolution native de la photo (pas de trame) */
+  keepSharp: z.boolean().optional(),
 })
 
 /**

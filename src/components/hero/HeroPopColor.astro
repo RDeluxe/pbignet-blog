@@ -41,6 +41,10 @@ export interface SpotRecipe {
   hueLo?: number
   hueSpan?: number
   satBoost?: number
+  /** mode INVERT : la teinte keyée part dans le dither, tout le reste garde sa couleur */
+  invert?: boolean
+  /** la zone gardée en couleur reste à la résolution native de la photo (pas de trame) */
+  keepSharp?: boolean
 }
 
 interface Props {
