@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en" data-ink="sepia">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One red thing — exhale</title>
+<meta name="description" content="A field note on the spot-colour treatment: one hue kept true, the rest of the frame dithered into a dark ground.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/paper.css">
+<style>
+  /* ==========================================================================
+     Page consolidée sur la bibliothèque assets/components (importée par
+     paper.css). Ici ne vivent que : la VARIANTE spot du hero, le glissement,
+     et le panneau de réglages — mobilier de designer, pas de la page.
+     ========================================================================== */
+  :root {
+    /* piloté par le pont du panneau */
+    --ground: 20, 22, 15;              /* l'ENCRE du duotone — fond du cadre + départ du glissement */
+
+    /* tokens du panneau (le banc les tient de src/styles/tokens) */
+    --fs-data: 12px;   --tr-data: .1em;
+    --fs-micro: 9px;   --tr-micro: .18em;
+    --tr-label: .16em;
+    --dur-fast: .18s;  --dur-base: .2s;
+    --riso-red-ink: #ad3318;           /* signal d'erreur — 5,9:1 sur le papier */
+  }
+
+  /* ---- VARIANTE SPOT du hero -----------------------------------------------
+     HeroPopColor.css est la variante simple-dither : son masque dissout la
+     trame à --dither-line (42%). En spot colour le sol dithéré couvre TOUT le
+     cadre — c'est le moteur qui recomposite le sujet, pas un masque CSS.
+     Sans cette neutralisation : aucun dither en bas de l'image. ---- */
+  /* Cover PLEINE HAUTEUR quel que soit l'écran desktop (décision 2026-08-05) :
+     pas de plafond 880px ici, la source couvre jusqu'au 4K. HeroPopColor.css
+     déclare --post-hero-h SUR .post-hero, donc on redéclare au même niveau
+     (le pont, lui, écrit la variable en inline sur l'élément). */
+  .post-hero { --post-hero-h: 100vh; background: rgb(var(--ground)); }
+  .post-hero .dither-canvas,
+  .post-hero .topo-on {
+    -webkit-mask-image: none; mask-image: none;
+  }
+  .post-hero .topo-on { opacity: .5; }
+  /* voile de titre resserré en haut à gauche, là où vit le type */
+  .post-hero .scrim {
+    background:
+      radial-gradient(120% 90% at 8% 4%, rgba(8,14,9,.62) 0%, rgba(8,14,9,.18) 38%, transparent 64%),
+      linear-gradient(to top, rgba(8,14,9,.5) 0%, transparent 26%);
+  }
+  /* le kicker n'est pas (encore) dans HeroPopColor.css — règle locale */
+  .ph-kicker {
+    position: absolute; left: var(--gutter); top: calc(11% - 30px); z-index: 7;
+    font-family: var(--mono); font-size: 12px; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--cover-ink-light);
+    text-shadow: 0 1px 10px rgba(0,0,0,.5);
+  }
+
+  /* le glissement : le sol dithéré se pose sur le papier */
+  .hero-fade {
+    height: clamp(150px, 24vh, 280px); margin-top: -1px;
+    background: linear-gradient(to bottom,
+      rgb(var(--ground)) 0%,
+      rgba(var(--ground), .6) 30%,
+      rgba(var(--ground), .14) 64%,
+      var(--paper) 100%);
+  }
+
+  /* ==========================================================================
+     LE PANNEAU — outil de designer (touche T). Zéro arrondi, aucune ombre.
+     ========================================================================== */
+  .tw-panel {
+    position: fixed; top: 16px; right: 16px; z-index: 100;
+    width: 288px; max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px); overflow-y: auto;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    font-family: var(--sans);
+    transition: transform var(--dur-base) cubic-bezier(.2, .8, .2, 1), opacity var(--dur-base) ease;
+  }
+  .tw-panel.tw-hidden {
+    transform: translateX(calc(100% + 32px)); opacity: 0; pointer-events: none;
+  }
+  .tw-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid var(--ink);
+    position: sticky; top: 0; background: var(--paper); z-index: 1;
+  }
+  .tw-head .ttl {
+    font-family: var(--mono); font-size: var(--fs-label);
+    letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--ink);
+  }
+  .tw-head .tw-x {
+    background: transparent; border: 1px solid var(--line); color: var(--ink-3);
+    width: 24px; height: 24px; cursor: pointer;
+    font-family: var(--mono); font-size: 11px; padding: 0;
+  }
+  .tw-head .tw-x:hover { border-color: var(--ink); color: var(--ink); }
+  .tw-body { padding: 14px 16px 16px; }
+
+  .tw-sec {
+    font-family: var(--mono); font-size: var(--fs-micro);
+    letter-spacing: var(--tr-micro); text-transform: uppercase;
+    color: var(--ink-3); margin: 18px 0 10px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--line-soft);
+  }
+  .tw-sec:first-child { margin-top: 0; }
+
+  .tw-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 13px; }
+  .tw-row .lbl {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .tw-row .lbl .val { font-size: var(--fs-data); letter-spacing: .04em; color: var(--ink); }
+
+  .tw-swatches { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+  .tw-swatches.duo { grid-template-columns: repeat(5, 1fr); gap: 5px; }
+  .tw-swatch {
+    width: 100%; aspect-ratio: 1; padding: 0; cursor: pointer;
+    border: 1px solid var(--line);
+    transition: transform var(--dur-fast) ease, border-color var(--dur-fast) ease;
+  }
+  .tw-swatch:hover { transform: translateY(-2px); border-color: var(--ink); }
+  .tw-swatch[aria-pressed="true"] { border: 2px solid var(--ink); }
+
+  .tw-range {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 16px;
+    background: transparent; cursor: pointer; margin: 0;
+  }
+  .tw-range::-webkit-slider-runnable-track { height: 1px; background: var(--line); border: 0; }
+  .tw-range::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 11px; height: 11px; margin-top: -5px;
+    background: var(--paper); border: 1px solid var(--ink);
+    transition: background var(--dur-fast) ease;
+  }
+  .tw-range:hover::-webkit-slider-thumb { background: var(--paper-2); }
+  .tw-range::-moz-range-track { height: 1px; background: var(--line); border: 0; }
+  .tw-range::-moz-range-thumb {
+    width: 11px; height: 11px; border-radius: 0;
+    background: var(--paper); border: 1px solid var(--ink);
+  }
+
+  .tw-seg { display: flex; border: 1px solid var(--line); background: var(--paper); }
+  .tw-seg button {
+    flex: 1; padding: 7px 8px; background: transparent;
+    border: 0; border-left: 1px solid var(--line); cursor: pointer;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-3);
+    transition: color var(--dur-base) ease, background var(--dur-base) ease;
+  }
+  .tw-seg button:first-child { border-left: 0; }
+  .tw-seg button:hover { background: var(--paper-2); color: var(--ink); }
+  .tw-seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+  .tw-text {
+    width: 100%; padding: 7px 9px;
+    background: var(--paper); border: 1px solid var(--line);
+    font-family: var(--mono); font-size: var(--fs-data);
+    letter-spacing: .04em; color: var(--ink);
+  }
+  .tw-text:hover { border-color: var(--ink); }
+
+  /* ---- chargeur d'image (absorbé du banc spot-colour-tweaks) ---- */
+  .tw-file {
+    display: block; width: 100%; padding: 9px 10px; cursor: pointer;
+    background: var(--paper); border: 1px dashed var(--line);
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-3); text-align: center;
+    transition: background var(--dur-base) ease, border-color var(--dur-base) ease,
+                color var(--dur-base) ease;
+  }
+  .tw-file:hover, .tw-file[data-drag="on"] {
+    background: var(--paper-2); border-color: var(--ink); color: var(--ink);
+  }
+  .tw-file input { display: none; }
+
+  /* raccourcis vers les sources du projet */
+  .tw-presets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+  .tw-presets button {
+    padding: 6px 7px; cursor: pointer;
+    background: var(--paper); border: 1px solid var(--line);
+    font-family: var(--mono); font-size: 9px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-3);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    transition: background var(--dur-base) ease, color var(--dur-base) ease,
+                border-color var(--dur-base) ease;
+  }
+  .tw-presets button:hover { background: var(--paper-2); border-color: var(--ink); color: var(--ink); }
+  .tw-presets button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* état de lecture des pixels — remplace l'échec silencieux du moteur */
+  .tw-status {
+    font-family: var(--mono); font-size: 9px; line-height: 1.6;
+    letter-spacing: .06em; color: var(--ink-3);
+    border-top: 1px solid var(--line-soft); padding-top: 7px; margin-top: 4px;
+  }
+  .tw-status b { color: var(--ink); font-weight: 400; }
+  .tw-status[data-ok="no"] b { color: var(--riso-red-ink); }
+
+  .tw-out { border-top: 1px solid var(--line); }
+  .tw-out summary {
+    padding: 9px 16px; cursor: pointer; list-style: none;
+    font-family: var(--mono); font-size: var(--fs-micro);
+    letter-spacing: var(--tr-micro); text-transform: uppercase; color: var(--ink-3);
+  }
+  .tw-out summary::-webkit-details-marker { display: none; }
+  .tw-out summary:hover { color: var(--ink); background: var(--paper-2); }
+  .tw-out textarea {
+    display: block; width: 100%; height: 210px; resize: vertical;
+    padding: 10px 16px; border: 0; border-top: 1px solid var(--line-soft);
+    background: var(--paper-2); color: var(--ink);
+    font-family: var(--mono); font-size: 10.5px; line-height: 1.65;
+    letter-spacing: .01em;
+  }
+
+  /* pied collant : à 16 réglages le contenu défile — la sortie doit rester atteignable */
+  .tw-foot {
+    position: sticky; bottom: 0; background: var(--paper);
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding: 10px 16px; border-top: 1px solid var(--ink);
+    font-family: var(--mono); font-size: var(--fs-micro);
+    letter-spacing: var(--tr-micro); text-transform: uppercase; color: var(--ink-3);
+  }
+  .tw-foot button {
+    background: transparent; border: 0; color: var(--ink-3); cursor: pointer;
+    padding: 0; font: inherit; letter-spacing: inherit; text-transform: inherit;
+  }
+  .tw-foot button:hover { color: var(--ink); }
+  kbd {
+    font-family: var(--mono); font-size: var(--fs-micro);
+    padding: 2px 4px; border: 1px solid var(--line); color: var(--ink);
+  }
+
+  .tw-copy {
+    padding: 4px 9px !important;
+    border: 1px solid var(--ink) !important;
+    background: var(--paper) !important; color: var(--ink) !important;
+    transition: background var(--dur-base) ease, color var(--dur-base) ease;
+  }
+  /* l'état copié INVERSE les deux plans d'un coup : le contraste ne baisse jamais */
+  .tw-copy:hover { background: var(--paper-2) !important; }
+  .tw-copy[data-done="on"] { background: var(--ink) !important; color: var(--paper) !important; }
+
+  /* bouton de rappel — la seule trace visible du panneau quand il est fermé.
+     Sans lui, le panneau n'existe que derrière la touche T : introuvable si
+     l'aperçu n'a pas le focus clavier. */
+  .tw-restore {
+    position: fixed; top: 64px; right: 16px; z-index: 100;
+    width: 44px; height: 44px;
+    border: 1px solid var(--ink); background: var(--paper); color: var(--ink);
+    font-family: var(--mono); font-size: 13px; letter-spacing: .04em;
+    cursor: pointer; display: none; align-items: center; justify-content: center;
+    transition: background var(--dur-base) ease;
+  }
+  .tw-restore:hover { background: var(--paper-2); }
+  .tw-restore.tw-show { display: flex; }
+
+  .tw-panel :focus-visible,
+  .tw-restore:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (max-width: 720px) {
+    .tw-panel { left: 16px; right: 16px; width: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tw-panel, .tw-seg button, .tw-swatch { transition: none; }
+  }
+</style>
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+
+  <!-- ===================== NAV ===================== -->
+  <header class="topbar" id="topbar" data-od-id="article-bar">
+    <div class="progress" id="progress"></div>
+    <div class="tb-in">
+      <a class="brand" href="../site/index.html" aria-label="exhale home">exhale</a>
+      <div class="tb-title">One red thing</div>
+      <a class="tb-back" href="../site/writing.html" aria-label="Back to Writing">← Writing</a>
+    </div>
+  </header>
+
+  <!-- ===================== COVER — spot colour ===================== -->
+  <section class="post-hero" id="hero" data-screen-label="Cover" data-od-id="popcolor-hero">
+    <img class="dsrc" id="heroImg" src="../assets/photos/bridge-red-web.jpg"
+         alt="A crimson suspension bridge over the Shimanto river valley, the only colour in a grey scene">
+    <canvas class="dither-canvas"></canvas>
+    <canvas class="topo-on" id="topoHero"></canvas>
+    <div class="grain-on"></div>
+    <div class="scrim"></div>
+
+    <div class="ph-kicker" id="phKicker">Field Note · One red thing</div>
+    <h1 class="ph-word" id="phWord" style="top:11%" data-od-id="cover-word">Shimanto</h1>
+    <div class="ph-sub">
+      <div class="big">Crimson span</div>
+      <div class="sm">KŌCHI · iPHONE 13 · SPOT COLOUR ON DITHERED GROUND · ⓒ P. BIGNET</div>
+    </div>
+    <div class="ph-vcap">FIELD NOTE / ONE RED THING</div>
+    <div class="ph-cue">SCROLL ↓</div>
+  </section>
+
+  <div class="hero-fade" aria-hidden="true"></div>
+
+  <!-- ===================== ARTICLE ===================== -->
+  <article data-od-id="article-body">
+    <div class="article">
+      <div class="statrow">
+        <div class="st"><div class="k">Reading</div><div class="v"><b>5</b> MIN</div></div>
+        <div class="st"><div class="k">Date</div><div class="v">JUN 2026</div></div>
+        <div class="st"><div class="k">Place</div><div class="v">SHIMANTO, JP</div></div>
+        <div class="st"><div class="k">Edition</div><div class="v">Nº 015</div></div>
+      </div>
+
+      <div class="art-tags"><span class="tag" data-accent="on">Field Note</span><span class="tag">Colour</span><span class="tag">Method</span></div>
+
+      <h1 class="art-title">One red thing</h1>
+      <p class="art-dek">A valley of greys and greens, and a bridge someone decided to paint the loudest red they could buy. The eye has no choice.</p>
+      <div class="art-byline">Filed by <b>Pierrick Bignet</b> · Engineer by trade, artist by default</div>
+
+      <div class="prose">
+        <p class="lede">Most of the frame is weather. Grey cloud, grey water, a wall of wet green hills. Then a steel suspension bridge in a red so saturated it looks pasted in. It is not subtle and it does not want to be.</p>
+
+        <p>The photograph had already made its decision. All I had to do was agree with it. The treatment follows: everything that is mood gets dithered down into the ground, a textured field of dark olive. The one thing that carries the picture keeps its colour. Nothing else competes.</p>
+
+        <h2 class="sub"><span class="n">01</span>Find the one thing</h2>
+
+        <p>Every frame worth keeping has a hierarchy, and most treatments flatten it. A filter grades the whole image at once; it cannot tell the bridge from the weather. The spot treatment can, because it keys on the one property the subject does not share with its context: hue.</p>
+
+        <p>Key the subject by hue, not by hand. No lasso, no path drawn around the girders. Each pixel's chroma is projected onto the kept colour's direction, and the ones that score above the threshold are composited back in full colour, with a soft edge wide enough to read as a halo rather than a cut-out.</p>
+
+        <div class="callout" data-tag="Method">
+          <p>The whole frame is dithered into a duotone ground first — dark olive ink on a lifted olive paper. The masked subject returns on top in <b>full colour</b>. No flat colour block, no second accent, no hand-drawn mask to maintain when the crop changes. One red thing.</p>
+        </div>
+
+        <div class="plate"><span class="ptag">Recipe · This frame</span>
+          <p class="mono-note">KEEP #C8321E · HUELO 34 · HUESPAN 62 · POP 0.35</p>
+          <p class="mono-note">GROUND 20.22.15 → 74.78.62 · DOT 3PX · SHIMMER 0.05</p>
+        </div>
+
+        <h2 class="sub"><span class="n">02</span>Why it reads</h2>
+
+        <p>It works because restraint is legible. A picture that is loud everywhere is loud nowhere. Take the colour out of the parts that were only ever context, and the part that mattered does the rest of the work for free.</p>
+
+        <div class="pull">A picture that is loud everywhere is loud nowhere.</div>
+
+        <p>There is a printing ancestor to this. Risograph and spot-ink jobs never had the budget for full colour; they had a black plate and one drum of something loud. The constraint produced the style: texture carries the tone, one ink carries the meaning. The dither is that black plate. The bridge is the drum.</p>
+      </div>
+
+      <figure class="figure" data-width="wide">
+        <div class="frame">
+          <img class="dsrc" src="../assets/photos/torii-red.png" alt="A vermilion torii gate, spot colour on a dithered ground — the same treatment on a different red">
+          <div class="grain-on"></div>
+        </div>
+        <figcaption class="figcap">
+          <span>The same recipe on a different red — a torii, keyed and recomposited, no mask redrawn.</span>
+          <span class="r">PLATE 02 · SPOT COLOUR</span>
+        </figcaption>
+      </figure>
+
+      <div class="prose" data-flow="continued">
+        <h2 class="sub"><span class="n">03</span>The recipe travels</h2>
+
+        <p>Because the key is a hue and two numbers, the treatment is portable. A maple in autumn, a single lit window at dusk, a red umbrella on a grey street — each needs its own threshold and its own ground, but none needs new machinery. Find the one thing. Dither the weather. Let the colour mean something.</p>
+
+        <p>The numbers for this frame are in the plate above, named as the component takes them. When the next photograph disagrees with these values — and it will — the recipe changes, not the method.</p>
+      </div>
+    </div>
+
+    <div class="art-end">
+      <div class="em"><span class="dot">●</span> File under: <b>treatments that follow the photograph instead of the template.</b><br>Method: <b>hue-keyed spot colour</b> over a dithered ground. Subject stays true; everything else becomes texture.</div>
+    </div>
+  </article>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="site" data-variant="article">
+    <div class="fin">
+      <div>
+        <div class="f-brand">exhale</div>
+        <div class="f-sub">The personal index of Pierrick Bignet. Engineer by trade, artist by default. Built on paper, light and dots.</div>
+      </div>
+      <div class="f-col">
+        <h4>Read</h4>
+        <a href="../site/index.html">Index</a>
+        <a href="../site/writing.html">Writing</a>
+        <a href="Article - spot colour.html">Spot colour study</a>
+      </div>
+      <div class="f-mark">
+        <div class="barcode"></div>
+        <div class="barcode-num">PB · 2026 · SPOT COLOUR · ∞</div>
+        <div class="f-credit">SET IN ANTON · ARCHIVO<br>SPACE MONO · NEWSREADER</div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ===================== PANEL — outil de designer, touche T ===================== -->
+<aside class="tw-panel" id="tw-panel" aria-label="Tweak panel" data-od-id="tweaks-panel">
+  <header class="tw-head">
+    <span class="ttl">Tweaks</span>
+    <button class="tw-x" id="tw-close" type="button" aria-label="Hide panel" title="Hide (T)">×</button>
+  </header>
+  <div class="tw-body">
+    <div id="tw-knobs"></div>
+    <div class="tw-status" id="tw-imgstatus" role="status"></div>
+  </div>
+
+  <details class="tw-out" data-od-id="recipe-output">
+    <summary>Recipe</summary>
+    <textarea id="tw-recipe" readonly spellcheck="false" aria-label="Recipe for HeroPopColor"></textarea>
+  </details>
+
+  <footer class="tw-foot">
+    <span><kbd>T</kbd><kbd>R</kbd></span>
+    <button id="tw-reset" type="button">Reset</button>
+    <button id="tw-copy" class="tw-copy" type="button">Copy recipe</button>
+  </footer>
+</aside>
+
+<button class="tw-restore" id="tw-restore" type="button" aria-label="Show tweaks panel" title="Tweaks (T)">T</button>
+
+<script src="../assets/texture.js"></script>
+<script src="../assets/spot-hero.js"></script>
+<script>
+/* IIFE : spot-hero.js déclare `var REDUCED` (et `hexToRgb`) au niveau global.
+   Un `const REDUCED` dans la même portée est une SyntaxError qui tue tout le
+   bloc à l'analyse — panneau, raccourcis et dither compris. Rien ne fuit. */
+(function () {
+'use strict';
+
+/* ==========================================================================
+   LA PAGE — textures + hero monté sur la recipe VERROUILLÉE.
+   Un chargement frais montre toujours ces valeurs ; le panneau (T) n'applique
+   les siennes qu'à l'ouverture. C'est la parade à la panne des défauts
+   écrasés : la page ne dépend jamais du stockage pour se lire correctement.
+   ========================================================================== */
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+Grain.apply(20);
+Topo.mount(document.getElementById('topo'), {
+  color: 'rgba(154,120,56,0.06)', levels: 15, cell: 26, scale: 0.0020, seed: 14, emphasizeEvery: 5
+});
+
+const hero = document.getElementById('hero');
+const heroImg = document.getElementById('heroImg');
+
+const spot = SpotHero.mount(hero, {
+  cell: 3, ink: [20, 22, 15], paper: [74, 78, 62],
+  contrast: 1.3, brightness: -0.02, boil: REDUCED ? 0 : 0.05, fps: 12,
+  keepColor: '#c8321e', redLo: 34, span: 62, satBoost: 0.35
+});
+
+/* la teinte des contours du sol suit l'encre du duotone, éclaircie */
+function drawHeroTopo(ink) {
+  Topo.draw(document.getElementById('topoHero'), {
+    color: 'rgba(' + Math.min(255, ink[0] + 96) + ',' + Math.min(255, ink[1] + 110) + ','
+      + Math.min(255, ink[2] + 80) + ',0.22)',
+    levels: 16, cell: 18, scale: 0.0030, seed: 9, emphasizeEvery: 4
+  });
+}
+drawHeroTopo([20, 22, 15]);
+
+/* barre de lecture : progression + état immersif sur la couverture */
+(function () {
+  const bar = document.getElementById('progress');
+  const topbar = document.getElementById('topbar');
+  function onScroll() {
+    const h = document.documentElement;
+    const max = (h.scrollHeight - h.clientHeight) || 1;
+    const p = Math.min(1, Math.max(0, (window.scrollY || h.scrollTop) / max));
+    bar.style.width = (p * 100).toFixed(2) + '%';
+  }
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll);
+  onScroll();
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting && e.intersectionRatio > 0.35) topbar.classList.add('over-hero');
+        else topbar.classList.remove('over-hero');
+      });
+    }, { threshold: [0, 0.35, 0.6] });
+    io.observe(hero);
+  }
+})();
+
+/* ==========================================================================
+   LE PONT — panneau ↔ moteur ↔ localStorage. Clé PROPRE à cette page : le
+   banc multi-images garde la sienne, leurs sessions ne se contaminent pas.
+   ========================================================================== */
+const STORAGE_KEY = 'tweaks-article-popcolor';
+
+const HUES = ['#c8321e', '#d2691e', '#d9a521', '#3f8f3a', '#1f8a7a', '#2f6fd0', '#7a5ae0', '#c0398f'];
+const GROUNDS = [
+  ['#14160f', '#4a4e3e'],  /* olive    */
+  ['#0a120b', '#36482c'],  /* forêt    */
+  ['#121212', '#454545'],  /* charbon  */
+  ['#1c160c', '#5a4a30'],  /* sépia    */
+  ['#0f1722', '#3a4a5e'],  /* ardoise  */
+];
+
+/* Raccourcis vers les sources EN COULEUR du projet. Jamais les PNG déjà dithérés :
+   la sélection se fait par teinte — une source monochrome ne fait rien popper,
+   elle rend un duotone uniforme sans erreur. */
+const PRESETS = [
+  { label: 'bridge red', src: '../assets/photos/bridge-red-web.jpg' },
+  { label: 'castle blue', src: '../assets/photos/castle-blue.jpg' },
+  { label: 'arc', src: '../assets/photos/arc.jpg' },
+  { label: 'pier', src: '../assets/photos/pier.jpg' },
+  { label: 'road sunset', src: '../assets/photos/road-sunset.jpg' },
+  { label: 'wood amber', src: '../assets/photos/wood-amber.jpg' },
+];
+
+/* L'image chargée n'entre PAS dans l'état persisté : une data-URI de plusieurs Mo
+   dépasserait le quota de localStorage. Chargement frais = photo du pont. */
+let loadedName = 'bridge-red-web.jpg';
+let loadedPreset = null;
+
+/* Les défauts SONT la recipe verrouillée de la page — celles du mount ci-dessus. */
+const DEFAULTS = {
+  keepColor: '#c8321e',
+  threshold: 34,
+  softness: 62,
+  pop: 0.35,
+  ground: GROUNDS[0],
+  cell: 3,
+  contrast: 1.3,
+  brightness: -0.02,
+  shimmer: REDUCED ? 0 : 0.05,
+  coverH: 100,
+  focalX: 50,
+  focalY: 50,
+  title: 'Shimanto',
+  titleX: 4,
+  titleY: 11,
+  titleInk: 'light',
+};
+
+const KNOBS = [
+  { sec: 'Source' },
+  { k: 'image', type: 'image', label: 'Photo' },
+
+  { sec: 'Selective colour' },
+  { k: 'keepColor', type: 'swatch', label: 'Keep colour', options: HUES },
+  { k: 'threshold', type: 'range', label: 'Threshold', min: -40, max: 130, step: 1 },
+  { k: 'softness', type: 'range', label: 'Edge softness', min: 10, max: 160, step: 1 },
+  { k: 'pop', type: 'range', label: 'Colour pop', min: 0, max: 1, step: 0.05 },
+
+  { sec: 'Dithered ground' },
+  { k: 'ground', type: 'duo', label: 'Tone', options: GROUNDS },
+  { k: 'cell', type: 'range', label: 'Dot size', min: 2, max: 6, step: 1, unit: 'px' },
+  { k: 'contrast', type: 'range', label: 'Contrast', min: 0.8, max: 1.8, step: 0.02 },
+  { k: 'brightness', type: 'range', label: 'Brightness', min: -0.25, max: 0.25, step: 0.01 },
+  { k: 'shimmer', type: 'range', label: 'Shimmer', min: 0, max: 0.18, step: 0.01 },
+
+  { sec: 'Cover & type' },
+  { k: 'coverH', type: 'range', label: 'Cover height', min: 60, max: 100, step: 1, unit: 'vh' },
+  { k: 'focalX', type: 'range', label: 'Focal X', min: 0, max: 100, step: 1, unit: '%' },
+  { k: 'focalY', type: 'range', label: 'Focal Y', min: 0, max: 100, step: 1, unit: '%' },
+  { k: 'title', type: 'text', label: 'Title' },
+  { k: 'titleX', type: 'range', label: 'Title X', min: 0, max: 70, step: 1, unit: '%' },
+  { k: 'titleY', type: 'range', label: 'Title Y', min: 2, max: 62, step: 1, unit: '%' },
+  { k: 'titleInk', type: 'seg', label: 'Title ink', options: [['light', 'Light'], ['dark', 'Dark']] },
+];
+
+function hexToRgb(h) {
+  h = String(h).replace('#', '');
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+function load() {
+  try {
+    /* migration : le banc supprimé sauvait sous 'tweaks-spot-colour' — on
+       adopte ses valeurs une fois si cette page n'a encore rien sauvé. */
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('tweaks-spot-colour');
+    if (!raw) return { ...DEFAULTS };
+    const s = { ...DEFAULTS, ...JSON.parse(raw) };
+    if (REDUCED) s.shimmer = 0;
+    /* migration : 92 était l'ancien défaut (plafonné 880px), jamais un choix.
+       La cover est pleine hauteur depuis le 2026-08-05. */
+    if (s.coverH === 92) s.coverH = 100;
+    return s;
+  } catch { return { ...DEFAULTS }; }
+}
+function save(s) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {}
+}
+
+function apply(s) {
+  const ink = hexToRgb(s.ground[0]);
+  const paper = hexToRgb(s.ground[1]);
+
+  spot.update({
+    cell: s.cell, ink: ink, paper: paper,
+    contrast: s.contrast, brightness: s.brightness, boil: s.shimmer,
+    keepColor: s.keepColor, redLo: s.threshold, span: s.softness, satBoost: s.pop,
+    focalX: s.focalX / 100, focalY: s.focalY / 100,
+  });
+  drawHeroTopo(ink);
+
+  const root = document.documentElement.style;
+  /* SANS plafond 880px (décision 2026-08-05) : cover pleine hauteur sur desktop.
+     En INLINE sur le hero : HeroPopColor.css déclare la variable sur .post-hero,
+     une valeur posée sur :root perdrait la cascade. */
+  const h = s.coverH + 'vh';
+  const heightChanged = hero.style.getPropertyValue('--post-hero-h') !== h;
+  hero.style.setProperty('--post-hero-h', h);
+  /* --ground est le fond SOMBRE du cadre et le départ du glissement : l'ENCRE
+     du duotone, jamais son ton clair. */
+  root.setProperty('--ground', ink.join(','));
+  /* la hauteur change clientHeight sans émettre de resize ; le moteur écoute resize */
+  if (heightChanged) dispatchEvent(new Event('resize'));
+
+  const word = document.getElementById('phWord');
+  word.textContent = s.title;
+  word.style.left = s.titleX + '%';
+  word.style.top = s.titleY + '%';
+  word.style.color = s.titleInk === 'dark' ? 'var(--cover-ink-dark)' : 'var(--cover-ink-light)';
+
+  const kick = document.getElementById('phKicker');
+  kick.style.left = s.titleX + '%';
+  kick.style.top = 'calc(' + s.titleY + '% - 30px)';
+
+  paint(s);
+  writeRecipe(s);
+}
+
+/* ==========================================================================
+   LA SORTIE — la recipe aux noms de SpotRecipe. Deux renommages faits ici :
+   redLo→hueLo, span→hueSpan. ink/paper sortent en [r,g,b], JAMAIS en hex —
+   HeroPopColor.astro poserait `rgb(#4a4e3e)`, invalide, et le fond tomberait
+   en silence.
+   ========================================================================== */
+function num(v) {
+  return Number.isInteger(v) ? String(v) : String(parseFloat(v.toFixed(3)));
+}
+
+function recipeSnippet(s) {
+  const ink = hexToRgb(s.ground[0]);
+  const paper = hexToRgb(s.ground[1]);
+  return [
+    'spot={{',
+    "  keepColor: '" + s.keepColor + "',",
+    '  ink: [' + ink.join(', ') + '],',
+    '  paper: [' + paper.join(', ') + '],',
+    '  cell: ' + num(s.cell) + ',',
+    '  contrast: ' + num(s.contrast) + ',',
+    '  brightness: ' + num(s.brightness) + ',',
+    '  boil: ' + num(s.shimmer) + ',',
+    '  hueLo: ' + num(s.threshold) + ',',
+    '  hueSpan: ' + num(s.softness) + ',',
+    '  satBoost: ' + num(s.pop) + ',',
+    '}}',
+    'title="' + s.title + '"',
+    'titleY="' + s.titleY + '%"',
+    'titleInk="' + s.titleInk + '"',
+    'height="' + s.coverH + 'vh"',
+    'focal={{ x: ' + num(s.focalX / 100) + ', y: ' + num(s.focalY / 100) + ' }}',
+  ].concat(notes(s)).join('\n');
+}
+
+/* ce que le panneau règle et que le composant ne sait pas (encore) recevoir */
+function notes(s) {
+  const out = [];
+  if (s.titleX !== 4) {
+    out.push('', '// titleX = ' + s.titleX + '% : PAS de prop équivalente dans HeroPopColor.',
+      '// .ph-word y est ancré sur left: var(--gutter). Pour transférer ce placement,',
+      "// il faut ajouter une prop (titleX) au composant — décision de code, pas de banc.");
+  }
+  out.push('', '// titleYMobile : le composant accepte un override en ≤700px, le panneau ne le',
+    '// règle pas. À vérifier sur le vrai breakpoint, contraste du titre ≥3:1 mesuré.');
+  return out;
+}
+
+function writeRecipe(s) {
+  const out = document.getElementById('tw-recipe');
+  if (out) out.value = recipeSnippet(s);
+}
+
+/* ---- rendu du panneau depuis KNOBS ---- */
+function fmt(knob, v) {
+  const n = typeof v === 'number' ? (Number.isInteger(v) ? v : v.toFixed(2)) : v;
+  return n + (knob.unit || '');
+}
+
+function paint(s) {
+  for (const knob of KNOBS) {
+    if (!knob.k || knob.type === 'image') continue;   /* l'image n'est pas dans l'état */
+    const host = document.getElementById('k-' + knob.k);
+    if (!host) continue;
+    const v = s[knob.k];
+    if (knob.type === 'range') {
+      host.value = v;
+      document.getElementById('v-' + knob.k).textContent = fmt(knob, v);
+    } else if (knob.type === 'text') {
+      if (host.value !== v) host.value = v;
+    } else if (knob.type === 'swatch' || knob.type === 'duo') {
+      const key = knob.type === 'duo' ? String(v) : v;
+      host.querySelectorAll('button').forEach((b) =>
+        b.setAttribute('aria-pressed', b.dataset.val === key ? 'true' : 'false'));
+    } else if (knob.type === 'seg') {
+      host.querySelectorAll('button').forEach((b) =>
+        b.setAttribute('aria-pressed', b.dataset.val === v ? 'true' : 'false'));
+    }
+  }
+}
+
+function commit(key, value) {
+  state[key] = value;
+  save(state);
+  apply(state);
+}
+
+/* ==========================================================================
+   SONDE DE LISIBILITÉ — le moteur avale son échec : si getImageData lève
+   (canvas contaminé), il ne peint rien et on voit la photo brute, sans un
+   mot. On sonde nous-mêmes et on l'affiche dans le panneau.
+   ========================================================================== */
+function pixelsReadable(img) {
+  try {
+    const c = document.createElement('canvas');
+    c.width = 1; c.height = 1;
+    const x = c.getContext('2d');
+    x.drawImage(img, 0, 0, 1, 1);
+    x.getImageData(0, 0, 1, 1);
+    return true;
+  } catch { return false; }
+}
+
+function status() {
+  const el = document.getElementById('tw-imgstatus');
+  if (!el) return;
+  const w = heroImg.naturalWidth, h = heroImg.naturalHeight;
+  if (!w) { el.dataset.ok = 'yes'; el.innerHTML = 'Chargement…'; return; }
+  const ok = pixelsReadable(heroImg);
+  el.dataset.ok = ok ? 'yes' : 'no';
+  /* pixels illisibles → le canvas garderait sa trame précédente : on le masque */
+  const dc = hero.querySelector('canvas.dither-canvas');
+  if (dc) dc.style.visibility = ok ? '' : 'hidden';
+  el.innerHTML = ok
+    ? '<b>' + loadedName + '</b> · ' + w + '×' + h + ' · pixels lisibles'
+    : '<b>Pixels illisibles</b> — ' + loadedName + ' : le canvas est contaminé, le moteur '
+      + 'ne peint pas et tu vois la photo brute. Charge-la par le sélecteur de fichier '
+      + '(data-URI), jamais contaminé.';
+}
+heroImg.addEventListener('load', status);
+heroImg.addEventListener('error', () => {
+  const el = document.getElementById('tw-imgstatus');
+  if (!el) return;
+  el.dataset.ok = 'no';
+  el.innerHTML = '<b>Introuvable</b> — ' + loadedName + ' : le chemin ne résout pas '
+    + 'depuis cette page. Passe par le sélecteur de fichier.';
+});
+
+/* ---- chargeur d'image (absorbé du banc) ----
+   Un fichier local lu en data-URI ne contamine jamais le canvas — c'est la voie
+   fiable, quelle que soit l'origine de la page. */
+function loadFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    loadedPreset = null;
+    loadedName = file.name;
+    setImage(fr.result, file.name);
+  };
+  fr.readAsDataURL(file);
+}
+
+function loadPreset(p) {
+  loadedPreset = p.src;
+  loadedName = p.src.split('/').pop();
+  setImage(p.src, loadedName);
+}
+
+function setImage(src, name) {
+  heroImg.src = src;
+  heroImg.alt = 'Source photograph: ' + name;
+  /* la légende ne doit jamais mentir : sur une autre image, le crédit du pont ne
+     tient plus. On n'invente ni lieu ni appareil — on nomme le fichier. */
+  const stem = name.replace(/\.[^.]+$/, '');
+  document.querySelector('.ph-sub .big').textContent = stem;
+  document.querySelector('.ph-sub .sm').textContent =
+    stem.toUpperCase() + ' · SPOT COLOUR ON DITHERED GROUND';
+  document.querySelector('.ph-vcap').textContent = 'SOURCE / ' + stem.toUpperCase();
+  paintPresets();
+  status();
+}
+
+function paintPresets() {
+  const host = document.getElementById('k-image-presets');
+  if (!host) return;
+  host.querySelectorAll('button').forEach((b) =>
+    b.setAttribute('aria-pressed', b.dataset.src === loadedPreset ? 'true' : 'false'));
+}
+
+/* déposer n'importe où sur la page, pas seulement sur le petit bouton */
+addEventListener('dragover', (e) => {
+  e.preventDefault();
+  const z = document.querySelector('.tw-file');
+  if (z) z.dataset.drag = 'on';
+});
+addEventListener('dragleave', () => {
+  const z = document.querySelector('.tw-file');
+  if (z) delete z.dataset.drag;
+});
+addEventListener('drop', (e) => {
+  e.preventDefault();
+  const z = document.querySelector('.tw-file');
+  if (z) delete z.dataset.drag;
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) loadFile(f);
+});
+
+function build() {
+  const host = document.getElementById('tw-knobs');
+  host.innerHTML = '';
+
+  for (const knob of KNOBS) {
+    if (knob.sec) {
+      const h = document.createElement('div');
+      h.className = 'tw-sec';
+      h.textContent = knob.sec;
+      host.appendChild(h);
+      continue;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'tw-row';
+
+    const lbl = document.createElement('span');
+    lbl.className = 'lbl';
+    lbl.innerHTML = '<span>' + knob.label + '</span>';
+    if (knob.type === 'range') {
+      const val = document.createElement('span');
+      val.className = 'val';
+      val.id = 'v-' + knob.k;
+      lbl.appendChild(val);
+    }
+    row.appendChild(lbl);
+
+    if (knob.type === 'range') {
+      const r = document.createElement('input');
+      r.type = 'range'; r.className = 'tw-range'; r.id = 'k-' + knob.k;
+      r.min = knob.min; r.max = knob.max; r.step = knob.step;
+      r.setAttribute('aria-label', knob.label);
+      r.addEventListener('input', () => commit(knob.k, parseFloat(r.value)));
+      row.appendChild(r);
+
+    } else if (knob.type === 'text') {
+      const t = document.createElement('input');
+      t.type = 'text'; t.className = 'tw-text'; t.id = 'k-' + knob.k;
+      t.setAttribute('aria-label', knob.label);
+      t.addEventListener('input', () => commit(knob.k, t.value));
+      row.appendChild(t);
+
+    } else if (knob.type === 'swatch') {
+      const grid = document.createElement('div');
+      grid.className = 'tw-swatches'; grid.id = 'k-' + knob.k;
+      grid.setAttribute('role', 'radiogroup');
+      grid.setAttribute('aria-label', knob.label);
+      for (const hex of knob.options) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'tw-swatch';
+        b.dataset.val = hex; b.style.background = hex;
+        b.setAttribute('aria-label', hex);
+        b.addEventListener('click', () => commit(knob.k, hex));
+        grid.appendChild(b);
+      }
+      row.appendChild(grid);
+
+    } else if (knob.type === 'duo') {
+      const grid = document.createElement('div');
+      grid.className = 'tw-swatches duo'; grid.id = 'k-' + knob.k;
+      grid.setAttribute('role', 'radiogroup');
+      grid.setAttribute('aria-label', knob.label);
+      for (const pair of knob.options) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'tw-swatch';
+        b.dataset.val = String(pair);
+        b.style.background = 'linear-gradient(105deg,' + pair[0] + ' 0 50%,' + pair[1] + ' 50% 100%)';
+        b.setAttribute('aria-label', pair.join(' / '));
+        b.addEventListener('click', () => commit(knob.k, pair));
+        grid.appendChild(b);
+      }
+      row.appendChild(grid);
+
+    } else if (knob.type === 'image') {
+      const pick = document.createElement('label');
+      pick.className = 'tw-file';
+      pick.textContent = 'Choose file · or drop anywhere';
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'image/*'; inp.id = 'k-' + knob.k;
+      inp.addEventListener('change', () => loadFile(inp.files && inp.files[0]));
+      pick.appendChild(inp);
+      row.appendChild(pick);
+
+      const grid = document.createElement('div');
+      grid.className = 'tw-presets'; grid.id = 'k-image-presets';
+      grid.setAttribute('role', 'radiogroup');
+      grid.setAttribute('aria-label', 'Project sources');
+      for (const p of PRESETS) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.dataset.src = p.src; b.textContent = p.label;
+        b.title = p.src;
+        b.addEventListener('click', () => loadPreset(p));
+        grid.appendChild(b);
+      }
+      row.appendChild(grid);
+
+    } else if (knob.type === 'seg') {
+      const seg = document.createElement('div');
+      seg.className = 'tw-seg'; seg.id = 'k-' + knob.k;
+      seg.setAttribute('role', 'radiogroup');
+      seg.setAttribute('aria-label', knob.label);
+      for (const [val, label] of knob.options) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.dataset.val = val; b.textContent = label;
+        b.addEventListener('click', () => commit(knob.k, val));
+        seg.appendChild(b);
+      }
+      row.appendChild(seg);
+    }
+
+    host.appendChild(row);
+  }
+}
+
+/* ==========================================================================
+   OUVERTURE — le panneau est OUVERT par défaut (comme au banc) : l'état sauvé
+   s'applique au chargement. Stockage vidé = les défauts = la recipe du mount,
+   donc un chargement frais se lit toujours comme le fichier le décrit.
+   ✕ ou T le replie ; la pastille le rappelle.
+   ========================================================================== */
+const state = load();
+build();
+apply(state);
+status();
+
+const panel = document.getElementById('tw-panel');
+const restore = document.getElementById('tw-restore');
+
+function setPanelVisible(v) {
+  panel.classList.toggle('tw-hidden', !v);
+  restore.classList.toggle('tw-show', !v);
+}
+document.getElementById('tw-close').addEventListener('click', () => setPanelVisible(false));
+restore.addEventListener('click', () => setPanelVisible(true));
+
+function reset() {
+  Object.assign(state, DEFAULTS);
+  save(state);
+  appliedOnce = true;
+  apply(state);
+}
+document.getElementById('tw-reset').addEventListener('click', reset);
+
+/* ---- copie de la recipe — presse-papier, puis replis ---- */
+const copyBtn = document.getElementById('tw-copy');
+const outBox = document.getElementById('tw-recipe');
+
+function flash(label) {
+  copyBtn.textContent = label;
+  copyBtn.dataset.done = 'on';
+  setTimeout(() => {
+    copyBtn.textContent = 'Copy recipe';
+    delete copyBtn.dataset.done;
+  }, 1400);
+}
+
+copyBtn.addEventListener('click', async () => {
+  const text = recipeSnippet(state);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      flash('Copied');
+      return;
+    } catch { /* refusé — replis */ }
+  }
+  try {
+    outBox.closest('details').open = true;
+    outBox.select();
+    if (document.execCommand('copy')) { flash('Copied'); return; }
+  } catch { /* rien */ }
+  outBox.closest('details').open = true;
+  outBox.focus();
+  outBox.select();
+  flash('Select + ⌘C');
+});
+
+/* ---- raccourcis ---- */
+addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.matches('input, textarea, select, [contenteditable]')) return;
+  if (e.key === 't' || e.key === 'T') {
+    e.preventDefault();
+    setPanelVisible(panel.classList.contains('tw-hidden'));
+  } else if (e.key === 'r' || e.key === 'R') {
+    e.preventDefault();
+    reset();
+  }
+});
+})();
+</script>
+</body>
+</html>
