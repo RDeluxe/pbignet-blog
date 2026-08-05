@@ -11,18 +11,19 @@ session de travail.
 
 ## Le cadre
 
-- **La source de vérité du design est le code du site**, pas ce projet. Le zip joint est
-  l'**export exact du site réel** au début de cette session. Ce projet est un atelier :
+- **La source de vérité du design est le code du site**, pas ce projet. Les fichiers
+  joints sont l'**export exact du site réel** au début de cette session. Ce projet est un atelier :
   rien de ce qu'on y fait ne devient réel tant que je ne l'ai pas ramené dans le code.
 - **Ce qui est jetable, c'est la référence exportée — pas le projet.** `research/`, les
   studies des sessions passées, `uploads/` et les anciens round-ups sont la **mémoire de
   l'atelier** : tu n'y touches pas en installant la nouvelle session, et tu peux t'y
   référer (en te rappelant qu'une study passée n'a jamais force de décision — seul
   l'export dit l'état réel du site).
-- **Commence par installer l'export** : extrais le zip et recrée les pages dans le projet,
-  en **remplaçant la référence de la session précédente** (et elle seule). Si tu ne peux
-  pas exploiter un zip, dis-le tout de suite — on trouvera un autre chemin — mais
-  n'invente pas le site de mémoire.
+- **Commence par installer l'export** : il arrive en pièces jointes individuelles (un zip
+  décompressé à l'upload, les chemins sont aplatis — les pages ont des noms uniques :
+  `index.html` = la home, `writing.html`, `<slug>.html`…). Recrée les pages dans le
+  projet, en **remplaçant la référence de la session précédente** (et elle seule). Si des
+  fichiers te manquent, dis-le tout de suite — n'invente pas le site de mémoire.
 - **Les fichiers de l'export sont la référence « avant » : tu ne les modifies jamais.**
   Toute exploration se fait sur une **copie** ou une **nouvelle page** dans `research/`,
   nommée `study - <sujet>`. Même « corriger un petit détail » sur la référence est

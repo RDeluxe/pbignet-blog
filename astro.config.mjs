@@ -14,7 +14,10 @@ export default defineConfig({
   site: 'https://exhale.blog',
   ...(cdExport && {
     outDir: './dist-cd',
-    build: { inlineStylesheets: 'never' },
+    // format 'file' : /writing → writing.html (pas writing/index.html) — le composer
+    // de claude.ai décompresse le zip en pièces jointes À PLAT, les pages doivent
+    // porter des noms uniques.
+    build: { inlineStylesheets: 'never', format: 'file' },
     vite: { build: { minify: false, cssMinify: false } },
   }),
   integrations: [
