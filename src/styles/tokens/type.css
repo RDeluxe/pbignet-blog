@@ -28,11 +28,11 @@
   --tr-hero: 0.012em;
 
   /* cover d'article — le mot de couverture, posé sur la photo.
-   * Valeurs du GOLD (`assets/components/HeroPopColor.css`). On portait
-   * clamp(56px,16vw,176px) / 0.82 / 0.02em : trois approximations, pas des décisions.
+   * 120px / 0.9 : décision Pierrick 2026-08-05 (recipe Shimanto). Le clamp ne garde
+   * la pente fluide que sous ~700px pour ne pas déborder en étroit.
    */
-  --fs-cover: clamp(52px, 17vw, 176px);
-  --lh-cover: 0.8;
+  --fs-cover: clamp(52px, 17vw, 120px);
+  --lh-cover: 0.9;
   --tr-cover: 0.03em;
 
   --fs-shead: clamp(28px, 5vw, 56px);      /* ouverture de section */
