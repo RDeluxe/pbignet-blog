@@ -78,6 +78,30 @@ ce qui entre ; CC porte dans `src/` selon le tri de `PIPELINE.md` §3 et vérifi
 (captures dans `.screenshots/`, styles calculés via Playwright). Les modalités fines du
 bilan de session côté Open Design restent à roder à l'usage.
 
+### Le serveur MCP `open-design` (installé le 2026-08-05)
+
+CC a un accès direct à l'espace de travail OD via un serveur MCP stdio (config
+utilisateur `~/.claude.json` ; disponible dans les **nouvelles** sessions Claude Code).
+Il proxifie vers le daemon et **redécouvre son URL à chaque spawn** — la config survit
+aux redémarrages du daemon malgré le port éphémère ; seul un serveur MCP déjà lancé
+cache l'URL et doit être relancé si le daemon redémarre.
+
+- **Lecture** (le cas d'usage) : `get_file`, `list_files`, `search_files`,
+  `get_project`, `list_projects`, `get_artifact` — fin du copier-coller.
+- **`get_active_context`** — l'outil auquel on ne pense pas : il dit **quel projet et
+  quel fichier Pierrick a sous les yeux dans OD en ce moment**. À utiliser en premier
+  quand Pierrick dit « regarde ce que j'ai à l'écran ».
+- **Écriture — exposée mais ENCADRÉE** : le serveur expose aussi `write_file`,
+  `delete_file`, `create_project`, `delete_project`, `create_artifact`, `start_run`.
+  Règle de direction unique : **CC écrit le repo, OD écrit ses Design Files** — pas de
+  verrou entre les deux, on ne se marche pas dessus. CC ne touche pas aux fichiers du
+  projet OD (exception : `pnpm build:od`, qui remplace `site/`, sa zone à lui).
+  `delete_project` ne s'invoque jamais.
+
+> Piège d'installation : `od mcp install claude` enregistre la commande `od`, qui n'est
+> **pas sur le PATH** de cette machine (`/usr/bin/od` est l'octal-dump Unix). La config
+> corrigée invoque `node …/Open Design.app/Contents/Resources/app/prebundled/daemon/daemon-cli.mjs mcp`.
+
 ## 4. Les invariants qui survivent à l'ancien protocole
 
 - **Variantes en `data-*`** + union TS, jamais des classes modificatrices (`PIPELINE.md` §4.5).
