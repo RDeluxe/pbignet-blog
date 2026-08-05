@@ -9,6 +9,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "build:cd": "CD_EXPORT=1 astro build",
+    "build:od": "node scripts/sync-od.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "lint": "eslint ."
