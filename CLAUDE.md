@@ -68,9 +68,9 @@ Pierrick (en session CD ou directement), pas pour moi.
 - `pnpm build:od` = `build:cd` + copie vers `<OD_PROJECT_DIR>/site/` + réécriture des
   chemins en relatif (le moteur OD rend en `file://` ; `OD_PROJECT_DIR` est une variable
   d'env, donnée de machine). `--no-build` pour resync seul.
-- **L'aperçu est fidèle pour type/couleur/espacement/images, pas pour les effets JS** :
-  les scripts module sont bloqués par CORS en `file://` — pas de grain/topo/canvas
-  dither, les covers montrent leur `<img>` fallback. Les effets se jugent sur `pnpm dev`.
+- **L'aperçu montre tout, effets JS compris** (depuis le 2026-08-05) : `sync-od.mjs`
+  rebundle les scripts module en classiques (CORS `file://`) et inline l'image du canvas
+  dither en data-URI (tainting). `pnpm dev` reste la référence au plus près de la prod.
 - Retour : l'atelier travaille en local, le rapatriement est une lecture de dossier.
   Pierrick tranche ; je porte dans `src/` selon le tri de PIPELINE §3 et je vérifie au
   rendu.

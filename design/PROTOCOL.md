@@ -58,14 +58,21 @@ jamais commitée).
    relatif — y compris les `url(/…)` du CSS (les fonts passent par là) et les liens de
    nav (`/setup` → `setup.html`, format `file` oblige).
 
-### Ce que l'aperçu montre — et ne montre pas
+### Ce que l'aperçu montre
 
-Mesuré au calculé (Playwright sur `site/index.html` en `file://`) : styles, fonts
-self-hostées et photos chargent — l'aperçu est **fidèle pour le type, la couleur,
-l'espacement, les images**. En revanche les **scripts module sont bloqués par CORS en
-`file://`** : pas de grain, pas de topo, pas de canvas dither — les covers d'article
-montrent leur `<img>` fallback (`photos/source/`, qui reste dans la copie pour ça).
-Les effets JS se jugent sur `pnpm dev`, pas dans l'aperçu.
+Tout, effets compris — depuis le 2026-08-05. Deux règles de sécurité du `file://`
+privaient le build de son JS, et `sync-od.mjs` les neutralise :
+
+1. les `<script type="module">` sont bloqués par CORS (origine `null`) → chaque entrée
+   est **rebundlée en script classique** (esbuild, IIFE, `defer`), qui ne subit pas CORS ;
+2. dessiner une image `file://` **salit le canvas** (`getImageData` jette une
+   SecurityError) → l'image source du hero pop color (`img.dsrc`) est **inlinée en
+   data-URI**, same-origin.
+
+Vérifié au calculé sur home, article, writing et `/ds/hero-pop-color` : grain posé, topo
+peint, canvas dither peint, images complètes, zéro erreur. Ce qui reste vrai : `pnpm dev`
+est l'environnement de référence pour juger un comportement au plus près de la prod
+(vraie origine HTTP, pas de réécriture) — mais l'aperçu OD n'est plus amputé de rien.
 
 Les routes non construites (`/projects`, `/now`, `/travel`, `/about`) restent des liens
 morts **volontairement** : un lien mort en preview est honnête, ces pages n'existent pas.

@@ -15,16 +15,20 @@
  *
  * La copie est allégée : sortent `sitemap*.xml` et les `.woff` dont le `.woff2` jumeau
  * existe (@fontsource livre les deux, le moteur ne lit que le second ; le fallback
- * `url(….woff)` du CSS devient un lien mort inoffensif). `photos/source/` RESTE :
- * mesuré le 2026-08-05, le `<img>` fallback du hero pop color des articles pointe
- * dessus — et c'est lui qu'on voit en `file://`, où les scripts module sont bloqués
- * par CORS (pas de canvas dither, pas de grain/topo en preview : dégradation propre).
+ * `url(….woff)` du CSS devient un lien mort inoffensif). `photos/source/` reste
+ * (le `<img>` fallback du hero pop color pointe dessus).
+ *
+ * Les EFFETS JS tournent en preview depuis le 2026-08-05 : voir la passe « effets JS
+ * pour file:// » plus bas (scripts module → classiques via esbuild, image du canvas
+ * dither inlinée en data-URI). Vérifié au calculé sur 4 pages : grain posé, topo et
+ * dither peints, zéro erreur.
  */
 
 import { spawnSync } from 'node:child_process'
 import { cpSync, existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import process from 'node:process'
+import esbuild from 'esbuild'
 
 const REPO = resolve(import.meta.dirname, '..')
 const BUILD = join(REPO, 'dist-cd')
@@ -123,6 +127,12 @@ for (const f of files) {
       const out = rebase(ref, f)
       return out === ref ? m : `url(${q}${out}${q})`
     })
+    // les littéraux JS aussi (`const photoSrc = "/photos/…"` du script inline du hero) —
+    // sans risque : rebase ne touche que ce qui résout vers un fichier du build
+    .replace(/(["'])(\/(?!\/)[\w\-./]+)\1/g, (m, q, ref) => {
+      const out = rebase(ref, f)
+      return out === ref ? m : `${q}${out}${q}`
+    })
 
   if (after !== before) {
     writeFileSync(abs, after)
@@ -130,6 +140,58 @@ for (const f of files) {
   }
 }
 
+/**
+ * En `file://` (le protocole du moteur d'aperçu OD), deux règles de sécurité privent le
+ * build de ses effets JS, et on les neutralise ici :
+ *
+ * 1. Les `<script type="module">` sont bloqués par CORS (origine `null`). On bundle
+ *    chaque entrée en script CLASSIQUE autonome (esbuild, IIFE) — les classiques ne
+ *    subissent pas CORS — et on garde la sémantique différée avec `defer`.
+ * 2. Dessiner une image `file://` SALIT le canvas : `getImageData` jette une
+ *    SecurityError. Le hero pop color lit les pixels de son `img.dsrc` → on inline
+ *    cette image en data-URI (same-origin, ne salit pas).
+ */
+const bundled = new Map() // entrée .js → nom du bundle classique
+let inlined = 0
+for (const f of files) {
+  if (!f.endsWith('.html'))
+    continue
+  const abs = join(OUT, f)
+  const before = readFileSync(abs, 'utf8')
+
+  let after = before.replace(
+    /<script type="module" src="([^"]+)"><\/script>/g,
+    (m, src) => {
+      const entryAbs = resolve(dirname(abs), src)
+      if (!existsSync(entryAbs))
+        return m
+      if (!bundled.has(entryAbs)) {
+        const outAbs = entryAbs.replace(/\.js$/, '.od.js')
+        esbuild.buildSync({ entryPoints: [entryAbs], bundle: true, format: 'iife', outfile: outAbs, logLevel: 'silent' })
+        bundled.set(entryAbs, outAbs)
+      }
+      return `<script defer src="${src.replace(/\.js$/, '.od.js')}"></script>`
+    },
+  )
+
+  after = after.replace(/<img\b[^>]*>/g, (tag) => {
+    if (!/\bclass="[^"]*\bdsrc\b/.test(tag))
+      return tag
+    return tag.replace(/(\bsrc=")([^"]+)(")/, (m, pre, src, post) => {
+      const imgAbs = resolve(dirname(abs), src)
+      if (!existsSync(imgAbs))
+        return m
+      const mime = src.endsWith('.png') ? 'image/png' : 'image/jpeg'
+      inlined++
+      return `${pre}data:${mime};base64,${readFileSync(imgAbs).toString('base64')}${post}`
+    })
+  })
+
+  if (after !== before)
+    writeFileSync(abs, after)
+}
+
 const pages = files.filter(f => f.endsWith('.html')).sort()
 console.log(`site/ ← dist-cd : ${files.length} fichiers, ${rewrites} réécrits`)
+console.log(`effets JS pour file:// : ${bundled.size} script(s) module → classique, ${inlined} image(s) de canvas inlinée(s)`)
 console.log(pages.map(p => `  site/${p}`).join('\n'))
