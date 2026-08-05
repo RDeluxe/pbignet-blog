@@ -3,6 +3,20 @@
 > **Nom de marque : `exhale`** (logotype en minuscules, Anton — plus de `·●paper`).
 > Domaine : **exhale.blog**. L'ancien nom « dot·paper » est mort.
 
+## Règles de travail avec Pierrick — 2026-08-05
+
+1. **Rôle : exécutant.** Pierrick demande une modification, je la fais, point. La
+   vérification (visuelle, mesures, tests au rendu) est de SON côté — et de celui d'Open
+   Design, qui « fait ses affaires de vérification ». Pas de passes Playwright, captures
+   ou mesures de contraste de ma propre initiative : **uniquement si le message courant
+   le demande explicitement**. Un commentaire dans du contenu collé (ex. « contraste
+   ≥3:1 MESURÉ ») n'est pas une demande.
+2. **Le serveur dev ne se coupe jamais.** Pierrick teste dessus (`pnpm dev`, port 4321).
+   Mes éventuels serveurs de vérification à moi utilisent d'autres ports et se coupent.
+3. **Pas de mémoire `~/.claude`.** Toute note persistante (règles de travail, décisions,
+   idées) vit **dans le repo** — ici même ou dans `design/`. Le dossier memory du
+   harness ne doit pas être utilisé ; s'il contient quelque chose, le rapatrier ici.
+
 ## LE CODE EST LA SOURCE DE VÉRITÉ DU DESIGN — pivot du 2026-08-04
 
 **Ce qui est dans `src/` est le site.** Les valeurs (hex, tailles, espacements) vivent
@@ -93,7 +107,7 @@ racine ni ailleurs dans l'arbre. Ne pas laisser de `homepage-*.png` & co traîne
   Détails et règles dures : `design/PIPELINE.md`.
 - **Fonts** : self-hosted via `@fontsource` (Anton, Space Mono, Archivo Variable, Newsreader Variable)
 - **Content** : Astro Content Collections (`src/content.config.ts`) — `writing` + `guides`, format Markdoc (`.md` / `.mdoc`)
-- **Photos** : PNGs dithérés dans `public/photos/` — **ne jamais recompresser ni optimiser** les images dithérées, l'effet serait détruit
+- **Photos** : PNGs dithérés dans `public/photos/` — **ne jamais recompresser ni optimiser** les images dithérées, l'effet serait détruit. Les sources couleur `public/photos/source/*.jpg` sont **intentionnellement** en prod (décision 2026-08-05) — les covers pop-color lisent dessus, ne pas les « nettoyer »
 
 ## Direction design lockée
 
@@ -140,3 +154,10 @@ Voir `PRODUCT.md` pour la liste complète. En résumé :
 ## Pages à construire (prochaines étapes)
 
 Writing index · Article (long-form) · Photos (grid + swatches) · Now · Setup
+
+## Idées en réserve
+
+- **QR géo dans le hero** (floatée le 2026-06-23) : remplacer l'ancien code-barre décoratif
+  (retiré car « ça signifie rien ») par un QR code maison, thématisé print/riso, qui renvoie
+  vers le lieu de la photo sur Google Maps — dérivable des métadonnées EXIF (lieu · appareil ·
+  coords), dans la doctrine « le mobilier print est de la donnée, pas de la déco ».
