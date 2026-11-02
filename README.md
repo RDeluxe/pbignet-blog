@@ -55,11 +55,15 @@ scripts/deploy-staging.sh
 ```
 
 Le script installe les dépendances (`--frozen-lockfile`), construit le site avec
-`SITE_URL=https://staging-blog.pierrickbignet.com`, puis copie `dist/` par `rsync -a --delete`
-dans `~/ContainersData/blog-staging/dist/`, le dossier que le nginx de staging sert (derrière
-TinyAuth). Les fichiers sortent en 644 et les dossiers en 755 : nginx les lit en uid 101.
-Il est relançable ; il refuse une cible qui n'existe pas. `STAGING_SITE_URL` et
-`STAGING_DIST_DIR` changent l'URL et la cible.
+`SITE_URL=https://staging-blog.pierrickbignet.com` et `BUILD_TARGET=staging`, puis copie
+`dist/` par `rsync -a --delete` dans `~/ContainersData/blog-staging/dist/`, le dossier que le
+nginx de staging sert (derrière TinyAuth). Les fichiers sortent en 644 et les dossiers en
+755 : nginx les lit en uid 101. Il est relançable ; il refuse une cible qui n'existe pas.
+`STAGING_SITE_URL` et `STAGING_DIST_DIR` changent l'URL et la cible.
+
+`BUILD_TARGET=staging` garde les pages `/ds/` (les previews du design system). Le build par
+défaut, `pnpm build`, est celui de la prod : il les retire. `pnpm dev` et `pnpm build:cd` les
+gardent.
 
 ## Publier une note du vault
 
@@ -77,8 +81,9 @@ le `.mdoc` est donc écrasée au prochain import de la même note : on corrige l
 
 Ce que la note fournit, dans son frontmatter :
 
-- `posted_on` : la date. Sans elle, une traduction prend la date de la note qu'elle cite en
-  wikilink (son original) ; sinon le script s'arrête.
+- `posted_on` : la date. Sans elle, un article migré prend celle de la table `GHOST_DATES`
+  du script (la date de publication sur Ghost), puis une traduction prend la date de la note
+  qu'elle cite en wikilink (son original) ; sinon le script s'arrête.
 - `tags`, `serie`, `link` (l'URL de l'ancien blog Ghost, gardée pour de futures redirections).
 - facultatifs : `title` (sinon le nom du fichier, sans « FR - » ni « (EN) »), `description`
   (sinon le premier paragraphe), `lang` (sinon « FR - » / « (EN) », sinon les mots du texte).

@@ -13,15 +13,20 @@
  *
  * What the conversion does, in order:
  * - frontmatter: title (file name without the « FR - » prefix and « (EN) » suffix,
- *   `title:` in the note wins), `posted_on`, tags, series, language, the old Ghost URL
- *   (`link`), a description (first paragraph, `description:` in the note wins), a
+ *   `title:` in the note wins), `posted_on`, the kind (Note up to a 5-minute read, else
+ *   Essay; `tag:` in the note wins), tags as readable labels, series, language, the old
+ *   Ghost URL (`link`), a description (first paragraph, `description:` in the note wins), a
  *   reading time;
  * - slug: the Ghost slug when the note has a `link` (old URLs keep their path), else the
  *   title, slugified;
  * - Obsidian callouts become `{% callout %}`; the « imported from the blog » callout goes;
- * - `![[file]]` and remote images are copied into `public/writing/<slug>/`;
+ * - a post migrated from Ghost loses the feature image the import put at the top of its
+ *   body (only callouts before it): it will get a cover of its own;
+ * - `![[file]]` and remote images are copied into `public/writing/<slug>/`; an image a
+ *   translation shares with its original is stored once, in the first note's folder;
  * - wikilinks and links to the old Ghost blog point at the migrated post when there is
  *   one (any note of the same folder), else become plain text (wikilinks) or stay as is;
+ * - bold that Markdown would print as `**` (a space inside the delimiters) is mended;
  * - when the body uses `#` headings, every heading moves down a level: the page owns h1.
  */
 
@@ -135,31 +140,41 @@ async function fetchImage(url: string, dest: string): Promise<void> {
   writeFileSync(dest, Buffer.from(await response.arrayBuffer()))
 }
 
-/** copies or downloads every image of the body, returns the body with local paths */
-async function localizeImages(body: string, note: Note): Promise<string> {
-  const dir = join(PUBLIC_DIR, 'writing', note.slug)
+/**
+ * copies or downloads every image of the body, returns the body with local paths.
+ * An image several notes use (a translation's) is stored once, in the folder of the
+ * first of them by file name: the others point at it.
+ */
+async function localizeImages(body: string, note: Note, siblings: Note[]): Promise<string> {
   const jobs: Promise<void>[] = []
   const used = new Set<string>()
 
   const place = (src: string): string => {
+    // the `![[file]]` pass already wrote this one
+    if (src.startsWith('/writing/'))
+      return src
+    const owner = siblings
+      .filter(n => n.body.includes(src))
+      .sort((a, b) => a.path.localeCompare(b.path))[0] ?? note
     const file = imageFileName(src)
+    const dir = join(PUBLIC_DIR, 'writing', owner.slug)
     const dest = join(dir, file)
-    if (!used.has(file)) {
-      used.add(file)
+    if (!used.has(dest)) {
+      used.add(dest)
       mkdirSync(dir, { recursive: true })
       if (!existsSync(dest)) {
         if (/^https?:/.test(src)) {
           jobs.push(fetchImage(src, dest))
         }
         else {
-          const found = findAttachment(dirname(note.path), src)
+          const found = findAttachment(dirname(owner.path), src)
           if (!found)
-            throw new Error(`${basename(note.path)}: attachment not found — ${src}`)
+            throw new Error(`${basename(owner.path)}: attachment not found — ${src}`)
           copyFileSync(found, dest)
         }
       }
     }
-    return `/writing/${note.slug}/${file}`
+    return `/writing/${owner.slug}/${file}`
   }
 
   const out = body
@@ -231,9 +246,37 @@ function convertCallouts(text: string): string {
   return out.join('\n')
 }
 
+/**
+ * Ghost's feature image, which the import put at the top of the body: an image line
+ * with nothing but callouts before it. Only for posts migrated from Ghost; the post
+ * gets a new cover of its own.
+ */
+function dropGhostCover(text: string, fromGhost: boolean): string {
+  if (!fromGhost)
+    return text
+  const match = text.match(/^((?:\s*\{% callout[\s\S]*?\{% \/callout %\})*\s*)!\[[^\]]*\]\([^)\s]+(?:\s+"[^"]*")?\)[ \t]*(?:\n|$)/)
+  return match ? match[1] + text.slice(match[0].length) : text
+}
+
 /** a blockquote line holding nothing but an image is a Ghost import artefact */
 function unquoteImages(text: string): string {
   return text.replace(/^>\s*(!\[[^\]]*\]\([^)]+\))\s*$/gm, '$1')
+}
+
+/**
+ * `**` that Markdown would print as is: a space just inside the delimiters (`**word **`)
+ * moves outside, and an opening `**` glued to an emoji and followed by punctuation
+ * (`💡**"…"**`) gets a space before it.
+ */
+function fixBold(text: string): string {
+  return text
+    .replace(/\*\*([^*`\n]+)\*\*/g, (whole, inner: string) => {
+      const trimmed = inner.trim()
+      if (!trimmed || trimmed === inner)
+        return whole
+      return `${inner.match(/^\s*/)![0]}**${trimmed}**${inner.match(/\s*$/)![0]}`
+    })
+    .replace(/(\p{Extended_Pictographic}\uFE0F?)\*\*(?=\p{P})/gu, '$1 **')
 }
 
 function demoteHeadings(text: string, enabled: boolean): string {
@@ -298,6 +341,27 @@ function asDate(value: unknown): string | undefined {
   return undefined
 }
 
+/**
+ * Essay or Note, the site's two kinds of post (NORTHSTAR: « short essays and field
+ * notes »): a short read is a note. `tag:` in the note wins.
+ */
+const NOTE_MAX_MINUTES = 5
+
+function postTag(meta: Record<string, unknown>, minutes: number): 'Essay' | 'Note' {
+  if (meta.tag === 'Essay' || meta.tag === 'Note')
+    return meta.tag
+  return minutes <= NOTE_MAX_MINUTES ? 'Note' : 'Essay'
+}
+
+/** the vault's tags are short slugs; the article head prints them as secondary tags */
+const TAG_LABELS: Record<string, string> = {
+  ai: 'AI',
+  dev: 'Dev',
+  gd: 'Game design',
+  management: 'Management',
+  social: 'Social',
+}
+
 function asList(value: unknown): string[] {
   if (Array.isArray(value))
     return value.filter((v): v is string => typeof v === 'string' && v.trim() !== '')
@@ -306,11 +370,20 @@ function asList(value: unknown): string[] {
 
 /* ------------------------------------------------------------------ conversion */
 
+/**
+ * Publication dates of migrated posts whose note has no `posted_on`, keyed by Ghost slug.
+ * Source: the `article:published_time` of the post on the old Ghost blog. A `posted_on`
+ * in the note wins; once the note has one, its line here can go.
+ */
+const GHOST_DATES: Record<string, string> = {
+  'looking-for-a-seed-en': '2024-01-22', // 2024-01-22T20:53:52Z, the day after the French one
+}
+
 async function convert(note: Note, siblings: Note[]): Promise<string> {
   const bySlug = new Set(siblings.map(n => n.slug))
   const byTitle = new Map(siblings.map(n => [basename(n.path, extname(n.path)), n.slug]))
 
-  let date = asDate(note.meta.posted_on) ?? asDate(note.meta.pubDate)
+  let date = asDate(note.meta.posted_on) ?? asDate(note.meta.pubDate) ?? GHOST_DATES[note.slug]
   if (!date) {
     // a translation without a date takes its original's, the note it links to
     const linked = [...note.body.matchAll(/\[\[([^\]|#]+)/g)]
@@ -322,22 +395,23 @@ async function convert(note: Note, siblings: Note[]): Promise<string> {
     console.warn(`  ! ${basename(note.path)}: no posted_on, takes ${date} from « ${basename(linked!.path)} »`)
   }
 
-  let body = outsideCode(note.body, text => convertCallouts(unquoteImages(text)))
+  const link = typeof note.meta.link === 'string' && note.meta.link ? note.meta.link : undefined
+  let body = dropGhostCover(outsideCode(note.body, text => fixBold(convertCallouts(unquoteImages(text)))), Boolean(link && ghostSlug(link)))
   const hasH1 = /^# /m.test(body.replace(/^```[\s\S]*?\n```.*$/gm, ''))
   body = outsideCode(body, text => rewriteLinks(demoteHeadings(text, hasH1), bySlug, byTitle))
-  body = await localizeImages(body, note)
+  body = await localizeImages(body, note, siblings)
   body = `${body.trim().replace(/\n{3,}/g, '\n\n')}\n`
 
-  const link = typeof note.meta.link === 'string' && note.meta.link ? note.meta.link : undefined
+  const minutes = readingTime(body)
   const series = typeof note.meta.serie === 'string' && note.meta.serie ? note.meta.serie : undefined
   const frontmatter = {
     title: note.title,
     description: typeof note.meta.description === 'string' ? note.meta.description : describe(body),
     pubDate: date,
-    tag: 'Essay',
-    readTime: readingTime(body),
+    tag: postTag(note.meta, minutes),
+    readTime: minutes,
     lang: note.lang,
-    tags: asList(note.meta.tags),
+    tags: asList(note.meta.tags).map(t => TAG_LABELS[t] ?? t),
     ...(series && { series }),
     ...(link && { link }),
   }

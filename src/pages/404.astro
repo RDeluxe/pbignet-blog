@@ -1,0 +1,28 @@
+---
+/**
+ * 404 — a page the index does not have. No new design: the article's top bar (its back
+ * link points home), then a section head and a lede, as on the writing index.
+ */
+import ArticleBar from '../components/article/ArticleBar.astro'
+import Lede from '../components/primitives/Lede.astro'
+import Section from '../components/primitives/Section.astro'
+import SectionHead from '../components/SectionHead.astro'
+import SiteFooter from '../components/SiteFooter.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+---
+
+<BaseLayout title="Not found — exhale" description="This page is not in the index." noindex>
+  <ArticleBar title="Not found" backHref="/" backLabel="← Home" />
+
+  <main>
+    <Section>
+      <SectionHead title="Not found" meta="[ 404 ]" />
+      <Lede measure="tight">
+        This page is not in the index. It may have moved with the old blog; the home page lists
+        what is here.
+      </Lede>
+    </Section>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
