@@ -48,6 +48,19 @@ Deux variables d'environnement, lues depuis le shell ou le `.env` du repo (gitig
 | `SITE_URL` | L'URL publique du site : liens canoniques, Open Graph, sitemap. | `https://blog.pierrickbignet.com` |
 | `VAULT_ARTICLES_DIR` | Le dossier des articles publiés dans le vault Obsidian, pour `pnpm post:import` sans argument. | aucun |
 
+## Déployer en staging
+
+```sh
+scripts/deploy-staging.sh
+```
+
+Le script installe les dépendances (`--frozen-lockfile`), construit le site avec
+`SITE_URL=https://staging-blog.pierrickbignet.com`, puis copie `dist/` par `rsync -a --delete`
+dans `~/ContainersData/blog-staging/dist/`, le dossier que le nginx de staging sert (derrière
+TinyAuth). Les fichiers sortent en 644 et les dossiers en 755 : nginx les lit en uid 101.
+Il est relançable ; il refuse une cible qui n'existe pas. `STAGING_SITE_URL` et
+`STAGING_DIST_DIR` changent l'URL et la cible.
+
 ## Publier une note du vault
 
 `scripts/vault-to-post.ts` convertit une note Obsidian en article de la collection `writing`.
