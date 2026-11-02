@@ -15,7 +15,7 @@ const {
   photoSrc,
   // ligne d'origine dérivée des métadonnées de la photo (lieu · appareil · crédit)
   credit = 'SETOUCHI · NAOSHIMA · PANASONIC GX80 · ⓒ P. BIGNET',
-  headline = 'PIERRICK',
+  headline = 'EXHALE',
   gap = '12px',
   line = '34%',
   height = 'min(82vh, 760px)',
@@ -107,6 +107,9 @@ const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height}
     bottom: calc(100% - var(--hero-line, 34%));
     margin: 0;
     font-family: var(--display);
+    /* an h1 is bold by default, and only Anton 400 is loaded: the browser faked a bold
+       that clogged the counters (NORTHSTAR §04: « Anton, weight 400 only ») */
+    font-weight: var(--w-regular);
     font-size: var(--fs-hero);
     line-height: var(--lh-hero);
     letter-spacing: var(--tr-hero);
