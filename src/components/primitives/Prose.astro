@@ -67,15 +67,17 @@ const { numbered = false, dropCap = false } = Astro.props
     text-wrap: pretty;
   }
   .prose :global(p > strong),
-  .prose :global(p > b) {
+  .prose :global(p > b),
+  .prose :global(li > strong),
+  .prose :global(li > b) {
     color: var(--ink);
     font-weight: var(--w-semibold);
   }
 
-  /* le premier paragraphe porte la voix : plus grand, à l'encre pleine */
+  /* the first paragraph carries the voice by its full ink, not by its size: a larger one
+     only worked on posts that open on a hook, and most migrated posts do not (critique
+     2026-11-02, n° 14). The drop cap marks the opening. */
   .prose :global(> p:first-child) {
-    font-size: 18.5px;
-    line-height: 1.5;
     color: var(--ink);
   }
   .prose[data-drop-cap='on'] :global(> p:first-child::first-letter) {
@@ -88,55 +90,84 @@ const { numbered = false, dropCap = false } = Astro.props
     color: var(--accent);
   }
 
-  /* sous-titres : mono tracké sur filet — le registre « spec sheet », pas un titre display */
+  /* h2: a real heading, Archivo 600 over its rule (critique 2026-11-02, option A). The
+     mono « spec sheet » register stays as the label above it, when the post is numbered.
+     It used to be the whole h2, in 12px capitals: smaller than the body, quieter than h3. */
   .prose :global(> h2) {
-    margin: 2.4em 0 1.1em;
+    margin: 1.8em 0 0.75em;
     padding-bottom: var(--space-s);
     border-bottom: 1px solid var(--line);
-    font-family: var(--mono);
-    font-size: var(--fs-data);
-    font-weight: var(--w-regular);
-    letter-spacing: var(--tr-tag);
-    text-transform: uppercase;
+    font-family: var(--sans);
+    font-size: var(--fs-h2);
+    font-weight: var(--w-semibold);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
     color: var(--ink);
+    text-wrap: balance;
   }
   .prose[data-numbered='on'] :global(> h2)::before {
     counter-increment: sub;
     content: counter(sub, decimal-leading-zero);
-    margin-right: var(--space-s);
-    color: var(--accent);
+    display: block;
+    margin-bottom: var(--space-xs);
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    font-weight: var(--w-regular);
+    letter-spacing: var(--tr-tag);
+    color: var(--accent-text);
   }
 
   .prose :global(> h3) {
-    margin: 2em 0 0.8em;
+    margin: 1.8em 0 0.6em;
     font-family: var(--sans);
     font-weight: var(--w-semibold);
-    font-size: var(--fs-card-title);
+    font-size: var(--fs-h3);
+    line-height: 1.25;
     letter-spacing: -0.01em;
-    color: var(--ink);
-  }
-
-  /* citation Markdown (`> …`) : même traitement que <PullQuote>, qui n'est pas atteignable
-     depuis un `.md`. Deux filets, JAMAIS de barre d'accent à gauche (Design Notes, juillet
-     2026 : « No left accent bar anywhere »). */
-  .prose :global(> blockquote) {
-    margin: 2.2em 0;
-    padding: var(--space-xl) 0;
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-  }
-  .prose :global(> blockquote p) {
-    margin: 0;
-    font-style: italic;
-    font-weight: 500;
-    font-size: clamp(21px, 2.8vw, 27px);
-    line-height: 1.32;
     color: var(--ink);
     text-wrap: balance;
   }
 
+  /* deeper levels come from imported posts: they read as a run-in heading at body size */
+  .prose :global(> h4),
+  .prose :global(> h5),
+  .prose :global(> h6) {
+    margin: 1.6em 0 0.5em;
+    font-family: var(--sans);
+    font-weight: var(--w-semibold);
+    font-size: var(--fs-body);
+    line-height: 1.3;
+    color: var(--ink);
+  }
+
+  /* Markdown quote (`> …`): a quote to READ, at the body's size plus one, in Newsreader
+     italic, set in from the column between two rules. The display treatment belongs to
+     `{% pullquote %}` alone (critique 2026-11-02, n° 6). Never a left accent bar
+     (Design Notes, July 2026: « No left accent bar anywhere »). */
+  .prose :global(> blockquote) {
+    margin: 2em 0;
+    padding: var(--space-m) var(--space-l);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: var(--fs-quote);
+    line-height: var(--lh-body);
+    color: var(--ink);
+  }
+  .prose :global(> blockquote > *) {
+    margin: 0 0 0.8em;
+  }
+  .prose :global(> blockquote > :last-child) {
+    margin-bottom: 0;
+  }
+  .prose :global(> blockquote ul),
+  .prose :global(> blockquote ol) {
+    padding-left: 1.2em;
+  }
+
   .prose :global(a) {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;

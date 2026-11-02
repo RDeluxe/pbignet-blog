@@ -89,7 +89,7 @@ const { tag = 'N.B.', title, titleAs: Title = 'h4', as: Tag = 'aside' } = Astro.
     font-size: var(--fs-tag);
     letter-spacing: var(--tr-tag);
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   .ct {
@@ -105,13 +105,22 @@ const { tag = 'N.B.', title, titleAs: Title = 'h4', as: Tag = 'aside' } = Astro.
    */
   .cbody {
     font-family: var(--serif);
-    /* TODO token: 14.5px (banc) — entre --fs-body-xs (14px) et --fs-body-sm (15px) */
-    font-size: 14.5px;
+    font-size: var(--fs-callout);
     /* l'interligne vaut un carreau : les lignes s'assoient sur les points. C'était
        `--lh-body-tight` (1.5), sans rapport avec le pas de la trame — donc du texte qui
        flottait sur une grille au lieu d'y être écrit. */
     line-height: var(--cell);
     color: var(--ink-2);
+  }
+
+  /* The slot holds the caller's paragraphs: their own margins would add to the padding
+     (a 14.5px gap under the last line, critique 2026-11-02 n° 13). The note owns its
+     interior, so trimming the first and last child is its business, not Prose's. */
+  .cbody :global(> *) {
+    margin: 0 0 var(--cell);
+  }
+  .cbody :global(> :last-child) {
+    margin-bottom: 0;
   }
 
   /* Aucune transition ni animation dans ce composant (la note est statique par contrat),
