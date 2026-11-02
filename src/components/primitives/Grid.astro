@@ -42,5 +42,8 @@ const { cols = 3, gap = 'grid', lead = false } = Astro.props
     .grid[data-cols='3'],
     .grid[data-cols='4'],
     .grid[data-lead='on'][data-cols='3'] { grid-template-columns: 1fr 1fr; }
+    /* two columns for three frames left the last one alone: the opener takes the first
+       row on its own, the two others share the second (critique 2026-11-02, n° 25) */
+    .grid[data-lead='on'][data-cols='3'] > :global(:first-child) { grid-column: 1 / -1; }
   }
 </style>

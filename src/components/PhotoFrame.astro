@@ -4,7 +4,9 @@ interface Props {
   alt: string
   caption: string
   number: string
-  ratio?: 'tall' | 'wide'
+  /** `lead` = the opening frame of a lead grid (`<Grid lead>`): it takes the row's height
+   *  beside the others on wide screens, and opens the grid full width when narrow */
+  ratio?: 'tall' | 'wide' | 'lead'
 }
 
 const { src, alt, caption, number, ratio = 'tall' } = Astro.props
@@ -29,6 +31,14 @@ const { src, alt, caption, number, ratio = 'tall' } = Astro.props
      `.pframe.tall/.wide` en `[data-ratio]` en août 2026, on suivait encore en classes. */
   .pframe[data-ratio='tall'] { aspect-ratio: 3 / 4; }
   .pframe[data-ratio='wide'] { aspect-ratio: 4 / 5; }
+  /* A tall opener beside two 4:5 frames left a ~150px hole under them at 1080 (critique
+     2026-11-02, n° 25): on wide screens the opener follows the row instead of setting it. */
+  .pframe[data-ratio='lead'] { height: 100%; }
+  /* out of the flow, the image cannot set the row's height */
+  .pframe[data-ratio='lead'] img { position: absolute; inset: 0; }
+  @media (max-width: 880px) {
+    .pframe[data-ratio='lead'] { aspect-ratio: 3 / 2; height: auto; }
+  }
 
   img {
     width: 100%;

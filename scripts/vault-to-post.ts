@@ -425,7 +425,7 @@ function plainText(markdown: string): string {
   return markdown
     .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
     .replace(/[*_`]+/g, '')
-    .replace(/\s+/g, ' ')
+    .replace(/[^\S\u00A0\u202F]+/g, ' ')
     .trim()
 }
 
@@ -512,7 +512,7 @@ function describe(body: string): string {
     .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
     .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
     .replace(/[*_`]+/g, '')
-    .replace(/\s+/g, ' ')
+    .replace(/[^\S\u00A0\u202F]+/g, ' ')
     .trim()
   if (plain.length <= 200)
     return plain
