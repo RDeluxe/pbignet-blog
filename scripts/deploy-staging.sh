@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Build the site for staging and copy it where the staging nginx reads it.
+# Build the site for staging and copy it where the staging nginx reads it. The staging
+# build keeps the design system previews (/ds/), which production leaves out.
 # Rerunnable: each run rebuilds and mirrors dist/ exactly (rsync --delete).
 #
 #   STAGING_SITE_URL  the staging public URL     (default https://staging-blog.pierrickbignet.com)
@@ -20,7 +21,7 @@ if [[ ! -d "$target" ]]; then
 fi
 
 pnpm install --frozen-lockfile
-SITE_URL="$site_url" pnpm build
+BUILD_TARGET=staging SITE_URL="$site_url" pnpm build
 
 # nginx reads the files as uid 101: everything world-readable.
 rsync -a --delete --chmod=D755,F644 dist/ "$target/"

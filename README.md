@@ -55,11 +55,15 @@ scripts/deploy-staging.sh
 ```
 
 Le script installe les dépendances (`--frozen-lockfile`), construit le site avec
-`SITE_URL=https://staging-blog.pierrickbignet.com`, puis copie `dist/` par `rsync -a --delete`
-dans `~/ContainersData/blog-staging/dist/`, le dossier que le nginx de staging sert (derrière
-TinyAuth). Les fichiers sortent en 644 et les dossiers en 755 : nginx les lit en uid 101.
-Il est relançable ; il refuse une cible qui n'existe pas. `STAGING_SITE_URL` et
-`STAGING_DIST_DIR` changent l'URL et la cible.
+`SITE_URL=https://staging-blog.pierrickbignet.com` et `BUILD_TARGET=staging`, puis copie
+`dist/` par `rsync -a --delete` dans `~/ContainersData/blog-staging/dist/`, le dossier que le
+nginx de staging sert (derrière TinyAuth). Les fichiers sortent en 644 et les dossiers en
+755 : nginx les lit en uid 101. Il est relançable ; il refuse une cible qui n'existe pas.
+`STAGING_SITE_URL` et `STAGING_DIST_DIR` changent l'URL et la cible.
+
+`BUILD_TARGET=staging` garde les pages `/ds/` (les previews du design system). Le build par
+défaut, `pnpm build`, est celui de la prod : il les retire. `pnpm dev` et `pnpm build:cd` les
+gardent.
 
 ## Publier une note du vault
 
