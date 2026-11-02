@@ -31,12 +31,12 @@ const stats = [
 ---
 
 {/* les articles roulent en sépia : une encre par page, mobilier + type (NORTHSTAR §05) */}
-<BaseLayout title={`${d.title} — exhale`} description={d.dek ?? d.description} ink="sepia" lang={d.lang}>
-  <ArticleBar title={d.title} overCover={!!d.cover} />
+<BaseLayout title={`${d.title} — exhale`} description={d.dek ?? d.description} ink="sepia">
+  <ArticleBar title={d.title} overCover={!!d.cover} lang={d.lang} />
 
-  {d.cover && <CoverSlot cover={d.cover} fallbackTitle={d.title} />}
+  <article lang={d.lang}>
+    {d.cover && <CoverSlot cover={d.cover} fallbackTitle={d.title} />}
 
-  <article>
     <ArticleHead
       tag={d.tag}
       tags={d.tags}

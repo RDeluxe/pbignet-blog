@@ -21,6 +21,8 @@ interface Props {
   backLabel?: string
   /** la barre démarre transparente si la page ouvre sur une cover pleine hauteur */
   overCover?: boolean
+  /** language of the title; the bar itself is English chrome */
+  lang?: 'en' | 'fr'
 }
 
 const {
@@ -28,14 +30,15 @@ const {
   backHref = '/writing',
   backLabel = '← Writing',
   overCover = false,
+  lang,
 } = Astro.props
 ---
 
 <header class="topbar" data-over-cover={overCover ? 'on' : 'off'}>
   <div class="progress" aria-hidden="true"></div>
   <div class="tb-in">
-    <a class="brand" href="/" aria-label="exhale — accueil">exhale</a>
-    <div class="tb-title">{title}</div>
+    <a class="brand" href="/" aria-label="exhale — home">exhale</a>
+    <div class="tb-title" lang={lang}>{title}</div>
     <a class="tb-back" href={backHref}>{backLabel}</a>
   </div>
 </header>

@@ -1,5 +1,6 @@
 ---
 import { footer } from '../data/nav'
+import LockedItem from './LockedItem.astro'
 import Wrap from './primitives/Wrap.astro'
 import Barcode from './print/Barcode.astro'
 import MonoLabel from './print/MonoLabel.astro'
@@ -10,7 +11,7 @@ import MonoLabel from './print/MonoLabel.astro'
     <div class="foot-grid">
       <div>
         <div class="foot-brand">
-          exhale
+          <a class="foot-home" href="/">exhale</a>
           <div class="fb-sub">
             The personal index of Pierrick Bignet.<br />
             Engineer by trade, artist by default.<br />
@@ -24,7 +25,7 @@ import MonoLabel from './print/MonoLabel.astro'
           <h4>{col.title}</h4>
           {col.items.map(item => (
             item.locked
-              ? <span class="lock" aria-disabled="true" title="Section en cours de construction">{item.label}</span>
+              ? <span class="foot-locked"><LockedItem label={item.label} /></span>
               : <a href={item.href}>{item.label}</a>
           ))}
         </div>
@@ -82,7 +83,7 @@ import MonoLabel from './print/MonoLabel.astro'
     margin: 0 0 var(--space-s);
   }
   .foot-col a,
-  .foot-col .lock {
+  .foot-col .foot-locked {
     display: block;
     font-family: var(--mono);
     font-size: var(--fs-data);
@@ -91,8 +92,6 @@ import MonoLabel from './print/MonoLabel.astro'
     transition: color 0.2s;
   }
   .foot-col a:hover { color: var(--accent-text); }
-  /* a section not built yet: listed, not a link — same quiet ink as in MainNav */
-  .foot-col .lock { color: var(--ink-3); cursor: default; }
 
   /* Nom aligné sur celui du gold (`.foot-mark`), qui a remplacé les trois styles en ligne
    * de `01_Home` en résorbant `text-align:right` / `margin-left:auto` / `margin-top:16px`.

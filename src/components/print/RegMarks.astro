@@ -41,4 +41,14 @@
   .tr { top: var(--regmark-inset); right: var(--regmark-inset); }
   .bl { bottom: var(--regmark-inset); left: var(--regmark-inset); }
   .br { bottom: var(--regmark-inset); right: var(--regmark-inset); }
+
+  /* narrow: the 20px gutter is inside a mark 16px in and 22px wide, so the top marks sat
+     on the brand and the back link (critique 2026-11-02, n° 18). They shrink into the
+     corner instead of the chrome moving: a printed sheet's marks sit in its margin. */
+  @media (max-width: 600px) {
+    .regmark {
+      --regmark-size: 12px;
+      --regmark-inset: 4px;
+    }
+  }
 </style>

@@ -1,0 +1,33 @@
+---
+/**
+ * LockedItem — a section the index announces but has not built yet (Pierrick kept them
+ * visible at lot 2). It is not a link, and it says so: the label in the quiet ink, then a
+ * mono « soon » mark. The old one was a bare span with a French tooltip, invisible to
+ * touch, that looked like a dead link (critique 2026-11-02, n° 12).
+ *
+ * Its size and tracking come from where it sits (nav, footer); it owns only the ink and
+ * the mark.
+ */
+interface Props {
+  label: string
+}
+
+const { label } = Astro.props
+---
+
+<span class="lock">{label}<span class="soon">soon</span></span>
+
+<style>
+  .lock {
+    color: var(--ink-3);
+    cursor: default;
+  }
+  .soon {
+    margin-left: 0.5em;
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tr-micro);
+    text-transform: uppercase;
+    vertical-align: 0.2em;
+  }
+</style>

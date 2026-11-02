@@ -1,17 +1,16 @@
 ---
 /** les entrées vivent dans `src/data/nav.ts` : la barre index affiche les mêmes */
 import { primary as items, secondary as right } from '../data/nav'
+import LockedItem from './LockedItem.astro'
 
 const { currentPath } = Astro.props as { currentPath?: string }
 ---
 
-<nav class="main" aria-label="Navigation principale">
+<nav class="main" aria-label="Main">
   {items.map(item => (
     item.locked
       ? (
-          <span class="lock" aria-disabled="true" title="Section en cours de construction">
-            {item.label}
-          </span>
+          <LockedItem label={item.label} />
         )
       : (
           <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
@@ -23,9 +22,7 @@ const { currentPath } = Astro.props as { currentPath?: string }
   {right.map(item => (
     item.locked
       ? (
-          <span class="lock" aria-disabled="true" title="Section en cours de construction">
-            {item.label}
-          </span>
+          <LockedItem label={item.label} />
         )
       : (
           <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
@@ -49,6 +46,7 @@ const { currentPath } = Astro.props as { currentPath?: string }
     border-bottom: 1px solid var(--line);
   }
   .main a {
+    position: relative;
     color: var(--ink-2);
     padding-bottom: 2px;
     border-bottom: 1px solid transparent;
@@ -59,6 +57,12 @@ const { currentPath } = Astro.props as { currentPath?: string }
     color: var(--accent-text);
     border-color: var(--accent);
   }
+  /* the link is 17px tall; its hit area grows to ~44px without moving anything
+     (critique 2026-11-02, n° 26) */
+  .main a::after {
+    content: '';
+    position: absolute;
+    inset: -13px -6px;
+  }
   .sp { flex: 1; }
-  .lock { color: var(--ink-3); cursor: default; }
 </style>

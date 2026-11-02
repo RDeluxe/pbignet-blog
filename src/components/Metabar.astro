@@ -1,10 +1,15 @@
 ---
+import { formatDay } from '../lib/date'
+import { getPosts } from '../lib/posts'
+
 interface Props {
+  /** the edition's date; by default the latest post's, never a frozen value (n° 27) */
   date?: string
   location?: string
 }
 
-const { date = '02.06.26', location = 'Lyon, FR' } = Astro.props
+const [latest] = await getPosts()
+const { date = latest ? formatDay(latest.post.data.pubDate) : '', location = 'Lyon, FR' } = Astro.props
 ---
 
 <div class="metabar">
@@ -13,7 +18,7 @@ const { date = '02.06.26', location = 'Lyon, FR' } = Astro.props
   <div class="m"><div class="k">Edition</div><div class="v">Vol. ∞</div></div>
   <div class="m"><div class="k">Filed by</div><div class="v">P. Bignet</div></div>
   <div class="m"><div class="k">Location</div><div class="v">{location}</div></div>
-  <div class="brand">exhale</div>
+  <a class="brand" href="/">exhale</a>
 </div>
 
 <style>
