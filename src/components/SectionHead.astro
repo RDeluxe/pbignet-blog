@@ -10,13 +10,15 @@ interface Props {
   meta?: string
   /** `row` = titre et meta sur la même ligne de base (défaut), `stack` = meta sous le titre. */
   align?: 'row' | 'stack'
+  /** the title's level: h1 when the section head opens the page (writing index, 404) */
+  titleAs?: 'h1' | 'h2'
 }
 
-const { title, meta, align = 'row' } = Astro.props
+const { title, meta, align = 'row', titleAs: Title = 'h2' } = Astro.props
 ---
 
 <div class="shead" data-align={align}>
-  <h2>{title}</h2>
+  <Title class="stitle">{title}</Title>
   {meta && <div class="shead-meta">{meta}</div>}
 </div>
 
@@ -38,7 +40,7 @@ const { title, meta, align = 'row' } = Astro.props
     gap: var(--space-optical-6);
   }
 
-  h2 {
+  .stitle {
     margin: 0;
     font-family: var(--display);
     font-weight: var(--w-regular);

@@ -78,6 +78,8 @@ const writing = defineCollection({
     /** numéroter les sous-titres 01/02/03. À réserver aux vraies séquences. */
     numbered: z.boolean().default(false),
     cover: cover.optional(),
+    /** kept in the repo, out of every list, the sitemap and the production build */
+    draft: z.boolean().default(false),
   }),
 })
 

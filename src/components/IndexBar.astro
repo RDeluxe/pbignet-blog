@@ -6,9 +6,10 @@
  * dissout au retour. Décision CD, août 2026.
  *
  * ⚠️ **Composant distinct d'`ArticleBar`, et c'est volontaire.** Les deux se ressemblent à
- * l'œil et n'ont presque rien en commun en comportement : celle-ci est `fixed`, masquée par
- * défaut, observe le **hero** et anime un masque ; l'autre est `sticky`, toujours visible,
- * observe la **cover**, publie sa hauteur et anime une jauge de lecture. Les réunir sous un
+ * l'œil, et toutes deux sont `fixed` et masquées en haut de page, mais le reste diffère :
+ * celle-ci observe le **hero**, porte la nav et anime un masque ; l'autre observe le
+ * **masthead**, porte le titre, passe transparente sur la **cover** et anime une jauge de
+ * lecture. Les réunir sous un
  * `data-context` mettait deux scripts et deux balisages derrière un `if` — deux composants
  * déguisés en un.
  *
@@ -33,7 +34,7 @@ const { label = 'Nº 001 · INDEX' } = Astro.props
 */}
 <header class="topbar" id="indexbar" aria-hidden="true" inert>
   <div class="tb-in">
-    <a class="brand" href="#top" aria-label="exhale — haut de page">exhale</a>
+    <a class="brand" href="#top" aria-label="exhale — back to top">exhale</a>
     <nav class="tb-nav" aria-label="Navigation">
       {barItems.map(item => <a href={item.href}>{item.label}</a>)}
     </nav>
@@ -111,7 +112,7 @@ const { label = 'Nº 001 · INDEX' } = Astro.props
     min-width: 0;
   }
   .tb-nav a { color: var(--ink-2); }
-  .tb-nav a:hover { color: var(--accent); }
+  .tb-nav a:hover { color: var(--accent-text); }
 
   /* le repère n'est pas un lien : pas de hover, pas de cible tactile à ménager */
   .tb-ref {

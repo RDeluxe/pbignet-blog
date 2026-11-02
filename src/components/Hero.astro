@@ -9,22 +9,27 @@ interface Props {
   line?: string
   /** hauteur de la scène — pilote l'immersion (ex: 'min(82vh, 760px)'). */
   height?: string
+  /** the photo's focal point, 0 to 1 across: what a narrow, cropped stage keeps. The
+   *  arch of the default photo sits at ~70%; centred, a 390px screen kept mostly sky
+   *  (critique 2026-11-02, n° 25). */
+  focalX?: number
 }
 
 const {
   photoSrc,
   // ligne d'origine dérivée des métadonnées de la photo (lieu · appareil · crédit)
   credit = 'SETOUCHI · NAOSHIMA · PANASONIC GX80 · ⓒ P. BIGNET',
-  headline = 'PIERRICK',
+  headline = 'EXHALE',
   gap = '12px',
   line = '34%',
   height = 'min(82vh, 760px)',
+  focalX = 0.7,
 } = Astro.props
 
 // --hero-line-base = valeur desktop (prop) ; les media queries du <style> resserrent
 // --hero-line sur petit écran. On passe par une var "base" car un style inline
 // l'emporterait sur les media queries si on posait --hero-line directement.
-const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height};`
+const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height};--hero-focal-x:${focalX * 100}%;`
 ---
 
 <div class="hero2" style={styleVars}>
@@ -39,7 +44,7 @@ const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height}
   </div>
 </div>
 
-<script define:vars={{ photoSrc }}>
+<script define:vars={{ photoSrc, focalX }}>
 // Aligne le background-clip:text du titre avec le photo-plane du dessous
 // pour que la photo semble traverser les lettres en continu.
 (function () {
@@ -56,7 +61,8 @@ const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height}
     const scale = Math.max(W / nw, H / nh)
     const cw = nw * scale
     const ch = nh * scale
-    const offX = (W - cw) / 2
+    // same focal point as the photo-plane's background-position
+    const offX = (W - cw) * focalX
     const offY = (H - ch) / 2
     ct.style.backgroundSize = `${cw}px ${ch}px`
     ct.style.backgroundPosition = `${offX - ct.offsetLeft}px ${offY - ct.offsetTop}px`
@@ -94,7 +100,7 @@ const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height}
     position: absolute;
     inset: 0;
     background-size: cover;
-    background-position: 50% 50%;
+    background-position: var(--hero-focal-x, 50%) 50%;
     background-repeat: no-repeat;
     z-index: 1;
     clip-path: inset(var(--hero-line, 34%) 0 0 0);
@@ -107,6 +113,9 @@ const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height}
     bottom: calc(100% - var(--hero-line, 34%));
     margin: 0;
     font-family: var(--display);
+    /* an h1 is bold by default, and only Anton 400 is loaded: the browser faked a bold
+       that clogged the counters (NORTHSTAR §04: « Anton, weight 400 only ») */
+    font-weight: var(--w-regular);
     font-size: var(--fs-hero);
     line-height: var(--lh-hero);
     letter-spacing: var(--tr-hero);

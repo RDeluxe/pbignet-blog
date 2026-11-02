@@ -1,0 +1,58 @@
+{
+  "/writing/chantier-remunerations-premier-chapitre/cleanshot-2024-05-31-at-17-38-27.png": {
+    "fr": "Tableau Notion « Propositions augmentations » : colonnes pour qui, qui propose, montant brut annuel, prime, justification et soutiens, noms floutés, montants de 500 à 2 000 euros."
+  },
+  "/writing/developers-are-dead-long-live-lead-developers/cleanshot-2026-01-19-at-17-18-00-2x.png": {
+    "en": "Tweet by Thariq (@trq212): build large features spec-first, have Claude interview you with AskUserQuestionTool, then run the spec in a new session. Includes the prompt used.",
+    "fr": "Tweet de Thariq (@trq212) : construire les grosses fonctionnalités à partir d'une spec, Claude vous interviewe via AskUserQuestionTool, puis une nouvelle session l'exécute. Le prompt est montré."
+  },
+  "/writing/developers-are-dead-long-live-lead-developers/cleanshot-2026-01-21-at-10-09-21-1.png": {
+    "en": "Tweet by Jaime Jorge: software development and software engineering are now two professions, and development is over. Developers compete against a bash loop; engineers orchestrate the loops."
+  },
+  "/writing/fr-developers-are-dead-long-live-lead-developers/cleanshot-2026-01-21-at-10-03-03.png": {
+    "fr": "Tweet de Ryan Dahl (@rough__sea), 19 janvier 2026 : l'ère des humains qui écrivent du code est terminée, même si les SWE ont encore du travail. Plus de 4 millions de vues."
+  },
+  "/writing/fr-developers-are-dead-long-live-lead-developers/cleanshot-2026-01-21-at-10-09-21.png": {
+    "fr": "Tweet de Jaime Jorge : développement et ingénierie logicielle sont désormais deux métiers, et le premier est fini. Le développeur concurrence une boucle bash, l'ingénieur orchestre les boucles."
+  },
+  "/writing/gamedesign-seed/image-1.png": {
+    "en": "Citizen Sleeper title card: bold pink capitals on black, written and created by the residents of the Eye itself, over a voice waveform.",
+    "fr": "Carton de Citizen Sleeper : grandes capitales roses sur fond noir, écrit et créé par les résidents de l'Œil lui-même, sur une onde sonore."
+  },
+  "/writing/gamedesign-seed/image-2.png": {
+    "en": "Alien: Isolation, first-person view of a retro control room: banks of CRT monitors, a map on a large screen, and a revolver in hand.",
+    "fr": "Alien: Isolation, vue à la première personne d'une salle de contrôle rétro : murs d'écrans cathodiques, plan sur grand écran et revolver en main."
+  },
+  "/writing/gamedesign-seed/image-3.png": {
+    "en": "Alien: Isolation system interface on two CRT screens: yellow pixel-font menus for comms, air purification and lighting, beside a station map.",
+    "fr": "Interface système d'Alien: Isolation sur deux écrans cathodiques : menus jaunes en police pixel (comms, purification de l'air, éclairage) à côté d'un plan de station."
+  },
+  "/writing/gamedesign-seed/image-4.png": {
+    "en": "Against the Storm concept art: a hooded human in a yellow raincoat under a large reed cape, shown in color and as two outline variants.",
+    "fr": "Concept art d'Against the Storm : un humain encapuchonné en ciré jaune sous une grande cape de roseau, en couleur puis en deux variantes au trait."
+  },
+  "/writing/gamedesign-seed/image-5.png": {
+    "en": "Palworld screenshot: a blue-skinned, green-haired character with a club faces a snowy mountain and sea, beside a pink cat-like creature.",
+    "fr": "Capture de Palworld : un personnage à la peau bleue et aux cheveux verts, une massue à la main, face à une montagne enneigée et à la mer, près d'une créature rose."
+  },
+  "/writing/gamedesign-seed/image.png": {
+    "en": "Derek Sakamoto at the GDC 2015 podium beside his slide, titled This is Why You Need a Seed, showing a grey Hearthstone game board.",
+    "fr": "Derek Sakamoto au pupitre de la GDC 2015, à côté de sa diapositive « This is Why You Need a Seed! » montrant le plateau gris de Hearthstone."
+  },
+  "/writing/gamedesign-seed/neo-dio.gif": {
+    "en": "Neoproxima dialogue screen: a blond pilot in an orange suit, with a text panel about taking care of a wounded companion after the crash, in a cassette-futurism interface.",
+    "fr": "Écran de dialogue de Neoproxima : un pilote blond en combinaison orange et un panneau de texte sur un compagnon blessé après le crash, dans une interface cassette futurism."
+  },
+  "/writing/le-grand-chantier-de-la-remuneration-part-2-2/cleanshot-2026-01-27-at-13-17-26.png": {
+    "fr": "Extrait de la roadmap Full Stack de roadmap.sh : schéma de sujets à apprendre (HTML, CSS, JavaScript, Git, Node.js, PostgreSQL) en jaune, avec des étapes de projet en noir."
+  },
+  "/writing/le-grand-chantier-de-la-remuneration-part-2-2/matrice-lonestone.jpg": {
+    "fr": "Matrice de compétences d'un développeur fullstack : très large tableau en colonnes (softskills, dev général, front, React, Vue, Svelte, back, mobile, biz), chacune détaillée en énoncés."
+  },
+  "/writing/le-grand-chantier-de-la-remuneration-part-2-2/niveaux-de-maitrise.jpg": {
+    "fr": "Échelle « Niveaux de maitrise » en cinq paliers du bleu pâle au bleu vif : hors domaine, débutant, autonome, confirmé, expert, chacun défini par une phrase."
+  },
+  "/writing/le-grand-chantier-de-la-remuneration-part-2-2/template.jpg": {
+    "fr": "Modèle de matrice de compétences Lonestone pour un designer, daté d'avril 2022 : sept colonnes jaunes, de stratégie produit à communication, listant chacune sept compétences."
+  }
+}

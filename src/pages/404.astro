@@ -1,26 +1,50 @@
 ---
 /**
- * 404 — a page the index does not have. No new design: the article's top bar (its back
- * link points home), then a section head and a lede, as on the writing index.
+ * 404 — a page the index does not have. No new design: the site's masthead, then a
+ * section head, a lede, and the latest posts in the list's own
+ * rows, so that the way on is one click away (critique 2026-11-02, n° 22 and 23).
  */
-import ArticleBar from '../components/article/ArticleBar.astro'
+import Masthead from '../components/Masthead.astro'
+import PostRow from '../components/PostRow.astro'
 import Lede from '../components/primitives/Lede.astro'
 import Section from '../components/primitives/Section.astro'
+import Stack from '../components/primitives/Stack.astro'
 import SectionHead from '../components/SectionHead.astro'
 import SiteFooter from '../components/SiteFooter.astro'
 import BaseLayout from '../layouts/BaseLayout.astro'
+import { getPosts } from '../lib/posts'
+
+const latest = (await getPosts()).slice(0, 5)
 ---
 
 <BaseLayout title="Not found — exhale" description="This page is not in the index." noindex>
-  <ArticleBar title="Not found" backHref="/" backLabel="← Home" />
+  <Section as="header" rhythm="none">
+    <Masthead />
+  </Section>
 
   <main>
     <Section>
-      <SectionHead title="Not found" meta="[ 404 ]" />
+      <SectionHead title="Not found" meta="[ 404 ]" titleAs="h1" />
       <Lede measure="tight">
-        This page is not in the index. It may have moved with the old blog; the home page lists
-        what is here.
+        This page is not in the index. It may have moved with the old blog:
+        the latest posts are below, and <a href="/writing">Writing</a> lists them all.
       </Lede>
+      <Stack spaced>
+        {latest.map(({ post, number }) => (
+          <PostRow
+            index={number}
+            tag={post.data.tag}
+            tagAccent={post.data.tag === 'Essay'}
+            title={post.data.title}
+            description={post.data.description}
+            readTime={post.data.readTime}
+            pubDate={post.data.pubDate}
+            href={`/writing/${post.id}`}
+            lang={post.data.lang}
+            titleAs="h2"
+          />
+        ))}
+      </Stack>
     </Section>
   </main>
 

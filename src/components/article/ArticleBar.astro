@@ -1,10 +1,13 @@
 ---
 /**
- * ArticleBar — la barre de lecture collante d'un article.
+ * ArticleBar — la barre de lecture d'un article.
  *
- * Garde-fou repris du gold : la barre est **présente et utilisable sans JS**. Le script
- * n'ajoute que deux enrichissements — l'avancement de lecture et l'état transparent
- * au-dessus de la cover. Sans JS : barre opaque, liens fonctionnels, jauge à zéro.
+ * The page opens on the `Masthead`, in flow, like every page (header review, 2026-11-02,
+ * option 1). This bar is the reading companion that takes over once the masthead has
+ * scrolled away: fixed, hidden at the top, shown by an IntersectionObserver on `.mast`,
+ * like `IndexBar` on the home. Without JS it stays hidden: the masthead already carries
+ * the way around, so nothing is lost. On top of that the script keeps its two extras, the
+ * reading gauge and the transparent state over a cover.
  *
  * La jauge anime `transform: scaleX()`, pas `width` : le gold animait `width`, ce qui
  * déclenche un layout à chaque frame de scroll (P3 de la critique Impeccable).
@@ -21,6 +24,8 @@ interface Props {
   backLabel?: string
   /** la barre démarre transparente si la page ouvre sur une cover pleine hauteur */
   overCover?: boolean
+  /** language of the title; the bar itself is English chrome */
+  lang?: 'en' | 'fr'
 }
 
 const {
@@ -28,14 +33,16 @@ const {
   backHref = '/writing',
   backLabel = '← Writing',
   overCover = false,
+  lang,
 } = Astro.props
 ---
 
-<header class="topbar" data-over-cover={overCover ? 'on' : 'off'}>
+{/* `aria-hidden` and `inert` carry the INITIAL state: the masthead is on screen */}
+<header class="topbar" data-over-cover={overCover ? 'on' : 'off'} aria-hidden="true" inert>
   <div class="progress" aria-hidden="true"></div>
   <div class="tb-in">
-    <a class="brand" href="/" aria-label="exhale — accueil">exhale</a>
-    <div class="tb-title">{title}</div>
+    <a class="brand" href="/" aria-label="exhale — home">exhale</a>
+    <div class="tb-title" lang={lang}>{title}</div>
     <a class="tb-back" href={backHref}>{backLabel}</a>
   </div>
 </header>
@@ -44,17 +51,22 @@ const {
 const bar = document.querySelector<HTMLElement>('.topbar')
 const gauge = bar?.querySelector<HTMLElement>('.progress')
 const cover = document.querySelector<HTMLElement>('.post-hero')
+const mast = document.querySelector<HTMLElement>('.mast')
 
-// Publie la hauteur RÉELLE de la barre : c'est de cette valeur que la cover remonte pour
-// passer dessous. Le gold hardcode `48px + 2px`, ce que la critique Impeccable relevait
-// comme fragile (chargement de font, mobile). Un ResizeObserver suit les vraies mesures.
-if (bar) {
-  const publish = (): void => {
-    document.documentElement.style.setProperty('--bar-h', `${Math.round(bar.offsetHeight)}px`)
-  }
-  publish()
-  new ResizeObserver(publish).observe(bar)
-  document.fonts?.ready.then(publish)
+// shown once the masthead has left by the TOP; `inert` keeps the hidden links out of the
+// tab order, which opacity alone would not
+if (bar && mast && 'IntersectionObserver' in window) {
+  let on = false
+  new IntersectionObserver((entries) => {
+    const e = entries[0]
+    const past = !e.isIntersecting && e.boundingClientRect.bottom < 0
+    if (past === on)
+      return
+    on = past
+    bar.classList.toggle('is-on', on)
+    bar.setAttribute('aria-hidden', on ? 'false' : 'true')
+    bar.toggleAttribute('inert', !on)
+  }).observe(mast)
 }
 
 if (bar && gauge) {
@@ -83,12 +95,32 @@ if (bar && gauge) {
 
 <style>
   .topbar {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 50;
     background: var(--paper);
     border-bottom: 1px solid var(--line);
-    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-100%);
+    transition:
+      transform 0.25s ease,
+      opacity 0.25s ease,
+      visibility 0s linear 0.25s,
+      background 0.3s ease,
+      border-color 0.3s ease,
+      color 0.3s ease;
+  }
+  .topbar.is-on {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .topbar { transition: none; }
   }
 
   .progress {
@@ -145,7 +177,7 @@ if (bar && gauge) {
     padding: 15px 0;
     margin: -15px 0;
   }
-  .tb-back:hover { color: var(--accent); }
+  .tb-back:hover { color: var(--accent-text); }
 
   /* au-dessus de la cover : la barre disparaît dans l'image */
   .topbar[data-over-cover='on'] {
@@ -168,7 +200,6 @@ if (bar && gauge) {
   }
 
   @media print {
-    .topbar { position: static; }
-    .progress { display: none; }
+    .topbar { display: none; }
   }
 </style>

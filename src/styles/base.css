@@ -15,6 +15,8 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
+  /* never fake a weight or a style that is not loaded (the hero's Anton was faked bold) */
+  font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   position: relative;

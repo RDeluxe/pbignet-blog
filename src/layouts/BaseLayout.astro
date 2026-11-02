@@ -19,8 +19,6 @@ interface Props {
    * choix : il peut être keyé à l'image.
    */
   ink?: 'olive' | 'sepia'
-  /** language of the page's text; the site chrome stays in English */
-  lang?: 'en' | 'fr'
 }
 
 const {
@@ -29,14 +27,14 @@ const {
   description = 'The personal index of Pierrick Bignet — engineer, game art director, and photographer. Short essays, field notes, and dithered 35mm photography.',
   noindex = false,
   ink = 'olive',
-  lang = 'en',
 } = Astro.props
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href
 ---
 
 <!doctype html>
-<html lang={lang} data-ink={ink}>
+<!-- the site's chrome is English; a French post says so on its own <article> (n° 24) -->
+<html lang="en" data-ink={ink}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

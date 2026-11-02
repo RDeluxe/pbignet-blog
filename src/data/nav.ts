@@ -1,14 +1,18 @@
 /**
  * Les entrées de navigation du site, partagées.
  *
- * Deux composants les affichent : `MainNav` (la nav principale sous la metabar) et la
- * variante index d'`ArticleBar` (la barre fixe qui se résout au scroll). Les dupliquer
- * garantissait qu'un jour l'une aurait un lien que l'autre n'a pas.
+ * Trois endroits les affichent : `Masthead` (la barre unique en haut de chaque page),
+ * `IndexBar` (la barre fixe de la home, qui se résout au scroll) et le pied de page. Les
+ * dupliquer garantissait qu'un jour l'un aurait un lien que l'autre n'a pas.
+ *
+ * A section not built yet is HIDDEN everywhere (Pierrick, 2026-11-02, replacing lot 2's
+ * visible « soon » entries): it stays in these lists with `locked: true`, and showing it
+ * again is deleting that flag.
  */
 export interface NavItem {
   label: string
   href: string
-  /** section annoncée mais pas encore construite : affichée, non cliquable */
+  /** section not built yet: hidden from every nav until the flag goes */
   locked?: boolean
 }
 
@@ -27,17 +31,13 @@ export const secondary: NavItem[] = [
   { label: 'Travel ⌁', href: '/travel', locked: true },
 ]
 
-/**
- * Ce que porte la barre index : les sections principales plus « About ». Le gold en donne
- * six, sans le « Travel ⌁ » verrouillé — une barre compacte n'est pas l'endroit pour
- * annoncer une section qui n'existe pas encore.
- */
-export const barItems: NavItem[] = [
-  ...primary,
-  ...secondary,
-].filter(i => !i.locked)
+const built = (items: NavItem[]): NavItem[] => items.filter(i => !i.locked)
 
-/** the footer's two columns; a locked entry shows as plain text */
+/** what the masthead and the index bar carry: every built section, in order */
+export const navItems: NavItem[] = built([...primary, ...secondary])
+export const barItems: NavItem[] = navItems
+
+/** the footer's two columns, built sections only; a column with none is left out */
 export const footer: { title: string, items: NavItem[] }[] = [
   { title: 'Read', items: [
     primary[0],
@@ -47,3 +47,5 @@ export const footer: { title: string, items: NavItem[] }[] = [
   ] },
   { title: 'Around', items: [secondary[0], primary[3], primary[4], secondary[1]] },
 ]
+  .map(col => ({ ...col, items: built(col.items) }))
+  .filter(col => col.items.length > 0)
