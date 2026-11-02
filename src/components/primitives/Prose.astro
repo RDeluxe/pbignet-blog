@@ -90,33 +90,33 @@ const { numbered = false, dropCap = false } = Astro.props
     color: var(--accent);
   }
 
-  /* h2: a real heading, Archivo 600 over its rule (critique 2026-11-02, option A). The
-     mono « spec sheet » register stays as the label above it, when the post is numbered.
-     It used to be the whole h2, in 12px capitals: smaller than the body, quieter than h3. */
+  /* h2: the mono « spec sheet » register is the charm of the article, so it stays (Space
+     Mono, capitals, tracking). The hierarchy comes from weight, size and the rule instead:
+     it was 12px regular under a hairline, smaller than the body and quieter than h3
+     (critique 2026-11-02, n° 5). Bold mono under the masthead's 2px ink rule, which now
+     opens the section rather than underlining it. */
   .prose :global(> h2) {
-    margin: 1.8em 0 0.75em;
-    padding-bottom: var(--space-s);
-    border-bottom: 1px solid var(--line);
-    font-family: var(--sans);
-    font-size: var(--fs-h2);
-    font-weight: var(--w-semibold);
-    line-height: 1.15;
-    letter-spacing: -0.01em;
+    margin: 3em 0 1.1em;
+    padding-top: var(--space-sm);
+    border-top: 2px solid var(--ink);
+    font-family: var(--mono);
+    font-size: clamp(14px, calc(12.5px + 0.25vw), 16px);
+    font-weight: var(--w-bold);
+    line-height: 1.4;
+    letter-spacing: var(--tr-data);
+    text-transform: uppercase;
     color: var(--ink);
     text-wrap: balance;
   }
   .prose[data-numbered='on'] :global(> h2)::before {
     counter-increment: sub;
     content: counter(sub, decimal-leading-zero);
-    display: block;
-    margin-bottom: var(--space-xs);
-    font-family: var(--mono);
-    font-size: var(--fs-data);
-    font-weight: var(--w-regular);
-    letter-spacing: var(--tr-tag);
+    margin-right: var(--space-s);
     color: var(--accent-text);
   }
 
+  /* h3 sits under the mono h2: Archivo, one step above the body, never bigger than it
+     needs to be to outrank the text */
   .prose :global(> h3) {
     margin: 1.8em 0 0.6em;
     font-family: var(--sans);

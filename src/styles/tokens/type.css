@@ -71,8 +71,7 @@
   --measure-desc: 56ch;                    /* mesure des descriptions en liste */
 
   /* ---- titres et blocs du corps de lecture (même échelle, §2 de la critique) ---- */
-  --fs-h2: clamp(24px, calc(20px + 0.6vw), 30px);
-  --fs-h3: clamp(19px, calc(17px + 0.3vw), 22px);
+  --fs-h3: clamp(18px, calc(16px + 0.25vw), 20px);
   /* callout text: its line-height is the dot grid (`--cell`, 24px) */
   --fs-callout: clamp(16px, calc(15px + 0.15vw), 17px);
   /* a Markdown quote is read, not displayed: one step above the body, serif italic */
