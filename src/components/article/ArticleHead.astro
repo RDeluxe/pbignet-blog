@@ -14,8 +14,9 @@ interface Props {
   tags?: string[]
   stats: { key: string, value: string, accent?: boolean }[]
   title: string
-  /** le chapeau, en serif italique */
-  dek: string
+  /** the dek, in italic serif. Optional: an imported post has none, its description is
+   *  its first paragraph and would repeat it */
+  dek?: string
   byline?: string
   bylineRole?: string
 }
@@ -40,7 +41,7 @@ const {
   <StatRow stats={stats} />
 
   <h1 class="art-title">{title}</h1>
-  <p class="art-dek">{dek}</p>
+  {dek && <p class="art-dek">{dek}</p>}
   <p class="art-byline">Filed by <b>{byline}</b> · {bylineRole}</p>
 </header>
 

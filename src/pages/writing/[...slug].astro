@@ -24,13 +24,14 @@ const month = d.pubDate
 const stats = [
   { key: 'Reading', value: `${d.readTime} MIN`, accent: true },
   { key: 'Date', value: month },
+  ...(d.series ? [{ key: 'Series', value: d.series.toUpperCase() }] : []),
   ...(d.place ? [{ key: 'Place', value: d.place.toUpperCase() }] : []),
   ...(d.edition ? [{ key: 'Edition', value: d.edition }] : []),
 ]
 ---
 
 {/* les articles roulent en sépia : une encre par page, mobilier + type (NORTHSTAR §05) */}
-<BaseLayout title={`${d.title} — exhale`} description={d.dek ?? d.description} ink="sepia">
+<BaseLayout title={`${d.title} — exhale`} description={d.dek ?? d.description} ink="sepia" lang={d.lang}>
   <ArticleBar title={d.title} overCover={!!d.cover} />
 
   {d.cover && <CoverSlot cover={d.cover} fallbackTitle={d.title} />}
@@ -41,7 +42,7 @@ const stats = [
       tags={d.tags}
       stats={stats}
       title={d.title}
-      dek={d.dek ?? d.description}
+      dek={d.dek}
     />
 
     <Prose numbered={d.numbered} dropCap>
