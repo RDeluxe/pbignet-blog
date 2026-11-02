@@ -13,8 +13,9 @@
  *
  * What the conversion does, in order:
  * - frontmatter: title (file name without the « FR - » prefix and « (EN) » suffix,
- *   `title:` in the note wins), `posted_on`, tags, series, language, the old Ghost URL
- *   (`link`), a description (first paragraph, `description:` in the note wins), a
+ *   `title:` in the note wins), `posted_on`, the kind (Note up to a 5-minute read, else
+ *   Essay; `tag:` in the note wins), tags as readable labels, series, language, the old
+ *   Ghost URL (`link`), a description (first paragraph, `description:` in the note wins), a
  *   reading time;
  * - slug: the Ghost slug when the note has a `link` (old URLs keep their path), else the
  *   title, slugified;
@@ -312,6 +313,27 @@ function asDate(value: unknown): string | undefined {
   return undefined
 }
 
+/**
+ * Essay or Note, the site's two kinds of post (NORTHSTAR: « short essays and field
+ * notes »): a short read is a note. `tag:` in the note wins.
+ */
+const NOTE_MAX_MINUTES = 5
+
+function postTag(meta: Record<string, unknown>, minutes: number): 'Essay' | 'Note' {
+  if (meta.tag === 'Essay' || meta.tag === 'Note')
+    return meta.tag
+  return minutes <= NOTE_MAX_MINUTES ? 'Note' : 'Essay'
+}
+
+/** the vault's tags are short slugs; the article head prints them as secondary tags */
+const TAG_LABELS: Record<string, string> = {
+  ai: 'AI',
+  dev: 'Dev',
+  gd: 'Game design',
+  management: 'Management',
+  social: 'Social',
+}
+
 function asList(value: unknown): string[] {
   if (Array.isArray(value))
     return value.filter((v): v is string => typeof v === 'string' && v.trim() !== '')
@@ -343,15 +365,16 @@ async function convert(note: Note, siblings: Note[]): Promise<string> {
   body = await localizeImages(body, note)
   body = `${body.trim().replace(/\n{3,}/g, '\n\n')}\n`
 
+  const minutes = readingTime(body)
   const series = typeof note.meta.serie === 'string' && note.meta.serie ? note.meta.serie : undefined
   const frontmatter = {
     title: note.title,
     description: typeof note.meta.description === 'string' ? note.meta.description : describe(body),
     pubDate: date,
-    tag: 'Essay',
-    readTime: readingTime(body),
+    tag: postTag(note.meta, minutes),
+    readTime: minutes,
     lang: note.lang,
-    tags: asList(note.meta.tags),
+    tags: asList(note.meta.tags).map(t => TAG_LABELS[t] ?? t),
     ...(series && { series }),
     ...(link && { link }),
   }
