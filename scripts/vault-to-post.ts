@@ -26,6 +26,7 @@
  *   translation shares with its original is stored once, in the first note's folder;
  * - wikilinks and links to the old Ghost blog point at the migrated post when there is
  *   one (any note of the same folder), else become plain text (wikilinks) or stay as is;
+ * - bold that Markdown would print as `**` (a space inside the delimiters) is mended;
  * - when the body uses `#` headings, every heading moves down a level: the page owns h1.
  */
 
@@ -262,6 +263,22 @@ function unquoteImages(text: string): string {
   return text.replace(/^>\s*(!\[[^\]]*\]\([^)]+\))\s*$/gm, '$1')
 }
 
+/**
+ * `**` that Markdown would print as is: a space just inside the delimiters (`**word **`)
+ * moves outside, and an opening `**` glued to an emoji and followed by punctuation
+ * (`💡**"…"**`) gets a space before it.
+ */
+function fixBold(text: string): string {
+  return text
+    .replace(/\*\*([^*`\n]+)\*\*/g, (whole, inner: string) => {
+      const trimmed = inner.trim()
+      if (!trimmed || trimmed === inner)
+        return whole
+      return `${inner.match(/^\s*/)![0]}**${trimmed}**${inner.match(/\s*$/)![0]}`
+    })
+    .replace(/(\p{Extended_Pictographic}\uFE0F?)\*\*(?=\p{P})/gu, '$1 **')
+}
+
 function demoteHeadings(text: string, enabled: boolean): string {
   if (!enabled)
     return text
@@ -370,7 +387,7 @@ async function convert(note: Note, siblings: Note[]): Promise<string> {
   }
 
   const link = typeof note.meta.link === 'string' && note.meta.link ? note.meta.link : undefined
-  let body = dropGhostCover(outsideCode(note.body, text => convertCallouts(unquoteImages(text))), Boolean(link && ghostSlug(link)))
+  let body = dropGhostCover(outsideCode(note.body, text => fixBold(convertCallouts(unquoteImages(text)))), Boolean(link && ghostSlug(link)))
   const hasH1 = /^# /m.test(body.replace(/^```[\s\S]*?\n```.*$/gm, ''))
   body = outsideCode(body, text => rewriteLinks(demoteHeadings(text, hasH1), bySlug, byTitle))
   body = await localizeImages(body, note, siblings)
