@@ -3,8 +3,10 @@
  * Quote — a quote to READ, in the run of the text: every Markdown `> …`, and
  * `{% quote source="…" %}` when the quote names where it comes from.
  *
- * Body size, Newsreader italic, set in by one cell: neutral until Pierrick picks a form.
- * The display size belongs to `PullQuote` (`{% pullquote %}`) alone: a Markdown quote used to
+ * Body size, Newsreader italic, in front of a ghost: the quote's own first letter, oversized
+ * and faded, behind the text (the « ghost numerals » of NORTHSTAR §06, keyed to the words
+ * rather than to a count). It is not a drop cap: the text does not wrap around it, and it
+ * sits behind the words at a sixth of the ink. The display size belongs to `PullQuote` (`{% pullquote %}`) alone: a Markdown quote used to
  * get it, and a four-line quote with a bare URL came out 264px tall (critique 2026-11-02,
  * n° 6). Never a left accent bar (Design Notes, July 2026).
  */
@@ -16,10 +18,16 @@ interface Props {
 }
 
 const { source, href } = Astro.props
+
+// The ghost is the first letter or digit of the words: an opening quote mark, an
+// apostrophe or a bracket is skipped, so « 'Tis » gives T and « "1989… » gives 1.
+const body = await Astro.slots.render('default')
+const words = body.replaceAll(/<[^>]*>/g, ' ').replaceAll(/&[#\w]+;/g, ' ')
+const ghost = /[\p{L}\p{N}]/u.exec(words)?.[0].toUpperCase() ?? ''
 ---
 
-<figure class="quote">
-  <blockquote cite={href}><slot /></blockquote>
+<figure class="quote" data-ghost={ghost}>
+  <blockquote cite={href} set:html={body} />
   {source && (
     <figcaption class="src">
       {href ? <a href={href}>{source}</a> : source}
@@ -32,8 +40,26 @@ const { source, href } = Astro.props
      2026-11-02): body size, Newsreader italic, set in by one cell, no ornament. The
      display size belongs to PullQuote alone. */
   .quote {
+    position: relative;
+    isolation: isolate;
+    /* the ghost is taller than a one-line quote: the figure keeps its height, so the
+       letter never runs under the next paragraph nor gets cut (a cropped Q reads as an O) */
+    min-height: calc(4 * var(--cell));
     margin: 2em 0;
-    padding-left: var(--cell);
+    padding: var(--space-m) 0 0 calc(2 * var(--cell));
+  }
+  .quote::before {
+    content: attr(data-ghost);
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: -0.02em;
+    font-family: var(--display);
+    font-size: calc(4.5 * var(--cell));
+    font-weight: var(--w-regular);
+    line-height: 0.86;
+    color: color-mix(in srgb, var(--accent) 16%, transparent);
+    pointer-events: none;
   }
 
   blockquote {
@@ -42,7 +68,7 @@ const { source, href } = Astro.props
     font-style: italic;
     font-size: var(--fs-body);
     line-height: var(--lh-body);
-    color: var(--ink-2);
+    color: var(--ink);
   }
   /* the slot is the quote's own paragraphs and lists, rendered by Markdoc */
   blockquote :global(> *) { margin: 0 0 0.8em; }
