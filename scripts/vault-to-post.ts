@@ -22,7 +22,8 @@
  * - Obsidian callouts become `{% callout %}`; the « imported from the blog » callout goes;
  * - a post migrated from Ghost loses the feature image the import put at the top of its
  *   body (only callouts before it): it will get a cover of its own;
- * - `![[file]]` and remote images are copied into `public/writing/<slug>/`;
+ * - `![[file]]` and remote images are copied into `public/writing/<slug>/`; an image a
+ *   translation shares with its original is stored once, in the first note's folder;
  * - wikilinks and links to the old Ghost blog point at the migrated post when there is
  *   one (any note of the same folder), else become plain text (wikilinks) or stay as is;
  * - when the body uses `#` headings, every heading moves down a level: the page owns h1.
@@ -138,31 +139,41 @@ async function fetchImage(url: string, dest: string): Promise<void> {
   writeFileSync(dest, Buffer.from(await response.arrayBuffer()))
 }
 
-/** copies or downloads every image of the body, returns the body with local paths */
-async function localizeImages(body: string, note: Note): Promise<string> {
-  const dir = join(PUBLIC_DIR, 'writing', note.slug)
+/**
+ * copies or downloads every image of the body, returns the body with local paths.
+ * An image several notes use (a translation's) is stored once, in the folder of the
+ * first of them by file name: the others point at it.
+ */
+async function localizeImages(body: string, note: Note, siblings: Note[]): Promise<string> {
   const jobs: Promise<void>[] = []
   const used = new Set<string>()
 
   const place = (src: string): string => {
+    // the `![[file]]` pass already wrote this one
+    if (src.startsWith('/writing/'))
+      return src
+    const owner = siblings
+      .filter(n => n.body.includes(src))
+      .sort((a, b) => a.path.localeCompare(b.path))[0] ?? note
     const file = imageFileName(src)
+    const dir = join(PUBLIC_DIR, 'writing', owner.slug)
     const dest = join(dir, file)
-    if (!used.has(file)) {
-      used.add(file)
+    if (!used.has(dest)) {
+      used.add(dest)
       mkdirSync(dir, { recursive: true })
       if (!existsSync(dest)) {
         if (/^https?:/.test(src)) {
           jobs.push(fetchImage(src, dest))
         }
         else {
-          const found = findAttachment(dirname(note.path), src)
+          const found = findAttachment(dirname(owner.path), src)
           if (!found)
-            throw new Error(`${basename(note.path)}: attachment not found — ${src}`)
+            throw new Error(`${basename(owner.path)}: attachment not found — ${src}`)
           copyFileSync(found, dest)
         }
       }
     }
-    return `/writing/${note.slug}/${file}`
+    return `/writing/${owner.slug}/${file}`
   }
 
   const out = body
@@ -362,7 +373,7 @@ async function convert(note: Note, siblings: Note[]): Promise<string> {
   let body = dropGhostCover(outsideCode(note.body, text => convertCallouts(unquoteImages(text))), Boolean(link && ghostSlug(link)))
   const hasH1 = /^# /m.test(body.replace(/^```[\s\S]*?\n```.*$/gm, ''))
   body = outsideCode(body, text => rewriteLinks(demoteHeadings(text, hasH1), bySlug, byTitle))
-  body = await localizeImages(body, note)
+  body = await localizeImages(body, note, siblings)
   body = `${body.trim().replace(/\n{3,}/g, '\n\n')}\n`
 
   const minutes = readingTime(body)
