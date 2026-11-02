@@ -35,6 +35,9 @@
   --lime: #c2c762;       /* highlight / marqueur / remplissage SEULEMENT.
                             Trop clair pour porter du texte sur papier. */
   --sepia: #9a7838;      /* éditorial / essais — l'encre des articles */
+  /* sepia for TEXT (links, small labels): #9a7838 is 3.76:1 on paper, under AA. This one
+     is 5.33:1 on paper, 4.87:1 on paper-2. `--sepia` stays for furniture and large type. */
+  --sepia-ink: #7d6129;
   --riso-red: #d44a2c;   /* couvertures d'articles / photo, avec parcimonie */
   --green: #2c7a4c;      /* dans les vars du NORTHSTAR mais absent de ses swatches
                             documentés — usage indéfini, ne pas employer sans arbitrage */
@@ -45,6 +48,8 @@
    */
   --accent: var(--olive);
   --accent-ink: #ffffff;   /* texte posé SUR l'accent */
+  /* the page ink as TEXT colour (links, labels): AA on paper and paper-2 */
+  --accent-text: var(--olive);
 
   /* teinte topo = l'accent de la page à ~6%.
    * ⚠ VALEURS LITTÉRALES OBLIGATOIRES : --topo est lue en JS par le canvas topo
@@ -107,5 +112,6 @@
 }
 :root[data-ink='sepia'] {
   --accent: var(--sepia);
+  --accent-text: var(--sepia-ink);
   --topo: rgba(154, 120, 56, 0.06);
 }
