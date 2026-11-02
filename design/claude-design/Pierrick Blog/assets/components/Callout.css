@@ -1,0 +1,34 @@
+/* Callout — pinned note (E1, no accent bar): hairline box, faint dots
+ * clipped to the content box, dot pitch = --cell = text line-height, mono
+ * tag breaking the top border (data-tag), two 1px crosses tl + br */
+.callout {
+  --cell: 24px;
+  position: relative;
+  border: 1px solid var(--line);
+  padding: var(--cell) var(--space-l);
+  background-color: var(--paper);
+  background-image: radial-gradient(color-mix(in srgb, var(--ink) 13%, transparent) 1px, transparent 1.4px);
+  background-size: var(--cell) var(--cell);
+  background-position: 0 0;
+}
+.callout p, .callout li { line-height: var(--cell); }
+.callout::before {
+  content: attr(data-tag);
+  position: absolute; top: -8px; left: 14px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+  color: var(--accent); background: var(--paper); padding: 0 7px; text-transform: uppercase;
+}
+.callout::after {
+  content: "";
+  position: absolute; inset: -8.5px; pointer-events: none;
+  background-image:
+    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2)),
+    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2));
+  background-size: 1px 17px, 17px 1px, 1px 17px, 17px 1px;
+  background-position: left 8px top 0, left 0 top 8px, right 8px bottom 0, right 0 bottom 8px;
+  background-repeat: no-repeat;
+}
+/* in a reading column the callout sits INSIDE .prose, pull-quote rhythm */
+.prose .callout { margin: 2.2em 0; }
+.callout h4 { margin: 0 0 6px; font-family: var(--sans); font-weight: 700; font-size: 14px; letter-spacing: .01em; }
+.callout p { margin: 0; font-family: var(--serif); font-size: 15px; color: var(--ink-2); }

@@ -1,0 +1,104 @@
+---
+/**
+ * Preview des boîtes — la plate (B6) et le callout (E1), tels que tranchés dans
+ * `Design Notes.md` (« Box audit — July 2026 »).
+ * Ces pages `ds/` servent à valider un composant et deviendront les `*.card.html`
+ * poussées vers le projet Design System (cf. PIPELINE §6). Elles sont `noindex`.
+ *
+ * Chaque bloc = un `<Stack gap="m">` : label, boîte, contrat. Il FAUT cet espacement —
+ * l'étiquette du callout dépasse de 8px au-dessus de son cadre et le cadre de la plate
+ * déborde de 13px, donc deux blocs collés se chevauchent.
+ */
+import Section from '../../components/primitives/Section.astro'
+import Stack from '../../components/primitives/Stack.astro'
+import Callout from '../../components/print/Callout.astro'
+import MonoLabel from '../../components/print/MonoLabel.astro'
+import Plate from '../../components/print/Plate.astro'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+---
+
+<BaseLayout title="Boxes — exhale DS" noindex>
+  <Section as="header" rhythm="none">
+    <MonoLabel>DS · Print · Plate &amp; Callout</MonoLabel>
+  </Section>
+
+  <!-- PLATE · B6 — le cas décidé : cadre débordant + carreau ultra-léger sur papier nu -->
+  <Section>
+    <Stack gap="m">
+      <MonoLabel>Plate · surface="paper" (B6, le défaut)</MonoLabel>
+      <Plate tag="Fig · 01">
+        <MonoLabel tone="quiet">
+          Le cadre n'est pas une bordure : quatre lignes du carreau foncent et filent 13px
+          au-delà des angles. Dessous, un carreau presque invisible dont la mineure vaut
+          l'interligne (<code>--cell</code>, 24px) et la majeure quatre carreaux : c'est ce qui
+          fait tomber les lignes de texte SUR la trame.
+        </MonoLabel>
+      </Plate>
+      <MonoLabel tone="quiet">
+        Contrat — la plate ne fait que CADRER : pas de photo flottante dedans, aucune ombre
+        portée. Elle ne porte aucun espacement extérieur, mais son cadre déborde de 13px de
+        chaque côté : le conteneur doit lui laisser cette marge.
+      </MonoLabel>
+    </Stack>
+  </Section>
+
+  <!-- PLATE · sans carreau — le cas C1 : le contenu apporte déjà sa grille interne -->
+  <Section>
+    <Stack gap="m">
+      <MonoLabel>Plate · sans carreau (cas C1 — diagrammes)</MonoLabel>
+      <Plate tag="Fig · 02" grid={false}>
+        <MonoLabel tone="quiet">
+          Un diagramme garde sa grille interne et ses points calés dessus ; la plate n'ajoute
+          alors que le cadre, sinon deux trames se superposent.
+        </MonoLabel>
+      </Plate>
+    </Stack>
+  </Section>
+
+  <!-- PLATE · B4 — le secondaire, à réserver aux environnements chargés -->
+  <Section>
+    <Stack gap="m">
+      <MonoLabel>Plate · surface="recessed" (B4, secondaire)</MonoLabel>
+      <Plate tag="Fig · 03" surface="recessed">
+        <MonoLabel tone="quiet">
+          Même plate sur --paper-2. Variante « en retrait », à réserver aux environnements
+          chargés — --paper-2 reste réservé aux panneaux creusés et aux remplissages de hover.
+        </MonoLabel>
+      </Plate>
+      <MonoLabel tone="quiet">
+        Contrat — B6 est le cas décidé, B4 n'est qu'un secondaire. Si la page hésite, c'est
+        papier nu.
+      </MonoLabel>
+    </Stack>
+  </Section>
+
+  <!-- CALLOUT · E1 — note épinglée, deux croix, étiquette cassant le filet du haut -->
+  <Section>
+    <Stack gap="m">
+      <MonoLabel>Callout · E1 (note épinglée)</MonoLabel>
+      <Callout title="La règle d'or">
+        Chaque page choisit une encre pour son mobilier et son type — et la garde partout : le
+        point du logo, les liens, la teinte topo.
+      </Callout>
+      <MonoLabel tone="quiet">
+        Contrat — filet fin, deux croix de repérage (haut-gauche + bas-droite), points
+        estompés, étiquette mono qui CASSE le filet du haut. Jamais de barre d'accent à
+        gauche : c'est l'interdit de marque le plus net.
+      </MonoLabel>
+    </Stack>
+  </Section>
+
+  <!-- le libellé de l'étiquette est une prop : la note peut annoncer autre chose -->
+  <Section>
+    <Stack gap="m">
+      <MonoLabel>Callout · variante d'étiquette</MonoLabel>
+      <Callout tag="Méthode · 02">
+        Sans titre et avec une autre étiquette : l'étiquette est une prop, son défaut est
+        « N.B. ».
+      </Callout>
+      <MonoLabel tone="quiet">
+        Variante — tag="Méthode · 02", sans titre.
+      </MonoLabel>
+    </Stack>
+  </Section>
+</BaseLayout>

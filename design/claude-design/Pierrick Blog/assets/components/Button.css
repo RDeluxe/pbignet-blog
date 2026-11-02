@@ -1,0 +1,28 @@
+/* Button — light animated dither rises in the fill on hover.
+ * .accent — accent ink trame · .invert — secondary mode: solid ink inversion
+ * (legacy class variants — used by NORTHSTAR specimens; convert later) */
+.btn {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 11px var(--space-ml); border: 1px solid var(--ink);
+  background: transparent; color: var(--ink); cursor: pointer;
+}
+.btn::before {
+  content: "";
+  position: absolute; inset: 0; z-index: -1;
+  opacity: 0; transition: opacity 0.22s;
+  background-image: radial-gradient(var(--btn-dith, color-mix(in srgb, var(--ink) 55%, transparent)) 0.8px, transparent 1px);
+  background-size: 4px 4px;
+}
+.btn:hover::before { opacity: 0.3; animation: btn-boil 0.42s steps(1, end) infinite; }
+.btn.accent { border-color: var(--accent); color: var(--accent); --btn-dith: color-mix(in srgb, var(--accent) 60%, transparent); }
+.btn.invert { transition: background 0.2s, color 0.2s; }
+.btn.invert::before { display: none; }
+.btn.invert:hover { background: var(--ink); color: var(--paper); }
+@keyframes btn-boil {
+  0% { background-position: 0 0; }
+  33% { background-position: 2px 1px; }
+  66% { background-position: 1px 3px; }
+  100% { background-position: 0 0; }
+}

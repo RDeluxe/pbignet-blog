@@ -1,0 +1,353 @@
+---
+/**
+ * HeroPopColor — le **cover** d'article qui fait popper une couleur de la photo.
+ *
+ * Le sujet reste en couleur parce que sa teinte correspond à `keepColor` ; tout le reste
+ * part en duotone dithéré. Rendu en direct par `src/lib/spot-hero.ts`.
+ * Source : `research/Article - spot colour.html` + `assets/spot-hero.js` (miroir).
+ *
+ * ART DIRECTION ASSUMÉE : contrairement à la règle « props = intentions » (PIPELINE §4.4),
+ * ce composant accepte des **valeurs** de placement (`titleY`, `focal`). C'est voulu : le
+ * NORTHSTAR demande une cover art-directée **par image**, avec override mobile et point
+ * focal. Ce sont des décisions de composition, pas des réglages de layout génériques.
+ * En revanche c'est à l'appelant de vérifier le contraste du titre (≥3:1, grand texte)
+ * sur CHAQUE breakpoint — d'où `titleInk`.
+ *
+ * ⚠️ `photo.src` doit être une image **EN COULEUR**, jamais un PNG déjà dithéré : la
+ * sélection se fait par teinte, donc une source monochrome ne fait rien popper (le
+ * composant rend alors un duotone uniforme, sans erreur). Les sources vivent dans
+ * `public/photos/source/`.
+ *
+ * ⚠️ **C'est `spot.paper` qui plafonne le contraste du titre**, pas la photo : c'est la
+ * valeur la plus claire du fond dithéré. Un gris moyen (128,132,122) plafonne vers 3.4:1 et
+ * tombe sous 3:1 dès qu'une zone de couleur conservée est claire (un ciel, par exemple).
+ * Garder un ground sombre (~78,82,74) ou basculer `titleInk`. **Mesurer, ne pas juger à
+ * l'œil** — la méthode est dans PIPELINE §4.6b.
+ */
+import type { SpotColor } from '../../lib/spot-hero'
+
+export interface SpotRecipe {
+  /** la couleur à conserver — sa teinte décide de ce qui reste en couleur */
+  keepColor?: string
+  /** le fond dithéré : encre et papier du duotone */
+  ink?: SpotColor
+  paper?: SpotColor
+  cell?: number
+  contrast?: number
+  brightness?: number
+  boil?: number
+  fps?: number
+  /** seuil et douceur de la sélection de teinte */
+  hueLo?: number
+  hueSpan?: number
+  satBoost?: number
+  /** mode INVERT : la teinte keyée part dans le dither, tout le reste garde sa couleur */
+  invert?: boolean
+  /** la zone gardée en couleur reste à la résolution native de la photo (pas de trame) */
+  keepSharp?: boolean
+}
+
+interface Props {
+  photo: { src: string, alt: string }
+  /** le mot de couverture, en display */
+  title: string
+  kicker?: string
+  /** ligne forte sous le titre (lieu, sujet) */
+  place?: string
+  /** ligne technique : lieu · appareil · traitement · crédit */
+  method?: string
+  /** légende verticale, à droite. Masquée en étroit. */
+  vcap?: string
+  /** afficher l'indice de défilement */
+  cue?: boolean
+
+  /** placement du titre — art direction par image. Défaut : la gouttière. */
+  titleX?: string
+  titleY?: string
+  /** override du placement en étroit (≤700px) */
+  titleYMobile?: string
+  /** `light` = crème sur fond sombre (défaut) · `dark` = encre sur fond clair */
+  titleInk?: 'light' | 'dark'
+
+  /** hauteur de la scène */
+  height?: string
+  /** point focal du recadrage, 0..1 — ne déforme jamais, ne fait que panner */
+  focal?: { x?: number, y?: number }
+  /** la recette du moteur, keyée à l'image */
+  spot?: SpotRecipe
+}
+
+const {
+  photo,
+  title,
+  kicker,
+  place,
+  method,
+  vcap,
+  cue = true,
+  titleX,
+  titleY = '11%',
+  titleYMobile,
+  titleInk = 'light',
+  height = 'min(92vh, 880px)',
+  focal = {},
+  spot = {},
+} = Astro.props
+
+// le fond dithéré teinte la scène ET le dégradé de sortie : une seule valeur pour les deux
+const ground = spot.paper ?? [74, 78, 62]
+const groundRgb = Array.isArray(ground) ? ground.join(', ') : String(ground)
+
+// ⚠ define:vars pose les variables en style INLINE, donc elles gagnent contre les media
+// queries : on n'écrit jamais la variable utilisée par le CSS, on écrit sa **base**
+// (cf. PIPELINE §4.5b).
+const vars = {
+  phGround: groundRgb,
+  phHeight: height,
+  phTitleX: titleX ?? 'var(--gutter)',
+  phTitleYBase: titleY,
+  phTitleYMobile: titleYMobile ?? titleY,
+}
+
+const engine = {
+  ...spot,
+  focalX: focal.x ?? 0.5,
+  focalY: focal.y ?? 0.5,
+}
+---
+
+{/* la recipe passe par un data-attribut : `define:vars` sur un <script> le rendrait
+    inline, ce qui casserait les imports ESM du moteur. */}
+<section
+  class="post-hero"
+  data-title-ink={titleInk}
+  data-screen-label="Cover"
+  data-recipe={JSON.stringify(engine)}
+>
+  <img class="dsrc" src={photo.src} alt={photo.alt} />
+  <canvas class="dither-canvas" aria-hidden="true"></canvas>
+  <canvas class="topo-on" aria-hidden="true"></canvas>
+  <div class="grain-on" aria-hidden="true"></div>
+  <div class="scrim" aria-hidden="true"></div>
+
+  {kicker && <div class="ph-kicker">{kicker}</div>}
+  <h1 class="ph-word">{title}</h1>
+
+  {(place || method) && (
+    <div class="ph-sub">
+      {place && <div class="big">{place}</div>}
+      {method && <div class="sm">{method}</div>}
+    </div>
+  )}
+
+  {vcap && <div class="ph-vcap">{vcap}</div>}
+  {cue && <div class="ph-cue" aria-hidden="true">SCROLL ↓</div>}
+</section>
+
+<!-- la glissade : le fond dithéré se dépose dans le papier -->
+<div class="hero-fade" aria-hidden="true"></div>
+
+<script>
+import type { SpotHeroHandle } from '../../lib/spot-hero'
+import { mount } from '../../lib/spot-hero'
+import { Topo } from '../../scripts/texture'
+
+// une page peut porter plusieurs covers (page de preview) : on monte chacune.
+document.querySelectorAll<HTMLElement>('.post-hero').forEach((hero) => {
+  const recipe = JSON.parse(hero.dataset.recipe ?? '{}')
+  const handle = mount(hero, recipe)
+
+  // le handle est exposé sur l'élément pour l'outillage de design (SpotTweaks, /ds) —
+  // mécanisme invisible au rendu, aucun style ne bouge
+  ;(hero as HTMLElement & { spotHero?: SpotHeroHandle }).spotHero = handle
+  hero.dispatchEvent(new CustomEvent('spot-hero:ready', { bubbles: true }))
+
+  // les contours du hero suivent l'encre du fond, éclaircis pour rester lisibles dessus
+  const topo = hero.querySelector<HTMLCanvasElement>('canvas.topo-on')
+  const ink = Array.isArray(recipe.ink) ? recipe.ink : [20, 22, 15]
+  if (topo) {
+    Topo.draw(topo, {
+      color: `rgba(${Math.min(255, ink[0] + 96)}, ${Math.min(255, ink[1] + 110)}, ${Math.min(255, ink[2] + 80)}, 0.22)`,
+      levels: 16,
+      cell: 18,
+      scale: 0.003,
+      seed: 9,
+      emphasizeEvery: 4,
+    })
+  }
+})
+</script>
+
+<style define:vars={vars}>
+  .post-hero {
+    position: relative;
+    width: 100%;
+    height: var(--phHeight);
+    min-height: 520px;
+    overflow: hidden;
+    background: rgb(var(--phGround));
+    /* la variable EFFECTIVE dérive de la base : les breakpoints peuvent la reprendre */
+    --ph-title-y: var(--phTitleYBase);
+  }
+
+  /* le moteur lit cette image ; elle vit sous le canvas */
+  .dsrc {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+  /* le fond dithéré couvre TOUT le cadre */
+  .dither-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    display: block;
+    z-index: 2;
+  }
+  /* contours tissés dans le fond */
+  .topo-on {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0.5;
+  }
+  .grain-on {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    background-image: var(--grain);
+    mix-blend-mode: overlay;
+    opacity: 0.4;
+  }
+  /* scrim de titre : lavis sombre en haut à gauche, là où le type vit */
+  .scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    background:
+      radial-gradient(120% 90% at 8% 4%, rgba(8, 14, 9, 0.62) 0%, rgba(8, 14, 9, 0.18) 38%, transparent 64%),
+      linear-gradient(to top, rgba(8, 14, 9, 0.5) 0%, transparent 26%);
+  }
+
+  .ph-word {
+    position: absolute;
+    left: var(--phTitleX);
+    top: var(--ph-title-y);
+    z-index: 7;
+    /* le mot de couverture ne dépasse jamais ~60% du cadre : il casse à la ligne */
+    max-width: min(60%, calc(100% - 2 * var(--gutter)));
+    margin: 0;
+    font-family: var(--display);
+    font-weight: var(--w-regular);
+    font-size: var(--fs-cover);
+    line-height: var(--lh-cover);
+    letter-spacing: var(--tr-cover);
+    text-transform: uppercase;
+  }
+  .ph-kicker {
+    position: absolute;
+    left: var(--phTitleX);
+    top: calc(var(--ph-title-y) - 30px);
+    z-index: 7;
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  /* l'encre du titre est une décision par image : le fond dithéré peut être clair */
+  .post-hero[data-title-ink='light'] .ph-word,
+  .post-hero[data-title-ink='light'] .ph-kicker { color: var(--cover-ink-light); }
+  .post-hero[data-title-ink='dark'] .ph-word,
+  .post-hero[data-title-ink='dark'] .ph-kicker { color: var(--cover-ink-dark); }
+
+  .ph-sub {
+    position: absolute;
+    left: var(--gutter);
+    bottom: 9%;
+    z-index: 7;
+    max-width: calc(100% - 2 * var(--gutter));
+    font-family: var(--mono);
+    color: var(--cover-ink-light);
+  }
+  .ph-sub .big {
+    font-family: var(--display);
+    font-weight: var(--w-regular);
+    font-size: clamp(20px, 2.6vw, 34px);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .ph-sub .sm {
+    margin-top: var(--space-optical-6);
+    font-size: 12px;
+    letter-spacing: var(--tr-data);
+    color: var(--cover-ink-quiet);
+  }
+
+  .ph-vcap {
+    position: absolute;
+    right: max(18px, 3vw);
+    bottom: 9%;
+    z-index: 7;
+    writing-mode: vertical-rl;
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--cover-ink-light);
+  }
+  .ph-cue {
+    position: absolute;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 7;
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    /* l'invite à scroller n'est pas une quatrième encre mais un TRAITEMENT de la claire :
+       CD l'a tranché ainsi le 2026-08-04 en ramenant les cinq nuances du gold à trois rôles. */
+    color: color-mix(in srgb, var(--cover-ink-light) 70%, transparent);
+  }
+
+  .hero-fade {
+    height: clamp(150px, 24vh, 280px);
+    margin-top: -1px;
+    background: linear-gradient(
+      to bottom,
+      rgb(var(--phGround)) 0%,
+      rgba(var(--phGround), 0.6) 30%,
+      rgba(var(--phGround), 0.14) 64%,
+      var(--paper) 100%
+    );
+  }
+
+  /* en étroit : le titre peut demander un autre placement, et la légende verticale gêne */
+  @media (max-width: 700px) {
+    .post-hero { --ph-title-y: var(--phTitleYMobile); }
+    .ph-vcap { display: none; }
+  }
+
+  /* imprimée, la cover ne doit pas manger une page entière — et l'invite à scroller
+     n'a plus de sens sur du papier. `min-height` doit tomber, sinon les 540px
+     gagneraient contre les 70vh d'une feuille A4. */
+  @media print {
+    .post-hero {
+      height: 70vh;
+      min-height: 0;
+    }
+    .ph-cue { display: none; }
+  }
+</style>

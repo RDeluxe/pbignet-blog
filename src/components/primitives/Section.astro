@@ -1,0 +1,33 @@
+---
+/**
+ * Section — une section de page : rythme vertical + largeur contrainte.
+ * C'est la primitive qui remplace le `.block` + `.wrap` recopiés dans chaque page.
+ */
+interface Props {
+  /** espace au-dessus. `section` = la respiration standard entre deux sections. */
+  rhythm?: 'section' | 'none'
+  /** contraindre la largeur et poser les gouttières (défaut). `false` = pleine largeur. */
+  wrap?: boolean
+  as?: 'section' | 'header' | 'div'
+}
+
+const { rhythm = 'section', wrap = true, as: Tag = 'section' } = Astro.props
+---
+
+<Tag class="section" data-rhythm={rhythm} data-wrap={wrap ? 'on' : 'off'}>
+  <slot />
+</Tag>
+
+<style>
+  .section[data-rhythm='section'] { margin-top: var(--rhythm-section); }
+  .section[data-rhythm='none'] { margin-top: 0; }
+
+  .section[data-wrap='on'] {
+    width: 100%;
+    max-width: var(--maxw);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--gutter);
+    padding-right: var(--gutter);
+  }
+</style>

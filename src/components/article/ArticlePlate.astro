@@ -1,0 +1,137 @@
+---
+/**
+ * ArticlePlate — une image du corps d'article.
+ *
+ * « Plate » est le mot de Claude Design pour ces images (`PLATE 01 · DUOTONE SEPIA`).
+ * Doctrine : **la couleur forte est un événement de cover** — les plates du corps restent
+ * en duotone sépia calme, c'est ce qui rend la cover exceptionnelle par contraste.
+ *
+ * Le dither est ici **pré-cuit** (PNG dithéré dans `public/photos/`), pas rendu en direct :
+ * la règle de marque est « hero dither is baked to PNG », et un moteur live par image du
+ * corps coûterait du CPU pour un gain nul. Le portage de `dither.js` reste à faire pour les
+ * cas où l'on voudrait suivre `--paper` en direct.
+ */
+interface Props {
+  src: string
+  alt: string
+  /**
+   * `plate` = a dithered photograph, pixel-exact under grain (the default).
+   * `capture` = a screenshot or an illustration brought by a post: smooth, in a thin frame,
+   * and a link to the full-size file, since a wide table is unreadable at the column's
+   * width (critique 2026-11-02, n° 9 and 21).
+   */
+  kind?: 'plate' | 'capture'
+  /** légende de gauche — ce que l'image apporte. The default slot, when given, is a richer
+   *  caption (sentence case, links), as Markdoc's `{% figure %}` passes it. */
+  caption?: string
+  /** référence de droite, à l'encre de la page : « PLATE 01 · DUOTONE SEPIA » */
+  plate?: string
+  /** débord au-delà de la mesure de lecture */
+  wide?: boolean
+}
+
+const { src, alt, kind = 'plate', caption, plate, wide = false } = Astro.props
+const rich = Astro.slots.has('default')
+---
+
+<figure class="figure" data-kind={kind} data-width={wide ? 'wide' : 'default'}>
+  {kind === 'capture'
+    ? (
+        <a class="frame" href={src} title="Open full size">
+          <img src={src} alt={alt} loading="lazy" decoding="async" />
+        </a>
+      )
+    : (
+        <div class="frame">
+          <img src={src} alt={alt} loading="lazy" decoding="async" />
+          <div class="grain-on" aria-hidden="true"></div>
+        </div>
+      )}
+  {(rich || caption || plate) && (
+    <figcaption class="figcap" data-rich={rich ? 'on' : 'off'}>
+      {rich ? <div class="rich"><slot /></div> : caption && <span>{caption}</span>}
+      {plate && <span class="r">{plate}</span>}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .figure { margin: clamp(36px, 5vw, 56px) 0; }
+
+  /* déborde la mesure de lecture, centré sur la colonne */
+  .figure[data-width='wide'] {
+    width: min(100vw, calc(var(--maxw) - 2 * var(--gutter) + 220px));
+    max-width: 1080px;
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .frame {
+    position: relative;
+    overflow: hidden;
+    background: var(--paper-2);
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* les PNG dithérés ne doivent jamais être lissés : la trame EST l'image */
+    image-rendering: pixelated;
+  }
+
+  .figure[data-kind='capture'] .frame {
+    display: block;
+    padding: var(--space-s);
+    border: 1px solid var(--line);
+    background: var(--paper);
+    cursor: zoom-in;
+    transition: border-color var(--dur-fast);
+  }
+  .figure[data-kind='capture'] .frame:hover { border-color: var(--ink); }
+  /* a screenshot is smoothed like any image: only the dithered plate is pixel-exact */
+  .figure[data-kind='capture'] img { image-rendering: auto; }
+
+  .grain-on {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: var(--grain);
+    mix-blend-mode: overlay;
+    opacity: 0.4;
+  }
+
+  .figcap {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-ml);
+    flex-wrap: wrap;
+    margin-top: var(--space-s);
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .figcap .r { color: var(--accent-text); }
+
+  /* a sentence, not a label: no capitals, the reading tracking */
+  .figcap[data-rich='on'] {
+    text-transform: none;
+    letter-spacing: 0.02em;
+    line-height: var(--lh-body-tight);
+  }
+  .rich :global(p) { margin: 0; }
+  .rich :global(em) { font-style: normal; }
+  .rich :global(a) {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  /* une plate coupée en deux par un saut de page perd sa légende */
+  @media print {
+    .figure { break-inside: avoid; }
+  }
+</style>

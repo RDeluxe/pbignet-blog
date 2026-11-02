@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>exhale — Style Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/paper.css">
+<style>
+  :root {
+    --paper: #e9e4d8;
+    --paper-2: #e1dbcd;
+    --ink: #1c1a15;
+    --ink-2: #524d40;
+    --ink-3: #8c8773;
+    --accent: #1c1a15;
+    --line: rgba(28,26,21,0.20);
+    --topo: rgba(40,38,30,0.07);
+  }
+  .masthead { padding-top: 30px; }
+  .mast-bar { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--ink); padding-bottom: 12px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
+  .mast-bar .brand { font-family: var(--display); font-size: 26px; letter-spacing: 0.02em; text-transform: none; color: var(--ink); }
+  .mast-bar .brand .dot { color: #d44a2c; }
+  .hero-line { margin: 40px 0 14px; }
+  .hero-line h1 { margin: 0 0 0.42em; font-family: var(--display); font-weight: 400; font-size: clamp(40px, 7.6vw, 104px); line-height: 0.98; text-transform: uppercase; letter-spacing: 0.005em; max-width: 15ch; }
+  .hero-line p { font-family: var(--serif); font-size: clamp(16px,1.6vw,20px); line-height: 1.55; color: var(--ink-2); max-width: 60ch; margin: 0; }
+
+  /* DNA strip */
+  .dna { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 46px; }
+  .dna .cell { background: var(--paper); padding: 20px; }
+  .dna .n { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--ink-3); }
+  .dna h3 { margin: 10px 0 8px; font-family: var(--sans); font-weight: 800; font-size: 16px; letter-spacing: -0.01em; }
+  .dna p { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 1.55; color: var(--ink-2); }
+
+  .pal { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 26px; font-family: var(--mono); font-size: 11px; color: var(--ink-2); letter-spacing: 0.04em; }
+  .pal .sw { display: flex; align-items: center; gap: 8px; }
+  .pal .chip { width: 16px; height: 16px; border: 1px solid rgba(0,0,0,0.25); }
+
+  /* directions grid */
+  .dirs { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 56px; }
+  .card { border: 1px solid var(--line); background: var(--paper); display: flex; flex-direction: column; transition: transform .25s ease, border-color .25s; }
+  .card:hover { transform: translateY(-4px); border-color: var(--ink-2); }
+  .card .chead { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 18px 14px; border-bottom: 1px solid var(--line); }
+  .card .chead .lab { font-family: var(--display); font-size: 24px; text-transform: uppercase; letter-spacing: 0.01em; }
+  .card .chead .lab .num { color: var(--ink-3); margin-right: 10px; font-size: 0.7em; }
+  .card .chead .accent-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .card .desc { padding: 0 18px; font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--ink-2); margin: 14px 0 16px; min-height: 52px; }
+  .thumb-wrap { position: relative; overflow: hidden; border-top: 1px solid var(--line); background: #ddd6c6; height: 320px; }
+  .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; transition: transform .45s ease; }
+  .card:hover .thumb-wrap img { transform: scale(1.035); }
+  .card .cfoot { padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; }
+  .card .cfoot .open { color: var(--ink); font-weight: 700; }
+  .card:hover .cfoot .open .ar { transform: translateX(4px); }
+  .card .cfoot .open .ar { display: inline-block; transition: transform .2s; }
+  .card .cfoot .tags { color: var(--ink-3); }
+
+  .endnote { margin: 64px 0 70px; border-top: 2px solid var(--ink); padding-top: 22px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); letter-spacing: 0.04em; }
+  .endnote b { color: var(--ink); }
+
+  @media (max-width: 820px) {
+    .dna { grid-template-columns: 1fr 1fr; }
+    .dirs { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+  <div class="wrap masthead">
+    <div class="mast-bar">
+      <span>Style Directions · 04</span>
+      <span class="brand">exhale</span>
+      <span>pierrickbignet.com · 2026</span>
+    </div>
+
+    <div class="hero-line">
+      <h1>Four ways to print the same page.</h1>
+      <p>A first look at the visual language for your personal site — retro, paper-like, and built on three shared ingredients. Each direction below is a live homepage. Open one to scroll it, and drop your own photos into the frames to watch the dithering take over.</p>
+      <p style="margin-top:18px;font-family:var(--mono);font-size:13px;letter-spacing:0.04em;color:var(--ink);"><a href="Bold Studies.html" style="border-bottom:2px solid #d8492c;padding-bottom:2px;">→ ROUND 2 · BOLD STUDIES</a> &nbsp;effects baked onto your photos, font-on-picture.</p>
+    </div>
+
+    <div class="dna">
+      <div class="cell"><div class="n">INGREDIENT 01</div><h3>Paper &amp; grain</h3><p>Warm off-white stock with a fine film grain and a printed-sheet vignette. The constant across all four.</p></div>
+      <div class="cell"><div class="n">INGREDIENT 02</div><h3>Topography</h3><p>Faint contour lines drawn from value-noise sit behind everything as ambient terrain.</p></div>
+      <div class="cell"><div class="n">INGREDIENT 03</div><h3>Animated dither</h3><p>An 8×8 Bayer dither that gently boils. Ambient before a photo lands, then it dithers the photo itself.</p></div>
+      <div class="cell"><div class="n">INGREDIENT 04</div><h3>Type &amp; metadata</h3><p>Heavy display type, monospace labels, coordinates, registration marks and barcodes for instrument feel.</p></div>
+    </div>
+
+    <div class="pal">
+      <span class="sw"><span class="chip" style="background:#3d491d"></span> 01 · olive</span>
+      <span class="sw"><span class="chip" style="background:#9a7838"></span> 02 · contour sepia</span>
+      <span class="sw"><span class="chip" style="background:#2c7a4c"></span> 03 · instrument green</span>
+      <span class="sw"><span class="chip" style="background:#d44a2c"></span> 04 · riso red</span>
+    </div>
+
+    <div class="dirs">
+      <a class="card" href="01 Field Notes.html">
+        <div class="chead"><div class="lab"><span class="num">01</span>Field Notes</div><span class="accent-dot" style="background:#3d491d"></span></div>
+        <div class="desc">The retro poster. Olive-green display type overlapping a dithered hero, tabular metadata header, barcode footer.</div>
+        <div class="thumb-wrap"><img src="thumbs/01.png" alt="Field Notes homepage preview" loading="lazy"></div>
+        <div class="cfoot"><span class="open">Open homepage <span class="ar">→</span></span><span class="tags">poster · blue · b&amp;w dither</span></div>
+      </a>
+      <a class="card" href="02 Topographic.html">
+        <div class="chead"><div class="lab"><span class="num">02</span>Topographic</div><span class="accent-dot" style="background:#9a7838"></span></div>
+        <div class="desc">The editorial. Archivo-black name set huge with a period, justified serif columns, contour map and a full-bleed dithered strip.</div>
+        <div class="thumb-wrap"><img src="thumbs/02.png" alt="Topographic homepage preview" loading="lazy"></div>
+        <div class="cfoot"><span class="open">Open homepage <span class="ar">→</span></span><span class="tags">editorial · sepia · serif</span></div>
+      </a>
+      <a class="card" href="03 Spec Sheet.html">
+        <div class="chead"><div class="lab"><span class="num">03</span>Spec Sheet</div><span class="accent-dot" style="background:#2c7a4c"></span></div>
+        <div class="desc">The instrument panel. A dithered specimen with green annotation callouts and connector lines, monospace throughout, big numeral readouts.</div>
+        <div class="thumb-wrap"><img src="thumbs/03.png" alt="Spec Sheet homepage preview" loading="lazy"></div>
+        <div class="cfoot"><span class="open">Open homepage <span class="ar">→</span></span><span class="tags">technical · green · mono</span></div>
+      </a>
+      <a class="card" href="04 Riso.html">
+        <div class="chead"><div class="lab"><span class="num">04</span>Riso</div><span class="accent-dot" style="background:#d44a2c"></span></div>
+        <div class="desc">The art cover. Stacked duotone photo bands, a big lowercase name straddling the seam, riso-red dither and misregistered type.</div>
+        <div class="thumb-wrap"><img src="thumbs/04.png" alt="Riso homepage preview" loading="lazy"></div>
+        <div class="cfoot"><span class="open">Open homepage <span class="ar">→</span></span><span class="tags">duotone · red · lowercase</span></div>
+      </a>
+    </div>
+
+    <div class="endnote">
+      <span>These are <b>directions, not finals</b> — mix and match: V2's serif body in V1's poster, V3's callouts on V4's photos, etc.</span>
+      <span>exhale — set in Anton · Archivo · Space Mono · Newsreader</span>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/texture.js"></script>
+<script>
+  Grain.apply(20);
+  Topo.mount(document.getElementById('topo'), { color: 'rgba(40,38,30,0.07)', levels: 15, cell: 26, scale: 0.0020, seed: 31, emphasizeEvery: 5 });
+</script>
+</body>
+</html>

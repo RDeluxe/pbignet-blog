@@ -1,0 +1,25 @@
+/* ArticlePlate — body photo figure. §3 DECISION: the article frame is the
+ * SAME .frame component with a dither VARIANT — .frame[data-dither='on']
+ * (overflow + dark ground + fixed ratio + canvas shown); base .frame stays
+ * dither-off. Width variant: .figure[data-width='wide']. */
+.frame { position: relative; }
+.frame .dither-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 2;
+  display: none;
+}
+.frame .dsrc { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+.frame .grain-on { position: absolute; inset: 0; z-index: 3; pointer-events: none; background-image: var(--grain); mix-blend-mode: overlay; opacity: .4; }
+.frame[data-dither='on'] { overflow: hidden; background: var(--cover-ink-dark); aspect-ratio: 1066/1422; }
+.frame[data-dither='on'] .dither-canvas { display: block; }
+.figure { margin: clamp(36px,5vw,56px) 0; }
+.figure[data-width='wide'] { width: min(100vw, calc(var(--maxw) - 2 * var(--gutter) + 220px)); margin-left: 50%; transform: translateX(-50%); max-width: 1080px; }
+.figure[data-width='wide'] .frame { aspect-ratio: 1066/720; }
+.figcap { display: flex; justify-content: space-between; gap: var(--space-ml); flex-wrap: wrap; margin-top: var(--space-s); font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.figcap .r { color: var(--accent); }
+@media print { .figure { break-inside: avoid; } }

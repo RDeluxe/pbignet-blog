@@ -1,0 +1,59 @@
+---
+/**
+ * L'index des écrits — la liste complète de la collection `writing`, du plus récent au plus
+ * ancien, brouillons exclus (`lib/posts.ts`). La home n'en montre que les quatre premiers ; cette page est la même ligne
+ * (`PostRow`), sans coupe.
+ *
+ * Le gold ne spécifie pas de page d'index dédiée (`Design Notes.md` la liste seulement dans
+ * « next pages »). On reprend donc à l'identique le registre de la section Writing de
+ * `01_Home.html` — même en-tête, même lede, même ligne — plutôt que d'inventer une
+ * direction. L'encre reste l'olive par défaut : sépia est réservé aux articles.
+ */
+import Masthead from '../../components/Masthead.astro'
+import PostRow from '../../components/PostRow.astro'
+import Lede from '../../components/primitives/Lede.astro'
+import Section from '../../components/primitives/Section.astro'
+import Stack from '../../components/primitives/Stack.astro'
+import SectionHead from '../../components/SectionHead.astro'
+import SiteFooter from '../../components/SiteFooter.astro'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { getPosts } from '../../lib/posts'
+
+const posts = await getPosts()
+---
+
+<BaseLayout
+  title="Writing — exhale"
+  description="Essays and unfiled notes, in English and French: building software, leading teams, designing games."
+>
+  <Section as="header" rhythm="none">
+    <Masthead currentPath="/writing" />
+  </Section>
+
+  <main>
+    <Section>
+      <SectionHead title="Writing" meta="[ OPINIONS · NOTES ]" titleAs="h1" />
+      <Lede measure="tight">
+        Essays and unfiled notes, in English and French: building software, leading teams, designing games.
+      </Lede>
+      <Stack spaced>
+        {posts.map(({ post, number }) => (
+          <PostRow
+            index={number}
+            tag={post.data.tag}
+            tagAccent={post.data.tag === 'Essay'}
+            title={post.data.title}
+            description={post.data.description}
+            readTime={post.data.readTime}
+            pubDate={post.data.pubDate}
+            href={`/writing/${post.id}`}
+            lang={post.data.lang}
+            titleAs="h2"
+          />
+        ))}
+      </Stack>
+    </Section>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>

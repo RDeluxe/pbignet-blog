@@ -1,0 +1,50 @@
+---
+/**
+ * Lede — le paragraphe serif d'introduction, sous un titre ou en ouverture de page.
+ *
+ * DEUX échelles, héritées du gold historique (`01_Home.html`) :
+ * `section` reprend `.lead-serif` (le lede sous un en-tête), `intro` reprend `.hero-intro`
+ * (l'accroche d'ouverture). J'avais cru y voir un doublon et je les avais fusionnées sur une
+ * troisième valeur inventée — décision de design non validée, annulée.
+ */
+interface Props {
+  /** échelle. `section` = sous un en-tête (défaut) · `intro` = l'accroche de la home. */
+  size?: 'section' | 'intro'
+  /** largeur de ligne. `tight` = un lede court sous un titre de section. */
+  measure?: 'default' | 'tight'
+  /** espace au-dessus (un lede d'ouverture suit un en-tête, pas un titre) */
+  spaced?: boolean
+}
+
+const { size = 'section', measure = 'default', spaced = false } = Astro.props
+---
+
+<p class="lede" data-size={size} data-measure={measure} data-spaced={spaced ? 'on' : 'off'}>
+  <slot />
+</p>
+
+<style>
+  .lede {
+    font-family: var(--serif);
+    line-height: var(--lh-lead);
+    color: var(--ink);
+    text-wrap: balance;
+    margin: 0;
+  }
+  .lede[data-size='section'] { font-size: var(--fs-lead); }
+  .lede[data-size='intro'] { font-size: var(--fs-lead-intro); }
+
+  .lede[data-measure='default'] { max-width: var(--measure-lede); }
+  .lede[data-measure='tight'] { max-width: var(--measure-lede-tight); }
+
+  .lede[data-spaced='on'] { margin-top: var(--space-xl); }
+
+  /* a link in the lede's own text (the 404's way back): same treatment as in Prose. The
+     slot is the lede's text, so styling its inline runs is the lede's business. */
+  .lede :global(a) {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+  }
+</style>

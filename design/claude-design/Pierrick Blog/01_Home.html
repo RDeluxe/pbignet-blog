@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>exhale — Pierrick Bignet</title>
+<meta name="description" content="The personal index of Pierrick Bignet — engineer, game art director, and photographer. Short essays, field notes, and dithered 35mm photography.">
+<link rel="canonical" href="https://exhale.blog/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="exhale — Pierrick Bignet">
+<meta property="og:description" content="The personal index of Pierrick Bignet — engineer, game art director, and photographer. Short essays, field notes, and dithered 35mm photography.">
+<meta property="og:url" content="https://exhale.blog/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="exhale — Pierrick Bignet">
+<meta name="twitter:description" content="The personal index of Pierrick Bignet — engineer, game art director, and photographer. Short essays, field notes, and dithered 35mm photography.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/paper.css">
+
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+
+  <!-- index bar — absent at the top (metabar + nav.main own it); dithers in once RESPIRE is scrolled past -->
+  <header class="topbar" data-context="index" id="indexbar" aria-hidden="true">
+    <div class="tb-in">
+      <a class="brand" href="#top">exhale</a>
+      <nav class="tb-nav">
+        <a href="#">Writing</a><a href="#">Projects</a><a href="#">Now</a><a href="#">Setup</a><a href="#">Photos</a><a href="#">About</a>
+      </nav>
+      <span class="tb-back">Nº 001 · INDEX</span>
+    </div>
+  </header>
+
+  <header class="wrap">
+    <div class="metabar">
+      <div class="m"><div class="k">Title</div><div class="v">Personal Index</div></div>
+      <div class="m"><div class="k">Date</div><div class="v">02.06.26</div></div>
+      <div class="m"><div class="k">Edition</div><div class="v">Vol. ∞</div></div>
+      <div class="m"><div class="k">Filed by</div><div class="v">P. Bignet</div></div>
+      <div class="m"><div class="k">Location</div><div class="v">Lyon, FR</div></div>
+      <div class="brand">exhale</div>
+    </div>
+    <nav class="main">
+      <a href="#">Writing</a><a href="#">Projects</a>
+      <a href="#">Now</a><a href="#">Setup</a><a href="#">Photos</a>
+      <span class="sp"></span><a href="#">About</a><span class="lock" aria-disabled="true">Travel ⌁</span>
+    </nav>
+
+    <!-- HERO v2 -->
+    <div class="hero2">
+      <div class="hero2-stage">
+        <p class="lede" data-size="intro">I build software, direct the art of games, and photograph everything in between.</p>
+        <div class="photo-plane"></div>
+        <h1 class="ctype">RESPIRE</h1>
+        <div class="hero2-credit">SETOUCHI · NAOSHIMA · PANASONIC GX80 · ⓒ P. BIGNET</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- WRITING -->
+    <section class="block">
+      <div class="shead"><h2>Writing</h2><div class="shead-meta">[ OPINIONS · NOTES ]</div></div>
+      <p class="lede" data-size="section">Short essays and unfiled opinions: taste, building things, and the gap between.</p>
+      <div class="post-list">
+        <a class="post" href="#"><span class="idx">001</span><span><span class="tag" data-accent="on">Essay</span><div class="ptitle">On taste as a competitive advantage</div><div class="pdesc">Why the companies that win on craft are usually the ones who couldn't articulate why craft mattered — until it did.</div></span><span class="pmeta">8 MIN<br>MAY 2026</span></a>
+        <a class="post" href="#"><span class="idx">002</span><span><span class="tag">Note</span><div class="ptitle">Why I still write the first draft by hand</div><div class="pdesc">The friction is the feature. A short defence of slow tools in a fast studio.</div></span><span class="pmeta">4 MIN<br>APR 2026</span></a>
+        <a class="post" href="#"><span class="idx">003</span><span><span class="tag" data-accent="on">Essay</span><div class="ptitle">The real cost of context-switching, measured</div><div class="pdesc">I tracked every interruption for a month. The numbers were worse than the folklore.</div></span><span class="pmeta">11 MIN<br>APR 2026</span></a>
+      </div>
+    </section>
+  </main>
+
+  <!-- FEATURED — word over dithered photo (the hero move, reprised) -->
+  <section class="block wrap">
+    <div class="shead"><h2>Latest&nbsp;Field&nbsp;Note</h2><div class="shead-meta">[ PHOTO-ESSAY · TRAVEL ]</div></div>
+  </section>
+  <a class="feature" href="#">
+    <img src="assets/photos/torii-red.png" alt="Itsukushima torii, riso dither">
+    <span class="ftag">№ 014 · Itsukushima, Miyajima</span>
+    <h2 class="fword">torii</h2>
+    <div class="fmeta"><b>SHOT ON</b> X100V<br>09 MIN READ → </div>
+  </a>
+
+  <main class="wrap">
+    <!-- FIELD GUIDES -->
+    <section class="block">
+      <div class="shead"><h2>Field&nbsp;Guides</h2><div class="shead-meta"></div></div>
+      <div class="coll-grid">
+        <a class="coll" href="#"><span class="tag" data-accent="on">Guide</span><h3>The Studio Operating Manual</h3><p>Everything I wish I'd known about running a profitable, humane software studio.</p><span class="coll-foot">14 CHAPTERS · 3 SUB-SECTIONS →</span></a>
+        <a class="coll" href="#"><span class="tag">Guide</span><h3>Field Notes on Game Direction</h3><p>Creative-direction lessons from shipping games: pillars, vibe, scope, saying no.</p><span class="coll-foot">09 ENTRIES →</span></a>
+        <a class="coll" href="#"><span class="tag">Guide</span><h3>A Photographer's Technical Notebook</h3><p>Light, film stocks, scanning, and the dithering pipeline behind this very site.</p><span class="coll-foot">07 ENTRIES →</span></a>
+      </div>
+    </section>
+
+    <!-- PHOTOS -->
+    <section class="block">
+      <div class="shead"><h2>Photographs</h2><div class="shead-meta">[ 35MM · DITHERED · 2024–26 ]</div></div>
+      <div class="photos-grid">
+        <div class="pframe" data-ratio="tall"><img src="assets/photos/street-dither.png" alt="Tokyo backstreet"><div class="pc"><span>Tokyo · sakura</span><span>№012</span></div></div>
+        <div class="pframe" data-ratio="wide"><img src="assets/photos/fuji-dither.png" alt="Fuji"><div class="pc"><span>Kawaguchiko</span><span>№001</span></div></div>
+        <div class="pframe" data-ratio="wide"><img src="assets/photos/torii-red.png" alt="Torii"><div class="pc"><span>Miyajima</span><span>№014</span></div></div>
+      </div>
+    </section>
+
+    <!-- SETUP -->
+    <section class="block">
+      <div class="shead"><h2>The&nbsp;Setup</h2><div class="shead-meta"></div></div>
+      <div class="gear-grid">
+        <a class="gear" href="#"><div><div class="gnum">SET·01</div><div class="gname">The Desk</div></div><div class="gmeta">Linux · 2×27" · split kbd</div></a>
+        <a class="gear" href="#"><div><div class="gnum">SET·02</div><div class="gname">Camera Bag</div></div><div class="gmeta">Contax T2 · X100V</div></a>
+        <a class="gear" href="#"><div><div class="gnum">SET·03</div><div class="gname">Software</div></div><div class="gmeta">nvim · Figma · DaVinci</div></a>
+        <a class="gear" href="#"><div><div class="gnum">SET·04</div><div class="gname">Home Lab</div></div><div class="gmeta">12TB · self-hosted</div></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site" data-variant="index">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div><div class="foot-brand">exhale<div class="fb-sub">The personal index of Pierrick Bignet.<br>Engineer by trade, artist by default.<br>Built on paper, light &amp; dots.</div></div></div>
+        <div class="foot-col"><h4>Read</h4><a href="#">Writing</a><a href="#">Field Guides</a><a href="#">Projects</a><a href="#">Now</a></div>
+        <div class="foot-col"><h4>Around</h4><a href="#">About</a><a href="#">Setup</a><a href="#">Photos</a><a href="#">Travel ⌁</a></div>
+        <div class="foot-mark"><div class="barcode"></div><div class="barcode-num">PB · 2026 · 45.76N 4.83E · ∞</div><div class="mono-label">SET IN ANTON · ARCHIVO<br>SPACE MONO · NEWSREADER</div></div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script src="assets/texture.js"></script>
+<script>
+  Grain.apply(20);
+  Topo.mount(document.getElementById('topo'), { color: getComputedStyle(document.documentElement).getPropertyValue('--topo').trim() || 'rgba(61,73,29,0.06)', levels: 16, cell: 24, scale: 0.0019, seed: 11, emphasizeEvery: 4 });
+
+  // Align the photo INSIDE the headline with the photo plane below, so the
+  // picture reads as one continuous image flowing up through the letters.
+  (function () {
+    const SRC = 'assets/photos/arc-cdither.png';
+    const img = new Image();
+    function align() {
+      const stage = document.querySelector('.hero2-stage');
+      const ct = document.querySelector('.ctype');
+      if (!stage || !ct || !img.naturalWidth) return;
+      const W = stage.clientWidth, H = stage.clientHeight;
+      const nw = img.naturalWidth, nh = img.naturalHeight;
+      const scale = Math.max(W / nw, H / nh);     // background-size: cover
+      const cw = nw * scale, ch = nh * scale;
+      const offX = (W - cw) / 2, offY = (H - ch) / 2; // background-position: 50% 50%
+      ct.style.backgroundSize = cw + 'px ' + ch + 'px';
+      ct.style.backgroundPosition = (offX - ct.offsetLeft) + 'px ' + (offY - ct.offsetTop) + 'px';
+    }
+    img.onload = align;
+    img.src = SRC;
+    window.addEventListener('resize', align);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(align);
+    setTimeout(align, 250);
+    setTimeout(align, 800);
+  })();
+
+  // index bar — dithers in once the hero stage is fully above the viewport, dissolves out on the way back
+  (function () {
+    var bar = document.getElementById('indexbar');
+    var hero = document.querySelector('.hero2-stage');
+    if (!bar || !hero || !('IntersectionObserver' in window)) return;
+    var on = false;
+    var io = new IntersectionObserver(function (entries) {
+      var e = entries[0];
+      var past = !e.isIntersecting && e.boundingClientRect.bottom < 0;
+      if (past === on) return;
+      on = past;
+      bar.classList.toggle('is-on', on);
+      bar.classList.toggle('is-off', !on);
+      bar.setAttribute('aria-hidden', on ? 'false' : 'true');
+    });
+    io.observe(hero);
+  })();
+</script>
+</body>
+</html>

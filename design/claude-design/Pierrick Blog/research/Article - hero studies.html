@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hero colour studies — exhale</title>
+<meta name="description" content="Experiments: an article hero keyed to its photograph — bold ink bleeding past the frame, settling into the paper as you scroll.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/paper.css">
+<style>
+  /* ====== page ink stays SEPIA — furniture + type discipline (NORTHSTAR §08) ====== */
+  :root {
+    --paper: #ece7dd;
+    --paper-2: #e3dccd;
+    --ink: #1b1a16;
+    --ink-2: #4c483d;
+    --ink-3: #696551;
+    --accent: #9a7838;                 /* sepia — the page's single furniture ink */
+    --line: rgba(27,26,22,.20);
+    --line-soft: rgba(27,26,22,.12);
+    --topo: rgba(154,120,56,.06);
+    --maxw: 1180px;
+    --post-hero-h: 100vh;
+
+    /* per-image hero variables (set by JS; blue defaults) */
+    --boldrgb: 30,54,82;               /* the dominant colour, keyed to the photo */
+    --title-top: 22%;
+    --obj-pos: 50% 64%;
+    --title-color: #f4efe3;
+    --title-shadow: 0 3px 34px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.4);
+  }
+
+  /* ====== sticky reading bar — present by default, scroll only enriches ====== */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    transition: background .35s ease, border-color .35s ease, color .35s ease;
+  }
+  .topbar .progress { position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--accent); transition: width .12s linear; }
+  .topbar .tb-in { max-width: var(--maxw); margin: 0 auto; padding: 13px var(--gutter); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; }
+  .topbar .brand { font-family: var(--display); font-size: 20px; letter-spacing: .02em; line-height: 1; }
+  .topbar .brand .dot { color: var(--accent); }
+  .topbar .tb-title { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topbar .tb-back { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; }
+  .topbar .tb-back:hover { color: var(--accent); }
+  .topbar.over-hero { background: transparent; border-color: transparent; }
+  .topbar.over-hero .brand, .topbar.over-hero .tb-back { color: #f4efe3; text-shadow: 0 1px 14px rgba(0,0,0,.5); }
+  .topbar.over-hero .tb-title { color: rgba(241,235,221,0); }
+  .topbar.over-hero .progress { opacity: 0; }
+
+  /* ====== HERO — bold colour field, photo dithered into it (type on photo) ====== */
+  .post-hero {
+    position: relative; width: 100%;
+    height: var(--post-hero-h); min-height: 540px;
+    margin-top: calc(-1 * (48px + 2px));
+    overflow: hidden;
+    background: rgb(var(--boldrgb));     /* the dominant colour sits BEHIND the photo */
+    transition: background .4s ease;
+  }
+  .post-hero .dsrc { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--obj-pos); z-index: 1; }
+  /* dither dissolves the TOP of the frame, fading to reveal the real photo lower down */
+  .post-hero .dither-canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    image-rendering: pixelated; display: block; z-index: 2;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 22%, transparent 48%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 22%, transparent 48%);
+  }
+  .post-hero .topo-on {
+    position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 16%, transparent 40%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 16%, transparent 40%);
+  }
+  .post-hero .grain-on { position: absolute; inset: 0; z-index: 4; pointer-events: none; background-image: var(--grain); mix-blend-mode: overlay; opacity: .4; }
+  /* TINT THE TOP: pour the dominant colour over the top of the frame so the dither
+     dots and the bg become one continuous field the title can sit on. */
+  .post-hero .photo-tint {
+    position: absolute; inset: 0; z-index: 5; pointer-events: none;
+    background: linear-gradient(to bottom,
+      rgba(var(--boldrgb),1) 0%,
+      rgba(var(--boldrgb),1) 13%,
+      rgba(var(--boldrgb),0) 50%);
+  }
+  /* bottom scrim for the credit line */
+  .post-hero .scrim { position: absolute; inset: 0; z-index: 6; pointer-events: none; background: linear-gradient(to top, rgba(10,8,4,.5) 0%, transparent 28%); }
+
+  .ph-word {
+    position: absolute; left: var(--gutter); top: var(--title-top); z-index: 7;
+    text-align: left; max-width: calc(100% - 2 * var(--gutter));
+    font-family: var(--display); font-weight: 400; text-transform: uppercase;
+    font-size: clamp(52px, 16vw, 168px); line-height: .82; letter-spacing: .02em;
+    color: var(--title-color); margin: 0; text-shadow: var(--title-shadow);
+  }
+  .ph-sub { position: absolute; left: var(--gutter); bottom: 9%; z-index: 7; font-family: var(--mono); color: #efe9dc; max-width: calc(100% - 2 * var(--gutter)); }
+  .ph-sub .big { font-family: var(--display); font-weight: 400; font-size: clamp(20px, 2.6vw, 34px); letter-spacing: .04em; text-transform: uppercase; line-height: 1; text-shadow: 0 1px 12px rgba(0,0,0,.55); }
+  .ph-sub .sm { font-size: 11.5px; letter-spacing: .1em; margin-top: 7px; color: #ded7c8; text-shadow: 0 1px 10px rgba(0,0,0,.6); }
+  .ph-vcap { position: absolute; right: max(18px, 3vw); bottom: 9%; z-index: 7; writing-mode: vertical-rl; font-family: var(--mono); font-size: 11px; letter-spacing: .24em; text-transform: uppercase; color: #ece6d8; text-shadow: 0 1px 10px rgba(0,0,0,.55); }
+  .ph-cue { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 7; font-family: var(--mono); font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: rgba(241,235,221,.72); }
+
+  /* ====== the glide: dominant colour bleeds PAST the photo, then settles to paper ====== */
+  .hero-fade {
+    height: clamp(150px, 26vh, 300px); margin-top: -1px;
+    background: linear-gradient(to bottom,
+      rgb(var(--boldrgb)) 0%,
+      rgba(var(--boldrgb),.62) 26%,
+      rgba(var(--boldrgb),.16) 62%,
+      var(--paper) 100%);
+    transition: background .4s ease;
+  }
+
+  /* ====== ARTICLE BODY (site normal — sepia ink, serif body) ====== */
+  .article { max-width: 66ch; margin: 0 auto; padding: clamp(30px,4vw,52px) var(--gutter) 0; }
+  .statrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); margin-bottom: clamp(30px, 4vw, 44px); }
+  .statrow .st { padding: 14px 16px 14px 0; }
+  .statrow .st .k { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+  .statrow .st .v { font-family: var(--mono); font-size: 13px; letter-spacing: .03em; color: var(--ink); margin-top: 5px; }
+  .statrow .st .v b { color: var(--accent); font-weight: 700; }
+  .art-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .art-title { font-family: var(--sans); font-weight: 600; letter-spacing: -.01em; font-size: clamp(31px, 5vw, 52px); line-height: 1.04; text-wrap: balance; color: var(--ink); margin: 0 0 22px; }
+  .art-dek { font-family: var(--serif); font-size: clamp(19px, 2.4vw, 24px); line-height: 1.4; color: var(--ink-2); text-wrap: pretty; margin: 0 0 14px; font-style: italic; }
+  .art-byline { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 16px; margin-top: 26px; }
+  .art-byline b { color: var(--ink-2); }
+  .prose { margin-top: clamp(30px, 4vw, 44px); }
+  .prose > p { font-family: var(--serif); font-size: 16.5px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty; margin: 0 0 1.45em; }
+  .prose > p b, .prose > p strong { color: var(--ink); font-weight: 600; }
+  .prose > p.lede { font-size: 18.5px; line-height: 1.5; color: var(--ink); }
+  .prose > p.lede::first-letter { font-family: var(--display); font-weight: 400; float: left; font-size: 3.1em; line-height: .74; padding: 6px 12px 0 0; color: var(--accent); }
+  h2.sub { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); margin: 2.4em 0 1.1em; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  h2.sub .n { color: var(--accent); margin-right: 12px; }
+  .pull { margin: 2.2em 0; padding: 4px 0 4px 24px; border-left: 3px solid var(--accent); font-family: var(--serif); font-style: italic; font-weight: 500; font-size: clamp(21px, 2.8vw, 27px); line-height: 1.32; color: var(--ink); text-wrap: balance; }
+  .pull .src { display: block; font-family: var(--mono); font-style: normal; font-weight: 400; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-top: 14px; }
+
+  /* body photo — calm site-normal sepia (shows the glide to normality) */
+  .figure { margin: clamp(36px,5vw,56px) 0; }
+  .figure.wide { width: min(100vw, calc(var(--maxw) - 2 * var(--gutter) + 220px)); margin-left: 50%; transform: translateX(-50%); max-width: 1080px; }
+  .frame { position: relative; overflow: hidden; background: #14110a; aspect-ratio: 1066/720; }
+  .frame .dsrc { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+  .frame .dither-canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: block; z-index: 2; }
+  .frame .grain-on { position: absolute; inset: 0; z-index: 3; pointer-events: none; background-image: var(--grain); mix-blend-mode: overlay; opacity: .4; }
+  .figcap { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-top: 12px; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+  .figcap .r { color: var(--accent); }
+
+  .art-end { max-width: 66ch; margin: clamp(40px,6vw,72px) auto 0; padding: 0 var(--gutter); }
+  .art-end .em { border-top: 2px solid var(--ink); padding-top: 18px; font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--ink-2); line-height: 1.6; }
+  .art-end .em .dot { color: var(--accent); }
+  .art-end .em b { color: var(--ink); }
+
+  footer.site { margin-top: clamp(60px,8vw,110px); border-top: 2px solid var(--ink); }
+  footer.site .fin { max-width: var(--maxw); margin: 0 auto; padding: 34px var(--gutter) 86px; display: grid; grid-template-columns: 1.4fr 1fr auto; gap: 30px; align-items: start; }
+  footer.site .f-brand { font-family: var(--display); font-size: 30px; line-height: 1; }
+  footer.site .f-brand .dot { color: var(--accent); }
+  footer.site .f-sub { font-family: var(--serif); font-size: 14px; line-height: 1.5; color: var(--ink-2); margin-top: 12px; max-width: 34ch; }
+  footer.site .f-col h4 { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; }
+  footer.site .f-col a { display: block; font-family: var(--mono); font-size: 12px; color: var(--ink-2); padding: 5px 0; letter-spacing: .04em; }
+  footer.site .f-col a:hover { color: var(--accent); }
+  footer.site .f-mark { text-align: right; }
+  footer.site .f-mark .barcode { margin-left: auto; }
+  footer.site .f-credit { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: var(--ink-3); margin-top: 16px; line-height: 1.7; }
+
+  /* ====== STUDY SWITCHER — a control, not site furniture ====== */
+  .studybar {
+    position: fixed; z-index: 80; left: 50%; bottom: 18px; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 9px; border-radius: 999px;
+    background: rgba(20,17,12,.82); backdrop-filter: blur(10px);
+    box-shadow: 0 8px 30px rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.1);
+  }
+  .studybar .lab { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.6); padding: 0 8px 0 6px; white-space: nowrap; }
+  .studybar button { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; border: 1px solid transparent; background: transparent; color: rgba(255,255,255,.78); font-family: var(--mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; padding: 7px 11px 7px 8px; border-radius: 999px; transition: background .18s ease, color .18s ease, border-color .18s ease; }
+  .studybar button .sw { width: 13px; height: 13px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+  .studybar button:hover { background: rgba(255,255,255,.08); color: #fff; }
+  .studybar button[aria-pressed="true"] { background: rgba(255,255,255,.92); color: #14110c; border-color: #fff; }
+  .studybar button[aria-pressed="true"] .sw { box-shadow: inset 0 0 0 1px rgba(0,0,0,.3), 0 0 0 2px rgba(255,255,255,.9); }
+  .studybar .hint { font-family: var(--mono); font-size: 10px; letter-spacing: .04em; color: rgba(255,255,255,.42); padding: 0 8px; white-space: nowrap; }
+
+  @media (max-width: 820px) {
+    .studybar .hint { display: none; }
+    .studybar button .txt { display: none; }
+    .studybar button { padding: 8px; }
+  }
+  @media (max-width: 720px) {
+    .statrow { grid-template-columns: 1fr 1fr; }
+    .statrow .st { border-bottom: 1px solid var(--line-soft); }
+    footer.site .fin { grid-template-columns: 1fr 1fr; }
+    footer.site .f-mark { grid-column: 1 / -1; text-align: left; }
+    footer.site .f-mark .barcode { margin-left: 0; }
+    .ph-vcap { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .topbar, .topbar .progress, .post-hero, .hero-fade { transition: none; }
+  }
+  @media print {
+    .topo-layer, .grain-layer, .vignette, .ph-cue, .topbar .progress, .studybar { display: none !important; }
+    body { background: #fff; }
+    .post-hero { height: 70vh; }
+    .article, .prose > p, .figure, .pull { break-inside: avoid; }
+    a { color: inherit; }
+  }
+</style>
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+
+  <header class="topbar" id="topbar">
+    <div class="progress" id="progress"></div>
+    <div class="tb-in">
+      <a class="brand" href="../01_Home.html" aria-label="exhale home">exhale</a>
+      <div class="tb-title" id="tbTitle">Hero colour studies</div>
+      <a class="tb-back" href="../02_Article.html" aria-label="Back to the article template">← Template</a>
+    </div>
+  </header>
+
+  <!-- ===================== COVER ===================== -->
+  <section class="post-hero" id="hero" data-screen-label="Cover">
+    <img class="dsrc" id="heroImg" src="../assets/photos/castle-blue.jpg" alt="Matsuyama castle rooftops under a wide blue sky">
+    <canvas class="dither-canvas"></canvas>
+    <canvas class="topo-on" id="topoHero"></canvas>
+    <div class="grain-on"></div>
+    <div class="photo-tint"></div>
+    <div class="scrim"></div>
+
+    <h1 class="ph-word" id="heroWord">Matsuyama</h1>
+    <div class="ph-sub">
+      <div class="big" id="heroPlace">Matsuyama-jō</div>
+      <div class="sm" id="heroMethod">IYO · iPHONE 13 · DITHERED 8×8 · ⓒ P. BIGNET</div>
+    </div>
+    <div class="ph-vcap" id="heroVcap">FIELD NOTE / 33.84°N 132.77°E</div>
+    <div class="ph-cue">SCROLL ↓</div>
+  </section>
+
+  <div class="hero-fade" aria-hidden="true"></div>
+
+  <!-- ===================== ARTICLE (demo body, shared across studies) ===================== -->
+  <article>
+    <div class="article">
+      <div class="statrow">
+        <div class="st"><div class="k">Reading</div><div class="v"><b>8</b> MIN</div></div>
+        <div class="st"><div class="k">Date</div><div class="v">MAY 2026</div></div>
+        <div class="st"><div class="k">Place</div><div class="v" id="statPlace">MATSUYAMA, JP</div></div>
+        <div class="st"><div class="k">Edition</div><div class="v">Nº 014</div></div>
+      </div>
+
+      <div class="art-tags"><span class="tag" data-accent="on">Essay</span><span class="tag">Craft</span><span class="tag">Building</span></div>
+
+      <h1 class="art-title">On taste as a competitive advantage</h1>
+      <p class="art-dek">Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity.</p>
+      <div class="art-byline">Filed by <b>Pierrick Bignet</b> · Engineer by trade, artist by default</div>
+
+      <div class="prose">
+        <p class="lede">Taste is the thing teams praise after the fact and never budget for in advance. A product ships. It feels right. Someone calls it tasteful, as if taste were weather. It is not weather. It is a sequence of small refusals, made by someone who was paying attention when it was cheaper not to.</p>
+        <p>We talk about it like a gift because that lets us off the hook. If taste is innate, it cannot be a line item. It cannot be reviewed, scheduled, or defended in a planning meeting. Convenient. It is also wrong.</p>
+        <h2 class="sub"><span class="n">01</span>What taste actually is</h2>
+        <p>Taste is the ability to notice a wrong detail before a user does, and to care enough to fix it when no one is watching. It is mostly subtraction. The tasteful version of anything is usually the version with fewer apologies in it.</p>
+        <p>This is unglamorous work. You remove a gradient. You align a baseline that was off by two pixels. You delete the third call to action because two were already one too many. None of it photographs well. All of it compounds.</p>
+        <div class="pull">Craft is not a finish you apply at the end. It is a set of decisions you refuse to defer.</div>
+        <p>The refusal is the expensive part. Deferring is free and feels productive. You ship the adequate thing, on time, and promise to revisit it. The revisit never comes, because the next adequate thing is already due.</p>
+        <h2 class="sub"><span class="n">02</span>Why it wins</h2>
+        <p>Features get copied in a quarter. Pricing gets matched in a week. The accumulated weight of a thousand correct small decisions does not transfer. A competitor can read your changelog. They cannot read the meetings where you said no.</p>
+      </div>
+
+      <figure class="figure wide">
+        <div class="frame" id="fig1">
+          <img class="dsrc" src="../assets/photos/pier.jpg" alt="A jetty reaching into the calm Setouchi sea">
+          <canvas class="dither-canvas"></canvas>
+          <div class="grain-on"></div>
+        </div>
+        <figcaption class="figcap">
+          <span>Body imagery stays in the calm site duotone — the loud colour is a hero-only event.</span>
+          <span class="r">PLATE 01 · DUOTONE SEPIA</span>
+        </figcaption>
+      </figure>
+
+      <div class="prose" style="margin-top:0;">
+        <p>That is the moat. Not the taste itself, which is cheap to admire, but the operating cost of maintaining it. Most organisations will not pay it. They will ship the adequate thing and call the difference subjective, because subjective things do not appear in the quarterly review.</p>
+        <h2 class="sub"><span class="n">03</span>The catch</h2>
+        <p>Taste resists measurement, so it loses every argument against a metric. You cannot A/B test the feeling of coherence. You can only protect the people who have it, and give them the authority to remove things.</p>
+        <p>That authority is the actual competitive advantage. The taste is just what it looks like from the outside. Hire for it, shield it from the roadmap, and let it cut. Then watch how long it takes anyone to copy the result without copying the cost.</p>
+      </div>
+    </div>
+
+    <div class="art-end">
+      <div class="em"><span class="dot">●</span> File under: <b>things that are obvious in hindsight and impossible to schedule.</b><br>Next: <b>Field Notes on Game Direction</b>. Pillars, vibe, scope, and the art of saying no.</div>
+    </div>
+  </article>
+
+  <footer class="site">
+    <div class="fin">
+      <div>
+        <div class="f-brand">exhale</div>
+        <div class="f-sub">The personal index of Pierrick Bignet. Engineer by trade, artist by default. Built on paper, light and dots.</div>
+      </div>
+      <div class="f-col">
+        <h4>Read</h4>
+        <a href="../01_Home.html">Index</a>
+        <a href="../02_Article.html">Article template</a>
+        <a href="#">Field Guides</a>
+        <a href="#">Now</a>
+      </div>
+      <div class="f-mark">
+        <div class="barcode"></div>
+        <div class="barcode-num">PB · 2026 · HERO STUDIES · ∞</div>
+        <div class="f-credit">SET IN ANTON · ARCHIVO<br>SPACE MONO · NEWSREADER</div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<!-- study switcher -->
+<div class="studybar" role="group" aria-label="Hero colour study">
+  <span class="lab">Hero study</span>
+  <button data-theme="blue"   aria-pressed="true"><span class="sw" style="background:#1e3652"></span><span class="txt">Blue</span></button>
+  <button data-theme="amber"  aria-pressed="false"><span class="sw" style="background:#52301f"></span><span class="txt">Amber</span></button>
+  <button data-theme="sunset" aria-pressed="false"><span class="sw" style="background:#96421e"></span><span class="txt">Sunset</span></button>
+  <button data-theme="red"    aria-pressed="false"><span class="sw" style="background:#78201a"></span><span class="txt">Red</span></button>
+  <span class="hint">scroll — it settles into the paper ↓</span>
+</div>
+
+<script src="../assets/texture.js"></script>
+<script src="../assets/dither.js"></script>
+<script>
+  // --- texture: page contours + grain, sepia-tinted (site furniture) ---
+  Grain.apply(20);
+  Topo.mount(document.getElementById('topo'), {
+    color: 'rgba(154,120,56,0.06)', levels: 15, cell: 26, scale: 0.0020, seed: 14, emphasizeEvery: 5
+  });
+
+  // --- per-image hero recipes: dither tone, title placement + colour, focal point ---
+  // Each bold field is dark enough (or the title flips dark) to clear AA ≥3:1 large text.
+  var THEMES = {
+    blue: {
+      img: '../assets/photos/castle-blue.jpg',
+      alt: 'Matsuyama castle rooftops under a wide blue sky',
+      bold: '30,54,82', ink: '18,40,64', paper: '176,196,214', topo: 'rgba(20,44,70,.30)',
+      titleColor: '#f4efe3', titleShadow: '0 3px 34px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.4)',
+      titleTop: '22%', obj: '50% 64%',
+      word: 'Matsuyama', place: 'Matsuyama-jō', method: 'IYO · iPHONE 13 · DITHERED 8×8 · ⓒ P. BIGNET',
+      vcap: 'FIELD NOTE / 33.84°N 132.77°E', stat: 'MATSUYAMA, JP'
+    },
+    amber: {
+      img: '../assets/photos/wood-amber.jpg',
+      alt: 'Cedar lattice interior of the Yusuhara cloud library',
+      bold: '82,46,18', ink: '54,30,10', paper: '205,166,114', topo: 'rgba(70,40,16,.30)',
+      titleColor: '#f4efe3', titleShadow: '0 3px 34px rgba(0,0,0,.6), 0 1px 3px rgba(0,0,0,.45)',
+      titleTop: '15%', obj: '50% 46%',
+      word: 'Yusuhara', place: 'Kumo-no-ue Library', method: 'KŌCHI · iPHONE 13 · DITHERED 8×8 · ⓒ P. BIGNET',
+      vcap: 'FIELD NOTE / KENGO KUMA, 2018', stat: 'YUSUHARA, JP'
+    },
+    sunset: {
+      img: '../assets/photos/road-sunset.jpg',
+      alt: 'A rural overpass against a peach and orange dusk sky',
+      bold: '150,66,30', ink: '104,44,16', paper: '228,180,136', topo: 'rgba(120,52,22,.26)',
+      titleColor: '#241606', titleShadow: '0 1px 22px rgba(255,224,170,.55), 0 1px 2px rgba(255,210,150,.6)',
+      titleTop: '13%', obj: '50% 44%',
+      word: 'Dusk', place: 'Route 56, Iyo', method: 'EHIME · iPHONE 13 · DITHERED 8×8 · ⓒ P. BIGNET',
+      vcap: 'FIELD NOTE / GOLDEN HOUR', stat: 'IYO, JP'
+    },
+    red: {
+      img: '../assets/photos/bridge-red.jpg',
+      alt: 'A crimson suspension bridge over a green river valley',
+      bold: '120,32,26', ink: '104,26,20', paper: '206,172,166', topo: 'rgba(120,30,24,.26)',
+      titleColor: '#f4efe3', titleShadow: '0 3px 34px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.4)',
+      titleTop: '20%', obj: '50% 56%',
+      word: 'Shimanto', place: 'Crimson span', method: 'KŌCHI · iPHONE 13 · DITHERED 8×8 · ⓒ P. BIGNET',
+      vcap: 'FIELD NOTE / SUSPENSION', stat: 'SHIMANTO, JP'
+    }
+  };
+
+  var root = document.documentElement;
+  var hero = document.getElementById('hero');
+  var heroImg = document.getElementById('heroImg');
+  var topoHero = document.getElementById('topoHero');
+  var stopHero = null;
+
+  function applyTheme(key) {
+    var t = THEMES[key]; if (!t) return;
+    root.style.setProperty('--boldrgb', t.bold);
+    root.style.setProperty('--title-top', t.titleTop);
+    root.style.setProperty('--obj-pos', t.obj);
+    root.style.setProperty('--title-color', t.titleColor);
+    root.style.setProperty('--title-shadow', t.titleShadow);
+    heroImg.src = t.img; heroImg.alt = t.alt;
+    document.getElementById('heroWord').textContent = t.word;
+    document.getElementById('heroPlace').textContent = t.place;
+    document.getElementById('heroMethod').textContent = t.method;
+    document.getElementById('heroVcap').textContent = t.vcap;
+    document.getElementById('statPlace').textContent = t.stat;
+
+    if (stopHero) stopHero();
+    stopHero = Dither.photo(hero, {
+      cell: 3, ink: t.ink, paper: t.paper, contrast: 1.4, brightness: 0.0, boil: 0.05, fps: 12
+    });
+    Topo.draw(topoHero, { color: t.topo, levels: 16, cell: 18, scale: 0.0030, seed: 9, emphasizeEvery: 4 });
+
+    document.querySelectorAll('.studybar button').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.dataset.theme === key ? 'true' : 'false');
+    });
+    try { localStorage.setItem('heroStudy', key); } catch (e) {}
+  }
+
+  document.querySelectorAll('.studybar button').forEach(function (b) {
+    b.addEventListener('click', function () { applyTheme(b.dataset.theme); });
+  });
+
+  var saved = 'blue';
+  try { saved = localStorage.getItem('heroStudy') || 'blue'; } catch (e) {}
+  if (!THEMES[saved]) saved = 'blue';
+  applyTheme(saved);
+
+  // --- body photo: calm site-normal sepia duotone ---
+  Dither.photo(document.getElementById('fig1'), {
+    cell: 3, ink: '70,52,22', paper: '233,226,212', contrast: 1.26, brightness: 0.04, boil: 0.04, fps: 10
+  });
+
+  // --- reading progress + immersive nav reveal (enrichment only) ---
+  (function () {
+    var bar = document.getElementById('progress');
+    var topbar = document.getElementById('topbar');
+    function onScroll() {
+      var h = document.documentElement;
+      var max = (h.scrollHeight - h.clientHeight) || 1;
+      var p = Math.min(1, Math.max(0, (window.scrollY || h.scrollTop) / max));
+      bar.style.width = (p * 100).toFixed(2) + '%';
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && e.intersectionRatio > 0.35) topbar.classList.add('over-hero');
+          else topbar.classList.remove('over-hero');
+        });
+      }, { threshold: [0, 0.35, 0.6] });
+      io.observe(hero);
+    }
+  })();
+</script>
+</body>
+</html>

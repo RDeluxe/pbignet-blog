@@ -1,0 +1,67 @@
+---
+interface Props {
+  src: string
+  alt: string
+  caption: string
+  number: string
+  /** `lead` = the opening frame of a lead grid (`<Grid lead>`): it takes the row's height
+   *  beside the others on wide screens, and opens the grid full width when narrow */
+  ratio?: 'tall' | 'wide' | 'lead'
+}
+
+const { src, alt, caption, number, ratio = 'tall' } = Astro.props
+---
+
+<div class="pframe" data-ratio={ratio}>
+  <img src={src} alt={alt} loading="lazy" decoding="async" />
+  <div class="pc">
+    <span>{caption}</span>
+    <span>{number}</span>
+  </div>
+</div>
+
+<style>
+  .pframe {
+    position: relative;
+    overflow: hidden;
+    background: var(--photo-ground);
+    border: 1px solid var(--line);
+  }
+  /* Variantes en `data-*` (PROTOCOL §4) : le gold historique avait converti
+     `.pframe.tall/.wide` en `[data-ratio]` en août 2026, on suivait encore en classes. */
+  .pframe[data-ratio='tall'] { aspect-ratio: 3 / 4; }
+  .pframe[data-ratio='wide'] { aspect-ratio: 4 / 5; }
+  /* A tall opener beside two 4:5 frames left a ~150px hole under them at 1080 (critique
+     2026-11-02, n° 25): on wide screens the opener follows the row instead of setting it. */
+  .pframe[data-ratio='lead'] { height: 100%; }
+  /* out of the flow, the image cannot set the row's height */
+  .pframe[data-ratio='lead'] img { position: absolute; inset: 0; }
+  @media (max-width: 880px) {
+    .pframe[data-ratio='lead'] { aspect-ratio: 3 / 2; height: auto; }
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pc {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    /* TODO token: 0.08em → --tr-… ? (absent de l'échelle ; déjà en dur dans CollCard) */
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cover-ink-light);
+    background: linear-gradient(transparent, rgba(var(--photo-scrim-rgb), 0.7));
+    /* TODO token: 18px (= --space-head, réservé aux en-têtes) et 8px absents de l'échelle
+       générique — seul le 10px latéral est tokenisé */
+    padding: var(--space-ml) var(--space-s) var(--space-xs);
+  }
+</style>

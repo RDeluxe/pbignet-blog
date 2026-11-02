@@ -1,0 +1,117 @@
+/* colors.css — base fixe + encres d'accent.
+ *
+ * CE FICHIER EST LA SOURCE DES VALEURS (pivot 2026-08-04 : le code fait foi).
+ * Provenance historique : `paper.css` + le `:root` des pages gold de l'ancien projet CD.
+ * SOURCE DE LA DOCTRINE : `design/doctrine/0_NORTHSTAR.html` §05 Color.
+ *
+ * ⚠️ Le NORTHSTAR porte ses PROPRES valeurs (`--ink: #18170f`, `--ink-3: #8b8672`,
+ * `--maxw: 1080px`…) : c'est un document-specimen, mis en page pour être lu. Elles ne
+ * valent pas pour le site. Il fait foi sur la doctrine, jamais sur les hex — exactement ce
+ * que dit CLAUDE.md : « NORTHSTAR pour la doctrine ; paper.css + le <style> des pages pour
+ * les hex exacts ». Aucun écart à assumer ici : les valeurs sont celles de la source.
+ */
+
+:root {
+  /* ---- base fixe — ne change jamais d'une page à l'autre ----
+   * paper / paper-2 : « Blanc cassé · silence », retenu au banc
+   * `research/Paper - couleur.html` (décision août 2026), propagé à tout le gold.
+   */
+  --paper: #f6f5f1;
+  --paper-2: #edebe4;    /* panneaux en retrait et remplissages de hover UNIQUEMENT */
+  --ink: #1b1a16;        /* texte primaire, filets, display */
+  --ink-2: #4c483d;      /* corps / texte secondaire */
+  --ink-3: #696551;      /* mono labels, légendes, hints */
+
+  --line: rgba(27, 26, 22, 0.2);
+  --line-soft: rgba(27, 26, 22, 0.12);
+
+  /* ---- encres d'accent — green-forward, jamais de bleu (NORTHSTAR §05) ----
+   * UNE SEULE par page, pour le MOBILIER + le TYPE (le dot, les liens, la teinte topo,
+   * les tags, les titres). Le ton du dither photographique en est EXEMPTÉ : il peut être
+   * keyé à l'image (§05/§08), et la couleur forte est un **événement de hero** — les
+   * plates du corps d'article restent en duotone sépia calme.
+   */
+  --olive: #3d491d;      /* primaire — l'encre de travail. Remplace le bleu. */
+  --lime: #c2c762;       /* highlight / marqueur / remplissage SEULEMENT.
+                            Trop clair pour porter du texte sur papier. */
+  --sepia: #9a7838;      /* éditorial / essais — l'encre des articles */
+  /* sepia for TEXT (links, small labels): #9a7838 is 3.76:1 on paper, under AA. This one
+     is 5.33:1 on paper, 4.87:1 on paper-2. `--sepia` stays for furniture and large type. */
+  --sepia-ink: #7d6129;
+  --riso-red: #d44a2c;   /* couvertures d'articles / photo, avec parcimonie */
+  --green: #2c7a4c;      /* dans les vars du NORTHSTAR mais absent de ses swatches
+                            documentés — usage indéfini, ne pas employer sans arbitrage */
+
+  /* ---- encre active de la page ----
+   * Défaut = olive (home). Une page override --accent et TOUT suit.
+   * Articles : --accent: var(--sepia) + --topo sépia (cf. 02_Article.html).
+   */
+  --accent: var(--olive);
+  --accent-ink: #ffffff;   /* texte posé SUR l'accent */
+  /* the page ink as TEXT colour (links, labels): AA on paper and paper-2 */
+  --accent-text: var(--olive);
+
+  /* teinte topo = l'accent de la page à ~6%.
+   * ⚠ VALEURS LITTÉRALES OBLIGATOIRES : --topo est lue en JS par le canvas topo
+   * (BaseLayout → Topo.mount). getPropertyValue ne résout pas color-mix() sur une custom
+   * property non enregistrée, donc une valeur calculée arriverait telle quelle au canvas.
+   */
+  --topo: rgba(61, 73, 29, 0.06);
+
+  /* ---- encres POSÉES SUR PHOTO (covers d'article) ----
+   * Hors doctrine « one ink » : ce ne sont pas des encres de mobilier mais du type sur
+   * image. Le choix light/dark est une décision **par image** — vérifier ≥3:1 (grand
+   * texte) sur chaque breakpoint.
+   *
+   * TROIS RÔLES, tranchés par CD le 2026-08-04 (brief `2026-08-04-article-specimen-complet.md`).
+   * Le gold portait cinq nuances claires à quelques points l'une de l'autre — « accumulation,
+   * not intention », chacune tapée le jour où son composant a été écrit. Elles sont désormais
+   * unifiées sur ces trois rôles, chez lui comme ici.
+   *
+   * ⚠️ Nos anciennes valeurs (#f4efe3, #ded7c8, #241606) venaient des **bancs**
+   * (`research/Article - hero studies`, `research/Article - spot colour`), pas du gold — une
+   * faute de méthode : « a validated result graduates to root », donc la research ne fait
+   * jamais foi. Ces trois hex n'existent plus nulle part dans le projet distant.
+   */
+  --cover-ink-light: #f1ebdd;   /* le mot de couverture, le crédit, les labels, la vcap */
+  --cover-ink-quiet: #cfc9bb;   /* métadonnée secondaire : sous-titre mono, numéro de code-barre */
+  --cover-ink-dark: #14110a;    /* fonds de dither */
+
+  /* fond sombre d'un cadre photo (avant chargement, ou sous une image transparente) */
+  --photo-ground: #2a2620;
+  /* encre foncée posée sur une zone claire de photo */
+  --photo-ink-dark: #36281f;
+  /* voile sombre derrière une légende — composer l'alpha : rgba(var(--photo-scrim-rgb), .5) */
+  --photo-scrim-rgb: 20, 18, 12;
+
+  /* déclinaisons du riso red, pour le type et les ombres portées sur photo */
+  --riso-red-ink: #ad3318;
+  --riso-red-deep: #7a2414;
+
+  /* ---- filets ----
+   * `--line` (20 %) et `--line-soft` (12 %) sont les filets de mobilier. `--line-strong`
+   * est le trait de CADRE de la plate B6, qui doit lire comme un trait d'impression.
+   */
+  --line-strong: color-mix(in srgb, var(--ink) 55%, transparent);
+
+  /* ---- carreau et points (plate B6, callout E1) ----
+   * À la limite du perceptible : si la trame « se voit », elle est trop forte.
+   */
+  --plate-grid-major: color-mix(in srgb, var(--ink) 5%, transparent);
+  --plate-grid-minor: color-mix(in srgb, var(--ink) 2.2%, transparent);
+  --dot-ink: color-mix(in srgb, var(--ink) 13%, transparent);
+}
+
+/* L'encre de la page, posée par `<BaseLayout ink="…">` sur <html>. Changer d'encre change
+ * TOUT le mobilier et le type d'un coup ; le dither photographique reste libre (keyé à
+ * l'image). `--topo` est réécrite en littéral parce qu'elle est lue en JS.
+ */
+:root[data-ink='olive'] {
+  --accent: var(--olive);
+  --topo: rgba(61, 73, 29, 0.06);
+}
+:root[data-ink='sepia'] {
+  --accent: var(--sepia);
+  --accent-text: var(--sepia-ink);
+  --topo: rgba(154, 120, 56, 0.06);
+}

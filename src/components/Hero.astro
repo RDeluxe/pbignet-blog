@@ -1,0 +1,159 @@
+---
+interface Props {
+  photoSrc: string
+  credit?: string
+  headline?: string
+  /** espace au-dessus du hero (ex: '12px', '2vw'). 0 padding par défaut, réglable. */
+  gap?: string
+  /** ligne photo : bord haut de la photo ET bas du titre (synchronisés). Plus petit = moins de vide au-dessus du titre. */
+  line?: string
+  /** hauteur de la scène — pilote l'immersion (ex: 'min(82vh, 760px)'). */
+  height?: string
+  /** the photo's focal point, 0 to 1 across: what a narrow, cropped stage keeps. The
+   *  arch of the default photo sits at ~70%; centred, a 390px screen kept mostly sky
+   *  (critique 2026-11-02, n° 25). */
+  focalX?: number
+}
+
+const {
+  photoSrc,
+  // ligne d'origine dérivée des métadonnées de la photo (lieu · appareil · crédit)
+  credit = 'SETOUCHI · NAOSHIMA · PANASONIC GX80 · ⓒ P. BIGNET',
+  headline = 'EXHALE',
+  gap = '12px',
+  line = '34%',
+  height = 'min(82vh, 760px)',
+  focalX = 0.7,
+} = Astro.props
+
+// --hero-line-base = valeur desktop (prop) ; les media queries du <style> resserrent
+// --hero-line sur petit écran. On passe par une var "base" car un style inline
+// l'emporterait sur les media queries si on posait --hero-line directement.
+const styleVars = `--hero-gap:${gap};--hero-line-base:${line};--hero-h:${height};--hero-focal-x:${focalX * 100}%;`
+---
+
+<div class="hero2" style={styleVars}>
+  <div class="hero2-stage" id="hero-stage">
+    <div class="photo-plane" style={`background-image: url('${photoSrc}')`}></div>
+    <h1
+      class="ctype"
+      id="hero-ctype"
+      style={`background-image: url('${photoSrc}')`}
+    >{headline}</h1>
+    <div class="hero2-credit">{credit}</div>
+  </div>
+</div>
+
+<script define:vars={{ photoSrc, focalX }}>
+// Aligne le background-clip:text du titre avec le photo-plane du dessous
+// pour que la photo semble traverser les lettres en continu.
+(function () {
+  const img = new Image()
+  function align() {
+    const stage = document.getElementById('hero-stage')
+    const ct = document.getElementById('hero-ctype')
+    if (!stage || !ct || !img.naturalWidth)
+      return
+    const W = stage.clientWidth
+    const H = stage.clientHeight
+    const nw = img.naturalWidth
+    const nh = img.naturalHeight
+    const scale = Math.max(W / nw, H / nh)
+    const cw = nw * scale
+    const ch = nh * scale
+    // same focal point as the photo-plane's background-position
+    const offX = (W - cw) * focalX
+    const offY = (H - ch) / 2
+    ct.style.backgroundSize = `${cw}px ${ch}px`
+    ct.style.backgroundPosition = `${offX - ct.offsetLeft}px ${offY - ct.offsetTop}px`
+  }
+  img.onload = align
+  img.src = photoSrc
+  window.addEventListener('resize', align)
+  if (document.fonts?.ready)
+    document.fonts.ready.then(align)
+  setTimeout(align, 250)
+  setTimeout(align, 800)
+})()
+</script>
+
+<style>
+  /* composant composable : aucun padding propre, espacement piloté par --hero-gap ;
+     --hero-line synchronise le clip de la photo et le bas du titre. */
+  .hero2 {
+    position: relative;
+    /* TODO token: 12px → --space-… ? (l'échelle générique n'a pas de pas à 12px ;
+       --gap-grid vaut 12px mais son usage est réservé aux grilles de cartes/cadres) */
+    margin: var(--hero-gap, 12px) 0 0;
+    padding: 0;
+    --hero-line: var(--hero-line-base, 34%);
+  }
+
+  .hero2-stage {
+    position: relative;
+    width: 100%;
+    height: var(--hero-h, min(82vh, 760px));
+    overflow: hidden;
+  }
+
+  .photo-plane {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: var(--hero-focal-x, 50%) 50%;
+    background-repeat: no-repeat;
+    z-index: 1;
+    clip-path: inset(var(--hero-line, 34%) 0 0 0);
+  }
+
+  .ctype {
+    position: absolute;
+    z-index: 3;
+    left: -0.03em;
+    bottom: calc(100% - var(--hero-line, 34%));
+    margin: 0;
+    font-family: var(--display);
+    /* an h1 is bold by default, and only Anton 400 is loaded: the browser faked a bold
+       that clogged the counters (NORTHSTAR §04: « Anton, weight 400 only ») */
+    font-weight: var(--w-regular);
+    font-size: var(--fs-hero);
+    line-height: var(--lh-hero);
+    letter-spacing: var(--tr-hero);
+    text-transform: uppercase;
+    white-space: nowrap;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    /* fallback si l'image ne charge pas */
+    --fallback-color: var(--ink);
+  }
+  @supports not (-webkit-background-clip: text) {
+    .ctype { color: var(--ink); -webkit-text-fill-color: var(--ink); }
+  }
+
+  .hero2-credit {
+    position: absolute;
+    z-index: 4;
+    left: 2px;
+    /* TODO token: 14px → --space-… ? (absent de l'échelle) */
+    bottom: 14px;
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    letter-spacing: var(--tr-tag);
+    color: var(--cover-ink-light);
+    text-transform: uppercase;
+    opacity: 0.9;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);
+  }
+
+  /* le titre rétrécit (clamp) plus vite que la scène (vh) sur petit écran :
+     on resserre --hero-line pour garder une bande constante au-dessus du titre. */
+  @media (max-width: 880px) {
+    .hero2 { --hero-line: 24%; }
+  }
+  @media (max-width: 560px) {
+    .hero2 { --hero-line: 16%; }
+  }
+</style>

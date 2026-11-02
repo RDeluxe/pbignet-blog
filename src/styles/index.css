@@ -1,0 +1,15 @@
+/* index.css — le point d'entrée unique du CSS global.
+ * Importé une seule fois, par BaseLayout. Aucun composant n'importe de CSS.
+ *
+ * Les fichiers tokens/*.css sont l'artefact PARTAGÉ avec Claude Design : ils sont poussés
+ * tels quels (même format que Muskle Design System), donc jamais recopiés ni traduits.
+ * Ne pas y ajouter de règles — seulement des custom properties.
+ */
+
+@import './tokens/colors.css';
+@import './tokens/type.css';
+@import './tokens/space.css';
+@import './base.css';
+
+/* La zone de transition (ex-paper.css) a atteint zéro : plus aucune classe globale
+   en dehors de base.css. Tout le reste vit dans un composant. */

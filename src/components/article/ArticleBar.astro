@@ -1,0 +1,205 @@
+---
+/**
+ * ArticleBar — la barre de lecture d'un article.
+ *
+ * The page opens on the `Masthead`, in flow, like every page (header review, 2026-11-02,
+ * option 1). This bar is the reading companion that takes over once the masthead has
+ * scrolled away: fixed, hidden at the top, shown by an IntersectionObserver on `.mast`,
+ * like `IndexBar` on the home. Without JS it stays hidden: the masthead already carries
+ * the way around, so nothing is lost. On top of that the script keeps its two extras, the
+ * reading gauge and the transparent state over a cover.
+ *
+ * La jauge anime `transform: scaleX()`, pas `width` : le gold animait `width`, ce qui
+ * déclenche un layout à chaque frame de scroll (P3 de la critique Impeccable).
+ *
+ * La barre de la home est un **composant à part**, `IndexBar` : même châssis à l'œil, aucun
+ * comportement commun (fixe et masquée par défaut, observe le hero, anime un masque). Voir
+ * l'avertissement en tête d'`IndexBar.astro`.
+ */
+interface Props {
+  /** titre courant, affiché au centre */
+  title: string
+  /** lien de retour */
+  backHref?: string
+  backLabel?: string
+  /** la barre démarre transparente si la page ouvre sur une cover pleine hauteur */
+  overCover?: boolean
+  /** language of the title; the bar itself is English chrome */
+  lang?: 'en' | 'fr'
+}
+
+const {
+  title,
+  backHref = '/writing',
+  backLabel = '← Writing',
+  overCover = false,
+  lang,
+} = Astro.props
+---
+
+{/* `aria-hidden` and `inert` carry the INITIAL state: the masthead is on screen */}
+<header class="topbar" data-over-cover={overCover ? 'on' : 'off'} aria-hidden="true" inert>
+  <div class="progress" aria-hidden="true"></div>
+  <div class="tb-in">
+    <a class="brand" href="/" aria-label="exhale — home">exhale</a>
+    <div class="tb-title" lang={lang}>{title}</div>
+    <a class="tb-back" href={backHref}>{backLabel}</a>
+  </div>
+</header>
+
+<script>
+const bar = document.querySelector<HTMLElement>('.topbar')
+const gauge = bar?.querySelector<HTMLElement>('.progress')
+const cover = document.querySelector<HTMLElement>('.post-hero')
+const mast = document.querySelector<HTMLElement>('.mast')
+
+// shown once the masthead has left by the TOP; `inert` keeps the hidden links out of the
+// tab order, which opacity alone would not
+if (bar && mast && 'IntersectionObserver' in window) {
+  let on = false
+  new IntersectionObserver((entries) => {
+    const e = entries[0]
+    const past = !e.isIntersecting && e.boundingClientRect.bottom < 0
+    if (past === on)
+      return
+    on = past
+    bar.classList.toggle('is-on', on)
+    bar.setAttribute('aria-hidden', on ? 'false' : 'true')
+    bar.toggleAttribute('inert', !on)
+  }).observe(mast)
+}
+
+if (bar && gauge) {
+  const onScroll = (): void => {
+    const doc = document.documentElement
+    const max = doc.scrollHeight - doc.clientHeight || 1
+    const p = Math.min(1, Math.max(0, (window.scrollY || doc.scrollTop) / max))
+    gauge.style.transform = `scaleX(${p})`
+  }
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onScroll)
+  onScroll()
+
+  // au-dessus de la cover, la barre s'efface dans l'image ; l'IO n'est qu'un confort
+  if (cover && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      entries => entries.forEach((e) => {
+        bar.dataset.overCover = e.isIntersecting && e.intersectionRatio > 0.35 ? 'on' : 'off'
+      }),
+      { threshold: [0, 0.35, 0.6] },
+    )
+    io.observe(cover)
+  }
+}
+</script>
+
+<style>
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-100%);
+    transition:
+      transform 0.25s ease,
+      opacity 0.25s ease,
+      visibility 0s linear 0.25s,
+      background 0.3s ease,
+      border-color 0.3s ease,
+      color 0.3s ease;
+  }
+  .topbar.is-on {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .topbar { transition: none; }
+  }
+
+  .progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 2px;
+    width: 100%;
+    background: var(--accent);
+    /* scaleX plutôt que width : composité, aucun layout pendant le scroll */
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 0.12s linear;
+  }
+
+  .tb-in {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 13px var(--gutter);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-ml);
+  }
+
+  .brand {
+    font-family: var(--display);
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  .tb-title {
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tb-back {
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-data);
+    text-transform: uppercase;
+    color: var(--ink-2);
+    white-space: nowrap;
+    /* cible tactile ≥44px sans déplacer la ligne de base (P2 de la critique).
+       Mesuré : 45px de haut avec ces valeurs. */
+    padding: 15px 0;
+    margin: -15px 0;
+  }
+  .tb-back:hover { color: var(--accent-text); }
+
+  /* au-dessus de la cover : la barre disparaît dans l'image */
+  .topbar[data-over-cover='on'] {
+    background: transparent;
+    border-color: transparent;
+  }
+  .topbar[data-over-cover='on'] .brand,
+  .topbar[data-over-cover='on'] .tb-back {
+    color: var(--cover-ink-light);
+    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5);
+  }
+  .topbar[data-over-cover='on'] .tb-title { color: transparent; }
+  .topbar[data-over-cover='on'] .progress { opacity: 0; }
+
+
+  @media (max-width: 700px) {
+    /* le titre courant sauterait la place du retour : on le masque plutôt que de le tronquer */
+    .tb-title { display: none; }
+    .tb-in { grid-template-columns: auto auto; justify-content: space-between; }
+  }
+
+  @media print {
+    .topbar { display: none; }
+  }
+</style>

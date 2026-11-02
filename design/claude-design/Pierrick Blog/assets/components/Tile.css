@@ -1,0 +1,16 @@
+/* Tile — the D2 interactive-box hover: 1px corner crosses. One behaviour,
+ * used by CollCard + GearCard; defined once, here. */
+.coll::after, .gear::after {
+  content: "";
+  position: absolute; inset: -8.5px;
+  pointer-events: none; opacity: 0; transition: opacity 0.18s;
+  background-image:
+    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2)),
+    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2)),
+    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2)),
+    linear-gradient(var(--ink-2), var(--ink-2)), linear-gradient(var(--ink-2), var(--ink-2));
+  background-size: 1px 17px, 17px 1px, 1px 17px, 17px 1px, 1px 17px, 17px 1px, 1px 17px, 17px 1px;
+  background-position: left 8px top 0, left 0 top 8px, right 8px top 0, right 0 top 8px, left 8px bottom 0, left 0 bottom 8px, right 8px bottom 0, right 0 bottom 8px;
+  background-repeat: no-repeat;
+}
+.coll:hover::after, .gear:hover::after { opacity: 1; }

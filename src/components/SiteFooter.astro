@@ -1,0 +1,111 @@
+---
+import { footer } from '../data/nav'
+import Wrap from './primitives/Wrap.astro'
+import Barcode from './print/Barcode.astro'
+import MonoLabel from './print/MonoLabel.astro'
+---
+
+<footer class="site">
+  <Wrap>
+    <div class="foot-grid">
+      <div>
+        <div class="foot-brand">
+          <a class="foot-home" href="/">exhale</a>
+          <div class="fb-sub">
+            The personal index of Pierrick Bignet.<br />
+            Engineer by trade, artist by default.<br />
+            Built on paper, light and dots.
+          </div>
+        </div>
+      </div>
+
+      {footer.map(col => (
+        <div class="foot-col">
+          <h4>{col.title}</h4>
+          {col.items.map(item => <a href={item.href}>{item.label}</a>)}
+        </div>
+      ))}
+
+      <div class="foot-mark">
+        <Barcode label="PB · 2026 · 45.76N 4.83E · ∞" align="right" />
+        <div class="foot-credit">
+          <MonoLabel>
+            SET IN ANTON · ARCHIVO<br />
+            SPACE MONO · NEWSREADER
+          </MonoLabel>
+        </div>
+      </div>
+    </div>
+  </Wrap>
+</footer>
+
+<style>
+  .site {
+    margin-top: clamp(70px, 9vw, 120px);
+    border-top: 2px solid var(--ink);
+    padding: var(--space-2xl) 0 var(--space-4xl);
+  }
+
+  .foot-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr auto;
+    gap: var(--space-2xl);
+    align-items: start;
+  }
+
+  .foot-brand {
+    font-family: var(--display);
+    font-size: var(--fs-brand-lg);
+    line-height: 0.9;
+    letter-spacing: var(--tr-brand);
+  }
+
+  .fb-sub {
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.05em;
+    color: var(--ink-2);
+    margin-top: var(--space-s);
+    line-height: var(--lh-loose);
+  }
+
+  .foot-col h4 {
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    letter-spacing: var(--tr-tag);
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 var(--space-s);
+  }
+  .foot-col a {
+    display: block;
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    color: var(--ink-2);
+    padding: 3px 0;
+    transition: color 0.2s;
+  }
+  .foot-col a:hover { color: var(--accent-text); }
+
+  /* Nom aligné sur celui du gold (`.foot-mark`), qui a remplacé les trois styles en ligne
+   * de `01_Home` en résorbant `text-align:right` / `margin-left:auto` / `margin-top:16px`.
+   *
+   * Le gold pousse le code-barre à droite avec `.foot-mark .barcode { margin-left: auto }`,
+   * ce qui suppose d'atteindre l'intérieur de `Barcode`. En CSS scopé on obtient le même
+   * résultat sans y toucher : une colonne flex alignée à la fin cale les blocs enfants à
+   * droite, quelle que soit leur largeur. Sans ça le code-barre restait 20px avant le bord —
+   * `text-align` seul ne déplace pas un bloc de 180px.
+   */
+  .foot-mark {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+  }
+  /* l'espacement appartient au conteneur, pas au MonoLabel (cf. PIPELINE §4.4) */
+  .foot-credit { margin-top: var(--space-m); }
+
+  @media (max-width: 880px) {
+    .foot-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>

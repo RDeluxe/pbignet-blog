@@ -1,0 +1,93 @@
+---
+interface Props {
+  number: string
+  location: string
+  src: string
+  alt: string
+  word: string
+  shotOn: string
+  readTime: string
+  href: string
+}
+
+const { number, location, src, alt, word, shotOn, readTime, href } = Astro.props
+---
+
+<a class="feature" href={href}>
+  <img src={src} alt={alt} loading="lazy" decoding="async" />
+  <span class="ftag">№ {number} · {location}</span>
+  <h2 class="fword">{word}</h2>
+  <div class="fmeta"><b>SHOT ON</b> {shotOn}<br />{readTime} MIN READ →</div>
+</a>
+
+<style>
+  .feature {
+    position: relative;
+    display: block;
+    height: min(64vh, 560px);
+    overflow: hidden;
+    /* fond sombre visible avant le chargement de la photo */
+    background: var(--photo-ground);
+  }
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 42%;
+  }
+
+  .ftag {
+    position: absolute;
+    z-index: 2;
+    /* TODO token: 18px → --space-… ? (vaut --space-head, mais ce token est réservé à
+       l'espace sous un en-tête de section) */
+    top: 18px;
+    left: 18px;
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-tag);
+    text-transform: uppercase;
+    color: var(--cover-ink-light);
+    background: rgba(var(--photo-scrim-rgb), 0.5);
+    /* TODO token: 9px → --space-… ? (absent de l'échelle) */
+    padding: var(--space-2xs) 9px;
+  }
+
+  .fword {
+    position: absolute;
+    z-index: 2;
+    left: 3%;
+    bottom: 4%;
+    margin: 0;
+    font-family: var(--display);
+    /* TODO token: le mot de couverture n'a pas d'échelle à lui. Proche de --fs-cover
+       (clamp(56px, 16vw, 176px)) / --lh-cover (0.82) / --tr-cover (0.02em) sans y être
+       égal → aligner sur cover changerait le rendu, décision de design à trancher. */
+    font-size: clamp(70px, 13vw, 180px);
+    line-height: 0.8;
+    text-transform: lowercase;
+    color: var(--cover-ink-light);
+    /* l'ombre portée du mot reprend la déclinaison profonde du riso red */
+    text-shadow: 0.045em 0.045em 0 var(--riso-red-deep);
+    letter-spacing: 0.005em;
+  }
+
+  .fmeta {
+    position: absolute;
+    z-index: 2;
+    right: 4%;
+    bottom: 8%;
+    text-align: right;
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    /* TODO token: 0.06em → --tr-… ? (absent de l'échelle de tracking mono) */
+    letter-spacing: 0.06em;
+    color: var(--photo-ink-dark);
+    /* TODO token: 1.7 → --lh-… ? (déjà employé 2× dans SiteFooter) */
+    line-height: var(--lh-loose);
+  }
+  .fmeta b { color: var(--riso-red-ink); }
+</style>

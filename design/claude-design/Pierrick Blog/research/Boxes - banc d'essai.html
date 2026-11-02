@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>exhale — Banc d'essai boxes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/paper.css">
+<style>
+  :root {
+    --paper: #f6f5f1; --paper-2: #edebe4;
+    --ink: #18170f; --ink-2: #4a4636; --ink-3: #8b8672;
+    --accent: #1f4a37; --accent-rgb: 31,74,55;
+    --line: rgba(24,23,15,0.22); --line-soft: rgba(24,23,15,0.12);
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--ink); }
+  .page { padding-bottom: 72px; }
+  .wrap { max-width: 1080px; }
+  .head { border-bottom: 2px solid var(--ink); padding: 22px 0 14px; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+  .head .title { font-family: 'Anton', sans-serif; font-size: clamp(30px,4.4vw,50px); line-height: 0.9; text-transform: uppercase; }
+  .head .title .dot { color: var(--accent); }
+  .head .meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--ink-2); text-align: right; line-height: 1.6; }
+  .intro { font-family: var(--serif); font-size: clamp(16px,1.7vw,20px); line-height: 1.5; color: var(--ink-2); max-width: 68ch; margin: 24px 0 8px; }
+  .intro b { color: var(--ink); }
+  figure { margin: 56px 0 0; }
+  figcaption { display: flex; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 26px; flex-wrap: wrap; }
+  figcaption .no { font-family: var(--mono); font-size: 12px; color: var(--ink-3); letter-spacing: 0.12em; }
+  figcaption .nm { font-family: 'Anton', sans-serif; font-size: clamp(20px,2.6vw,30px); text-transform: uppercase; }
+  figcaption .dz { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); letter-spacing: 0.04em; margin-left: auto; max-width: 46ch; line-height: 1.5; text-align: right; }
+  .row3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 34px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; }
+  .vlab { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; color: var(--ink-3); text-transform: uppercase; margin: 12px 0 0; }
+  .vlab b { color: var(--accent); font-weight: 700; }
+
+  /* ================= plate bases ================= */
+  .p0 { position: relative; background: var(--paper); padding: 24px 20px; }
+  .p0 .ptag { position: absolute; top: 9px; right: 11px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em; color: var(--ink-3); text-transform: uppercase; }
+  .fill-dots { background-image: radial-gradient(rgba(24,23,15,.22) 1px, transparent 1.4px); background-size: 16px 16px; background-position: 8px 8px; }
+  .fill-dots-soft { background-image: radial-gradient(rgba(24,23,15,.13) 1px, transparent 1.4px); background-size: 16px 16px; background-position: 8px 8px; }
+  .fill-grid { background-image: linear-gradient(rgba(24,23,15,.11) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,15,.11) 1px, transparent 1px), linear-gradient(rgba(24,23,15,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,15,.05) 1px, transparent 1px); background-size: 64px 64px, 64px 64px, 16px 16px, 16px 16px; }
+  .fill-grid-soft { background-image: linear-gradient(rgba(24,23,15,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,15,.05) 1px, transparent 1px), linear-gradient(rgba(24,23,15,.022) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,15,.022) 1px, transparent 1px); background-size: 64px 64px, 64px 64px, 16px 16px, 16px 16px; }
+  .b-hair { border: 1px solid var(--line); }
+
+  /* croix de repérage aux coins */
+  .cx { position: absolute; width: 17px; height: 17px; pointer-events: none; }
+  .cx::before { content: ""; position: absolute; left: 8px; top: 0; width: 1px; height: 17px; background: var(--ink-2); }
+  .cx::after { content: ""; position: absolute; top: 8px; left: 0; height: 1px; width: 17px; background: var(--ink-2); }
+  .cx.tl { top: -9px; left: -9px; } .cx.tr { top: -9px; right: -9px; }
+  .cx.bl { bottom: -9px; left: -9px; } .cx.br { bottom: -9px; right: -9px; }
+
+  /* traits coupés (crop marks, décalés hors du cadre) */
+  .km { position: absolute; width: 0; height: 0; pointer-events: none; }
+  .km::before { content: ""; position: absolute; width: 1.5px; height: 13px; background: var(--ink-2); }
+  .km::after { content: ""; position: absolute; height: 1.5px; width: 13px; background: var(--ink-2); }
+  .km.tl { top: 0; left: 0; } .km.tl::before { left: -0.75px; top: -17px; } .km.tl::after { top: -0.75px; left: -17px; }
+  .km.tr { top: 0; right: 0; } .km.tr::before { right: -0.75px; top: -17px; } .km.tr::after { top: -0.75px; right: -17px; }
+  .km.bl { bottom: 0; left: 0; } .km.bl::before { left: -0.75px; bottom: -17px; } .km.bl::after { bottom: -0.75px; left: -17px; }
+  .km.br { bottom: 0; right: 0; } .km.br::before { right: -0.75px; bottom: -17px; } .km.br::after { bottom: -0.75px; right: -17px; }
+
+  /* grille empruntée : les 4 lignes du cadre filent au-delà des coins (#) */
+  .p-hash { border: none; }
+  .p-hash::before { content: ""; position: absolute; left: -13px; right: -13px; top: 0; bottom: 0; border-top: 1.2px solid rgba(24,23,15,.55); border-bottom: 1.2px solid rgba(24,23,15,.55); pointer-events: none; }
+  .p-hash::after { content: ""; position: absolute; top: -13px; bottom: -13px; left: 0; right: 0; border-left: 1.2px solid rgba(24,23,15,.55); border-right: 1.2px solid rgba(24,23,15,.55); pointer-events: none; }
+
+  .ph { display: block; width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+  .pcap { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-top: 10px; }
+
+  /* mini bars (contenu témoin FIG B) */
+  .mb { margin-top: 18px; }
+  .mb .r { display: grid; grid-template-columns: 1fr; gap: 4px; margin-bottom: 12px; }
+  .mb .l { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+  .mb .t { height: 9px; background: var(--paper); box-shadow: inset 0 0 0 1px var(--line-soft); position: relative; }
+  .mb .f { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+
+  /* diagramme : on coupe sa grille interne, la plate fournit le fond */
+  .nogrid svg .dp-grid { display: none; }
+
+  /* ================= tuiles interactives ================= */
+  .tiles { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+  .tile { position: relative; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--line); background: var(--paper); padding: 20px; min-height: 150px; cursor: pointer; transition: background .2s, border-color .2s; }
+  .tile h3 { margin: 0; font-family: var(--sans); font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  .tile p { margin: 0; font-family: var(--serif); font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+  .tile .tf { margin-top: auto; font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em; }
+  .tile .cx { transition: opacity .18s; }
+  /* D1 — deux croix au repos, quatre au survol */
+  .t-d1 .cx.tr, .t-d1 .cx.bl { opacity: 0; }
+  .t-d1:hover { background: var(--paper-2); }
+  .t-d1:hover .cx { opacity: 1; }
+  /* D2 — nues au repos, les croix apparaissent au survol */
+  .t-d2 .cx { opacity: 0; }
+  .t-d2:hover { background: var(--paper-2); border-color: var(--ink-2); }
+  .t-d2:hover .cx { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .tile, .tile .cx { transition: none; } }
+
+  /* ================= callouts ================= */
+  .co { position: relative; padding: 18px 20px; }
+  .co h4 { margin: 0 0 8px; font-family: var(--sans); font-weight: 800; font-size: 15px; }
+  .co p { margin: 0; font-family: var(--serif); font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
+  .co .nb { position: absolute; top: -8px; left: 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--accent); background: var(--paper); padding: 0 7px; text-transform: uppercase; }
+  .co-e1 { border: 1px solid var(--line); }
+  .co-e2 { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line-soft); padding-left: 0; padding-right: 0; }
+  .co-e2 .nb2 { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--accent); text-transform: uppercase; display: block; margin-bottom: 8px; }
+
+  /* ================= bouton dither ================= */
+  .btns { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  .btn-d { position: relative; font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; padding: 11px 18px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; overflow: hidden; }
+  .btn-d span { position: relative; z-index: 1; }
+  .btn-d::before { content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity .22s; background-image: radial-gradient(var(--dith, rgba(24,23,15,.55)) 0.8px, transparent 1px); background-size: 4px 4px; }
+  .btn-d:hover::before { opacity: 0.3; animation: boil .42s steps(1,end) infinite; }
+  .btn-d.acc { border-color: var(--accent); color: var(--accent); --dith: rgba(31,74,55,.6); }
+  @keyframes boil { 0% { background-position: 0 0; } 33% { background-position: 2px 1px; } 66% { background-position: 1px 3px; } 100% { background-position: 0 0; } }
+  @media (prefers-reduced-motion: reduce) { .btn-d:hover::before { animation: none; } }
+  .btn-old { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; padding: 11px 18px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; transition: .2s; }
+  .btn-old:hover { background: var(--ink); color: var(--paper); }
+
+  @media (max-width: 860px) { .row3, .row2, .tiles { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+  <div class="wrap">
+    <div class="head">
+      <div class="title">Boxes<span class="dot">.</span></div>
+      <div class="meta">RESEARCH · BOXES 01<br>SUJET : PLATES &amp; TUILES<br>RÉF : NATURE / COCO BIKER</div>
+    </div>
+    <p class="intro">Une seule question, six essais : à quoi ressemble <b>notre</b> box ? Deux familles distinctes — la <b>plate</b> (présentation statique : figures, photos, diagrammes) et la <b>tuile</b> (interactive : on peut cliquer). Les coins ⌐ actuels sont trop vus ; ici on teste les <b>croix de repérage</b>, les <b>traits coupés</b> et la <b>grille empruntée</b> de ta réf NATURE.</p>
+
+    <!-- A · COINS -->
+    <figure data-screen-label="A coins">
+      <figcaption>
+        <span class="no">A</span><span class="nm">La forme — trois coins</span>
+        <span class="dz">même photo, trois langages. La grille empruntée : le cadre n'est pas posé sur la box, ce sont quatre lignes du carreau qui foncent et filent au-delà des coins. Dessous : A3 confronté aux autres fonds.</span>
+      </figcaption>
+      <div class="row3">
+        <div>
+          <div class="p0 b-hair">
+            <span class="cx tl"></span><span class="cx tr"></span><span class="cx bl"></span><span class="cx br"></span>
+            <span class="ptag">FIG · A1</span>
+            <img class="ph" src="../assets/photos/fuji-dither.png" alt="Fuji, tramé">
+            <div class="pcap"><span>Kawaguchiko</span><span>№001</span></div>
+          </div>
+          <p class="vlab">A1 · <b>croix de repérage</b> aux quatre coins</p>
+        </div>
+        <div>
+          <div class="p0 b-hair">
+            <span class="km tl"></span><span class="km tr"></span><span class="km bl"></span><span class="km br"></span>
+            <span class="ptag">FIG · A2</span>
+            <img class="ph" src="../assets/photos/fuji-dither.png" alt="Fuji, tramé">
+            <div class="pcap"><span>Kawaguchiko</span><span>№001</span></div>
+          </div>
+          <p class="vlab">A2 · <b>traits coupés</b>, décalés hors du cadre</p>
+        </div>
+        <div>
+          <div class="p0 p-hash fill-grid">
+            <span class="ptag">FIG · A3</span>
+            <img class="ph" src="../assets/photos/fuji-dither.png" alt="Fuji, tramé">
+            <div class="pcap"><span>Kawaguchiko</span><span>№001</span></div>
+          </div>
+          <p class="vlab">A3 · <b>grille empruntée</b> — les lignes filent (#)</p>
+        </div>
+      </div>
+      <div class="row3" style="margin-top:34px;">
+        <div>
+          <div class="p0 p-hash fill-dots">
+            <span class="ptag">FIG · A4</span>
+            <img class="ph" src="../assets/photos/fuji-dither.png" alt="Fuji, tramé">
+            <div class="pcap"><span>Kawaguchiko</span><span>№001</span></div>
+          </div>
+          <p class="vlab">A4 · grille empruntée <b>sur dots</b></p>
+        </div>
+        <div>
+          <div class="p0 p-hash">
+            <span class="ptag">FIG · A5</span>
+            <img class="ph" src="../assets/photos/fuji-dither.png" alt="Fuji, tramé">
+            <div class="pcap"><span>Kawaguchiko</span><span>№001</span></div>
+          </div>
+          <p class="vlab">A5 · grille empruntée <b>sur papier uni</b></p>
+        </div>
+        <div>
+          <div class="p0 p-hash" style="background:var(--paper-2);">
+            <span class="ptag">FIG · A6</span>
+            <img class="ph" src="../assets/photos/fuji-dither.png" alt="Fuji, tramé">
+            <div class="pcap"><span>Kawaguchiko</span><span>№001</span></div>
+          </div>
+          <p class="vlab">A6 · grille empruntée <b>sur paper-2</b> (panneau creusé)</p>
+        </div>
+      </div>
+    </figure>
+
+    <!-- B · FONDS -->
+    <figure data-screen-label="B fonds">
+      <figcaption>
+        <span class="no">B</span><span class="nm">Le fond — dots vs carreaux</span>
+        <span class="dz">même contenu témoin, coins identiques (croix). Dessous : la plate retenue (A6) avec grille ultra-légère vs unie — les pistes beiges masquent la grille sous les barres.</span>
+      </figcaption>
+      <div class="row3">
+        <div>
+          <div class="p0 b-hair fill-dots">
+            <span class="cx tl"></span><span class="cx tr"></span><span class="cx bl"></span><span class="cx br"></span>
+            <span class="ptag">FIG · B1</span>
+            <div class="mb">
+              <div class="r"><div class="l"><span>Temps</span><span>~1 min</span></div><div class="t"><div class="f" style="width:20%"></div></div></div>
+              <div class="r"><div class="l"><span>Tokens</span><span>277 k</span></div><div class="t"><div class="f" style="width:30%"></div></div></div>
+              <div class="r"><div class="l"><span>Coût</span><span>0,24 $</span></div><div class="t"><div class="f" style="width:15%"></div></div></div>
+            </div>
+          </div>
+          <p class="vlab">B1 · <b>dots carnet à points</b> (pas 16 px)</p>
+        </div>
+        <div>
+          <div class="p0 b-hair fill-grid">
+            <span class="cx tl"></span><span class="cx tr"></span><span class="cx bl"></span><span class="cx br"></span>
+            <span class="ptag">FIG · B2</span>
+            <div class="mb">
+              <div class="r"><div class="l"><span>Temps</span><span>~1 min</span></div><div class="t"><div class="f" style="width:20%"></div></div></div>
+              <div class="r"><div class="l"><span>Tokens</span><span>277 k</span></div><div class="t"><div class="f" style="width:30%"></div></div></div>
+              <div class="r"><div class="l"><span>Coût</span><span>0,24 $</span></div><div class="t"><div class="f" style="width:15%"></div></div></div>
+            </div>
+          </div>
+          <p class="vlab">B2 · <b>carreaux de cahier</b> (16 px + majeure 64 px)</p>
+        </div>
+        <div>
+          <div class="p0 b-hair">
+            <span class="cx tl"></span><span class="cx tr"></span><span class="cx bl"></span><span class="cx br"></span>
+            <span class="ptag">FIG · B3</span>
+            <div class="mb">
+              <div class="r"><div class="l"><span>Temps</span><span>~1 min</span></div><div class="t"><div class="f" style="width:20%"></div></div></div>
+              <div class="r"><div class="l"><span>Tokens</span><span>277 k</span></div><div class="t"><div class="f" style="width:30%"></div></div></div>
+              <div class="r"><div class="l"><span>Coût</span><span>0,24 $</span></div><div class="t"><div class="f" style="width:15%"></div></div></div>
+            </div>
+          </div>
+          <p class="vlab">B3 · <b>papier uni</b> (témoin)</p>
+        </div>
+      </div>
+      <div class="row3" style="margin-top:34px;">
+        <div>
+          <div class="p0 p-hash fill-grid-soft" style="background-color:var(--paper-2);">
+            <span class="ptag">FIG · B4</span>
+            <div class="mb">
+              <div class="r"><div class="l"><span>Temps</span><span>~1 min</span></div><div class="t"><div class="f" style="width:20%"></div></div></div>
+              <div class="r"><div class="l"><span>Tokens</span><span>277 k</span></div><div class="t"><div class="f" style="width:30%"></div></div></div>
+              <div class="r"><div class="l"><span>Coût</span><span>0,24 $</span></div><div class="t"><div class="f" style="width:15%"></div></div></div>
+            </div>
+          </div>
+          <p class="vlab">B4 · la plate retenue (A6 : # + paper-2) + <b>grille ultra-légère</b></p>
+        </div>
+        <div>
+          <div class="p0 p-hash" style="background-color:var(--paper-2);">
+            <span class="ptag">FIG · B5</span>
+            <div class="mb">
+              <div class="r"><div class="l"><span>Temps</span><span>~1 min</span></div><div class="t"><div class="f" style="width:20%"></div></div></div>
+              <div class="r"><div class="l"><span>Tokens</span><span>277 k</span></div><div class="t"><div class="f" style="width:30%"></div></div></div>
+              <div class="r"><div class="l"><span>Coût</span><span>0,24 $</span></div><div class="t"><div class="f" style="width:15%"></div></div></div>
+            </div>
+          </div>
+          <p class="vlab">B5 · la plate retenue, <b>unie</b> (témoin B3)</p>
+        </div>
+        <div>
+          <div class="p0 p-hash fill-grid-soft">
+            <span class="ptag">FIG · B6</span>
+            <div class="mb">
+              <div class="r"><div class="l"><span>Temps</span><span>~1 min</span></div><div class="t"><div class="f" style="width:20%"></div></div></div>
+              <div class="r"><div class="l"><span>Tokens</span><span>277 k</span></div><div class="t"><div class="f" style="width:30%"></div></div></div>
+              <div class="r"><div class="l"><span>Coût</span><span>0,24 $</span></div><div class="t"><div class="f" style="width:15%"></div></div></div>
+            </div>
+          </div>
+          <p class="vlab">B6 · grille ultra-légère sur <b>papier uni</b> (paper, pas paper-2)</p>
+        </div>
+      </div>
+    </figure>
+
+    <!-- C · À L'ÉPREUVE -->
+    <figure data-screen-label="C épreuve">
+      <figcaption>
+        <span class="no">C</span><span class="nm">À l'épreuve du réel</span>
+        <span class="dz">le diagramme de « Pâte graphique » garde sa grille interne et ses points calés dessus (comportement d'avant) — la plate reste unie, seul le cadre # change.</span>
+      </figcaption>
+      <div class="p0 p-hash">
+        <span class="ptag">FIG · C1 — # + UNI</span>
+        <div id="d-pyr"></div>
+      </div>
+      <p class="vlab">C1 · le graphique possède son fond ; la plate n'ajoute que le cadre</p>
+    </figure>
+
+    <!-- D · TUILES -->
+    <figure data-screen-label="D tuiles">
+      <figcaption>
+        <span class="no">D</span><span class="nm">Tuiles interactives</span>
+        <span class="dz">ton idée : les coins comme signal de regard. D1 — deux croix au repos, quatre au survol. D2 — nue au repos, les croix apparaissent. Survole pour comparer.</span>
+      </figcaption>
+      <div class="tiles">
+        <a class="tile t-d1" href="#"><span class="cx tl"></span><span class="cx tr"></span><span class="cx bl"></span><span class="cx br"></span><span class="tag" data-accent="on">Guide</span><h3>The Studio Operating Manual</h3><p>Everything I wish I'd known about running a humane software studio.</p><span class="tf">12 CHAPITRES · MAJ 06/26</span></a>
+        <a class="tile t-d1" href="#"><span class="cx tl"></span><span class="cx tr"></span><span class="cx bl"></span><span class="cx br"></span><span class="tag">Guide</span><h3>Field Notes on Game Direction</h3><p>Pillars, vibe, scope, and the art of saying no.</p><span class="tf">9 CHAPITRES · MAJ 04/26</span></a>
+        <a class="tile t-d1" href="#"><span class="cx tl"></span><span class="cx tr"></span><span class="cx bl"></span><span class="cx br"></span><span class="tag">Guide</span><h3>A Photographer's Technical Notebook</h3><p>Light, film stocks, scanning, and the dithering pipeline.</p><span class="tf">7 CHAPITRES · MAJ 02/26</span></a>
+      </div>
+      <p class="vlab" style="margin-bottom:20px;">D1 · deux croix au repos (tl + br) → quatre + fond au survol</p>
+      <div class="tiles">
+        <a class="tile t-d2" href="#"><span class="cx tl"></span><span class="cx tr"></span><span class="cx bl"></span><span class="cx br"></span><span class="tf" style="margin:0;">SET·01</span><h3 style="font-size:16px;">Fuji X-Pro3</h3><p>Le boîtier de tous les jours.</p></a>
+        <a class="tile t-d2" href="#"><span class="cx tl"></span><span class="cx tr"></span><span class="cx bl"></span><span class="cx br"></span><span class="tf" style="margin:0;">SET·02</span><h3 style="font-size:16px;">Nikon FE2 · 35 mm</h3><p>Le film, pour le grain vrai.</p></a>
+        <a class="tile t-d2" href="#"><span class="cx tl"></span><span class="cx tr"></span><span class="cx bl"></span><span class="cx br"></span><span class="tf" style="margin:0;">SET·03</span><h3 style="font-size:16px;">MacBook Pro M4</h3><p>Là où tout se fabrique.</p></a>
+      </div>
+      <p class="vlab">D2 · nue au repos → croix + bordure encre au survol</p>
+    </figure>
+
+    <!-- E · CALLOUT -->
+    <figure data-screen-label="E callout">
+      <figcaption>
+        <span class="no">E</span><span class="nm">Callout, sans la barre</span>
+        <span class="dz">la barre accent à gauche est le trope que nos guardrails interdisent — deux remplaçants.</span>
+      </figcaption>
+      <div class="row2">
+        <div>
+          <div class="co co-e1 fill-dots-soft">
+            <span class="cx tl"></span><span class="cx br"></span>
+            <span class="nb">N.B.</span>
+            <h4>La règle d'or</h4>
+            <p>Chaque page choisit une encre pour son mobilier et son type — et la garde partout : le point du logo, les liens, la teinte topo.</p>
+          </div>
+          <p class="vlab">E1 · note épinglée — deux croix + dots légers + étiquette N.B.</p>
+        </div>
+        <div>
+          <div class="co co-e2">
+            <span class="nb2">N.B. · Règle</span>
+            <h4>La règle d'or</h4>
+            <p>Chaque page choisit une encre pour son mobilier et son type — et la garde partout : le point du logo, les liens, la teinte topo.</p>
+          </div>
+          <p class="vlab">E2 · règle marginale — filet fort dessus, rien sur les côtés</p>
+        </div>
+      </div>
+    </figure>
+
+    <!-- F · BOUTON -->
+    <figure data-screen-label="F bouton">
+      <figcaption>
+        <span class="no">F</span><span class="nm">Bouton — trame au survol</span>
+        <span class="dz">ta proposition : un dither très léger, animé (boil 2–3 ips), qui monte dans le fond au survol. À comparer avec l'inversion encre actuelle.</span>
+      </figcaption>
+      <div class="btns">
+        <button class="btn-d" type="button"><span>Lire l'article →</span></button>
+        <button class="btn-d acc" type="button"><span>Rejouer ▶</span></button>
+        <button class="btn-old" type="button">Inversion actuelle</button>
+      </div>
+      <p class="vlab">F1 · trame encre — F2 · trame accent — témoin : hover actuel (inversion)</p>
+    </figure>
+  </div>
+</div>
+
+<script src="../assets/texture.js"></script>
+<script src="../assets/diagram.js"></script>
+<script>
+  Grain.apply(18);
+  Topo.mount(document.getElementById('topo'), { color: 'rgba(31,74,55,0.05)', levels: 15, cell: 26, scale: 0.0020, seed: 31, emphasizeEvery: 5 });
+  Diagram.pyramid(document.getElementById('d-pyr'), { style: 'blueprint' });
+</script>
+</body>
+</html>

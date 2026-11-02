@@ -1,0 +1,4 @@
+/* ImageSlot — empty-state styling for the image-slot web component */
+image-slot { --slot-cap: var(--ink-3); }
+image-slot::part(frame) { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+image-slot::part(ring) { border-color: var(--line); }

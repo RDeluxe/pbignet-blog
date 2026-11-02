@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>exhale — Pâte graphique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/paper.css">
+<style>
+  :root {
+    --paper: #f6f5f1;
+    --paper-2: #edebe4;
+    --ink: #18170f;
+    --ink-2: #4a4636;
+    --ink-3: #8b8672;
+    --accent: #1f4a37;          /* vert sapin */
+    --accent-rgb: 31,74,55;
+    --line: rgba(24,23,15,0.22);
+    --line-soft: rgba(24,23,15,0.12);
+    --topo: rgba(37,48,194,0.06);
+  }
+  .page { padding-bottom: 60px; }
+  .wrap { max-width: 1080px; }
+
+  /* header */
+  .head { border-bottom: 2px solid var(--ink); padding: 22px 0 14px; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+  .head .title { font-family: 'Anton', sans-serif; font-size: clamp(34px,5vw,58px); line-height: 0.9; text-transform: uppercase; letter-spacing: 0.01em; }
+  .head .title .dot { color: var(--accent); }
+  .head .meta { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: var(--ink-2); text-align: right; line-height: 1.6; }
+  .intro { font-family: var(--serif); font-size: clamp(16px,1.7vw,20px); line-height: 1.5; color: var(--ink-2); max-width: 62ch; margin: 26px 0 8px; }
+  .intro b { color: var(--ink); }
+
+  figure { margin: 60px 0 0; }
+  figcaption { display: flex; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  figcaption .no { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--ink-3); letter-spacing: 0.12em; }
+  figcaption .nm { font-family: 'Anton', sans-serif; font-size: clamp(22px,3vw,34px); text-transform: uppercase; letter-spacing: 0.01em; }
+  figcaption .dz { font-family: 'Space Mono', monospace; font-size: 11.5px; color: var(--ink-2); letter-spacing: 0.04em; margin-left: auto; max-width: 46ch; line-height: 1.5; text-align: right; }
+
+  .plate svg { display: block; }
+</style>
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+  <div class="wrap">
+    <div class="head">
+      <div class="title">Pâte<br>graphique<span class="dot">.</span></div>
+      <div class="meta">ÉTUDES · 04<br>SCHÉMA TEST : PYRAMIDE DU CONTEXTE<br>PALETTE : PAPIER · ENCRE · VERT</div>
+    </div>
+    <p class="intro">Quatre langages graphiques pour illustrer les articles — tous bâtis sur les <b>mêmes coloris que la page</b> et le motif <b>papier / dithering</b>. Même schéma, quatre traitements, pour comparer sur du concret. Dis-moi lequel devient le style maison.</p>
+
+    <!-- 01 — POINTILLÉ / HALFTONE -->
+    <figure>
+      <figcaption>
+        <span class="no">01</span><span class="nm">Pointillé</span>
+        <span class="dz">trame de points type « dot paper » — densité croissante vers la base (plus on descend, plus le contexte est dense). Apex vert = ton prompt.</span>
+      </figcaption>
+      <div class="plate plain">
+        <span class="ptag">FIG. 01 · HALFTONE</span>
+        <div id="d-dot"></div>
+      </div>
+    </figure>
+
+    <!-- 02 — DITHERING -->
+    <figure>
+      <figcaption>
+        <span class="no">02</span><span class="nm">Dithering</span>
+        <span class="dz">tramage ordonné 4×4 (Bayer) — chaque couche est un aplat 1-bit, du clair au dense. Le motif signature du site, appliqué au schéma.</span>
+      </figcaption>
+      <div class="plate plain">
+        <span class="ptag">FIG. 02 · BAYER 4×4</span>
+        <div id="d-dither"></div>
+      </div>
+    </figure>
+
+    <!-- 03 — PLAN / BLUEPRINT -->
+    <figure>
+      <figcaption>
+        <span class="no">03</span><span class="nm">Plan technique</span>
+        <span class="dz">trait fin + lignes topographiques dans la silhouette, cotes et repères. Sobre, « carnet d'ingénieur ». Le groupe codebase ressort en bleu.</span>
+      </figcaption>
+      <div class="plate plain">
+        <span class="ptag">FIG. 03 · CONTOUR</span>
+        <div id="d-blueprint"></div>
+      </div>
+    </figure>
+
+    <!-- 04 — RISO -->
+    <figure>
+      <figcaption>
+        <span class="no">04</span><span class="nm">Riso</span>
+        <span class="dz">aplats bleus en dégradé tonal + léger décalage d'impression (misregistration) et grain. Plus affirmé, imprimé. Une seule encre.</span>
+      </figcaption>
+      <div class="plate plain">
+        <span class="ptag">FIG. 04 · 1 ENCRE</span>
+        <div id="d-riso"></div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+<script src="assets/texture.js"></script>
+<script src="assets/diagram.js"></script>
+<script>
+  Grain.apply(18);
+  Topo.mount(document.getElementById('topo'), { color: 'rgba(37,48,194,0.05)', levels: 15, cell: 26, scale: 0.0020, seed: 14, emphasizeEvery: 5 });
+  Diagram.pyramid(document.getElementById('d-dot'), { style: 'dot' });
+  Diagram.pyramid(document.getElementById('d-dither'), { style: 'dither' });
+  Diagram.pyramid(document.getElementById('d-blueprint'), { style: 'blueprint' });
+  Diagram.pyramid(document.getElementById('d-riso'), { style: 'riso' });
+</script>
+</body>
+</html>

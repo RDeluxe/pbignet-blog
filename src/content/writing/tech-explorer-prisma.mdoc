@@ -1,0 +1,84 @@
+---
+title: Découverte Prisma
+description: Ha, les ORMs ! Vif sujet de débat dans le monde du Javascript, il ne fait pas de doutes pour moi qu’ils apportent d’énormes avantages. Encore faut-il utiliser le bon ! Mon avis sur un des grands…
+pubDate: 2024-09-05
+tag: Note
+readTime: 4
+lang: fr
+tags:
+  - Dev
+series: Tech explorer
+link: https://blog.pierrickbignet.com/tech-explorer-prisma/
+---
+
+Ha, les ORMs ! Vif sujet de débat dans le monde du Javascript, il ne fait pas de doutes pour moi qu’ils apportent d’énormes avantages. Encore faut-il utiliser le bon ! Mon avis sur un des grands favoris : **Prisma**.
+
+Chez [Lonestone](https://www.lonestone.io/) on utilise [MikroORM](https://mikro-orm.io/) depuis des années (j’y reviendrais), et j’avais envie d’explorer d’autres horizons sur mes projets persos, notamment pour ne plus à avoir à utiliser de décorateurs et renforcer encore plus la solidité du code, en utilisant au maximum les types Typescript ou du fonctionnel.
+
+Pour mon premier essai j'ai jeté mon dévolu sur [Prisma](https://www.prisma.io/), attiré par tous les louanges que j’avais pu entendre ces dernières années.
+
+Un peu de contexte avant de commencer : mon but étant de tester l’ORM en profondeur, je suis parti sur un projet typique de chez nous : une API REST [NestJS](https://nestjs.com/), un frontend React, un partage de DTOs et quelques petites fonctionnalités spécifiques comme la gestion de [PostGIS](https://postgis.net/) (extension Postgresql qui permet de stocker Polygones, points et de faire des recherches géospatiales).
+
+Du coup, sans plus attendre...
+
+## Prisma, le bon
+
+- C’est assez facile à mettre en place (au départ… voir plus bas) ;
+- Les Prisma files sont simples et efficaces ;
+- Les migrations et la commande `db push` fonctionnent vraiment bien ;
+- Les types générés sont utiles (mais avec des défauts… voir plus bas)
+
+## Le moins bon
+
+### L'utilisation d'un DSL ralentie le développement
+
+À la manière de GraphQL, Prisma a besoin d'une phase de génération intermédiaire après avoir modifié nos schémas.
+
+Ce choix d’archi (potentiellement pour gérer d’autres langages que TS dans le futur ?) requiert de lancer `db push` après chaque modification.
+
+On peut évidemment mettre en place du tooling pour y remédier – un watcher – mais j'ai trouvé ça pénible face à des ORM full Typescript comme Mikro ou Drizzle.
+
+### Des types pas toujours utilisables
+
+Prisma génère beaucoup, beaucoup de types. Ça parait être une bonne idée, sauf qu'ils sont très verbeux et peu lisible.
+
+Je me suis retrouvé de nombreuses fois à me battre avec les types pour savoir quand et comment les utiliser.
+
+### L'IDE / le TS serveur n'arrivent pas à suivre
+
+D'autant que toute cette génération a tendance à mettre le TS Server en caraffe. Logiquement, Prisma le relance automatiquement après avoir généré les types, mais ça cafouille trop souvent.
+
+Et se pose la question de la pertinence de relancer le serveur Typescript à chaque fois qu'on modifie une entité !
+
+### Pas de support de PostGIS
+
+Prisma ne supporte ni l’extension PostGIS ni pgVector "out of the box", mais permet de créer des [extensions](https://www.prisma.io/docs/orm/prisma-client/client-extensions) pour supporter n'importe quel type de données. Sauf que, à l'usage, c'est une plaie à utiliser 👇
+
+## Le vraiment pas terrible
+
+### Prisma supporte les colonnes custom, mais la DX est – selon moi – une horreur
+
+Une colonne custom enlèvera les méthodes principales sur l’entité (`findMany`, `create`, etc.)... en gros la colonne est complètement ignorée par l’ORM.
+
+Il faut alors [étendre](https://www.prisma.io/docs/orm/prisma-client/client-extensions) tout le client Prisma pour re-créer les méthodes soit même !
+Comparativement, les autres ORM permettent de créer des “hooks” ou méthode de transformation (en entrée et en sortie) sur la colonne (cf [Mikro](https://mikro-orm.io/docs/custom-types) ou [Drizzle](https://github.com/drizzle-team/drizzle-orm/blob/main/docs/custom-types.md)) ;
+
+### Pour construire les méthodes dans le client étendue, la seule solution est de passer par du SQL
+
+C’est un gros, gros point noir : si j’utilise un ORM et un langage fortement typé, c’est pour que mon code soit validé au build time, ce qu’une extension VSCode comme [SafeSQL](https://safeql.dev/) ne permet évidemment pas.
+
+Pour éviter de perdre trop en fiabilité, j’ai décidé de doubler certaines requêtes : je laisse Prisma faire un `find` puis je fais un `SELECT` à la main juste pour ma colonne custom manquante). C’est loin d’être optimal mais je préfère ça à … tout réécrire en SQL !
+
+### L’expérience avec Nest.JS est très mauvaise si il faut étendre le client Prisma
+
+J’ai perdu des heures pour trouver une solution propre, et je ne suis toujours pas convaincu.
+
+Et je me suis pas le seul, si on s'amuse à lire cette [Issue Github](https://github.com/prisma/prisma/issues/18628).
+
+## En conclusion
+
+Ça fait des années que je suis les évolutions de Prisma, et c’est devenu une option très solide.
+
+Néanmoins, ma récente expérience m'a surtout donné envie de revenir à un ORM full TS, sans les étapes intermédiaires de génération de code, et avec un vrai support des types plus exotiques.
+
+[**Drizzle**](https://orm.drizzle.team/) étant présent partout dans ma timeline Twitter, j'ai forcément décidé de continuer mes expérimentations avec. Il semble faire tout ce que fait Prisma, sans la génération de code et avec le support PostGIS et pgVector.... ça donne envie !

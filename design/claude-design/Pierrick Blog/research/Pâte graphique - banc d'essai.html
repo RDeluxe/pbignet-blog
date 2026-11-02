@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>exhale — Banc d'essai modèles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/paper.css">
+<style>
+  :root {
+    --paper: #ece6da;
+    --paper-2: #e3dccd;
+    --ink: #18170f;
+    --ink-2: #4a4636;
+    --ink-3: #8b8672;
+    --accent: #1f4a37;
+    --accent-rgb: 31,74,55;
+    --line: rgba(24,23,15,0.22);
+    --line-soft: rgba(24,23,15,0.12);
+    --topo: rgba(31,74,55,0.06);
+
+    /* per-model earthy inks */
+    --m-sonnet: #a8503a;
+    --m-opus:   #3a5a78;
+    --m-fable:  #6f5587;
+    --m-gpt:    #1f4a37;
+    --m-comp:   #b0822f;
+  }
+  .page { padding-bottom: 64px; }
+  .wrap { max-width: 1080px; }
+  .head { border-bottom: 2px solid var(--ink); padding: 22px 0 14px; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+  .head .title { font-family: 'Anton', sans-serif; font-size: clamp(30px,4.4vw,50px); line-height: 0.9; text-transform: uppercase; }
+  .head .title .dot { color: var(--accent); }
+  .head .meta { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: var(--ink-2); text-align: right; line-height: 1.6; }
+  .intro { font-family: var(--serif); font-size: clamp(16px,1.7vw,20px); line-height: 1.5; color: var(--ink-2); max-width: 66ch; margin: 24px 0 8px; }
+  .intro b { color: var(--ink); }
+
+  figure { margin: 52px 0 0; }
+  figcaption { display: flex; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  figcaption .no { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--ink-3); letter-spacing: 0.12em; }
+  figcaption .nm { font-family: 'Anton', sans-serif; font-size: clamp(20px,2.6vw,30px); text-transform: uppercase; }
+  figcaption .rec { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #fff; background: var(--accent); padding: 3px 8px; margin-left: 6px; }
+  figcaption .dz { font-family: 'Space Mono', monospace; font-size: 11.5px; color: var(--ink-2); letter-spacing: 0.04em; margin-left: auto; max-width: 46ch; line-height: 1.5; text-align: right; }
+
+  .plate { position: relative; border: 1px solid var(--line); padding: 26px 22px; background: var(--paper); }
+  .plate .corner { position: absolute; width: 12px; height: 12px; border: 1.5px solid var(--ink-2); }
+  .plate .corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .plate .corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+  .plate .corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+  .plate .corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+  .plate .ptag { position: absolute; top: 10px; right: 12px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: var(--ink-3); text-transform: uppercase; }
+
+  /* ============ A · TABLE ============ */
+  .tbl { width: 100%; border-collapse: collapse; font-family: var(--mono); }
+  .tbl thead th { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; text-align: right; padding: 0 0 12px; border-bottom: 1.5px solid var(--ink); vertical-align: bottom; }
+  .tbl thead th.l { text-align: left; }
+  .tbl thead th .sub { display: block; color: var(--line); color: rgba(24,23,15,0.32); font-weight: 400; letter-spacing: 0.06em; }
+  .tbl tbody td { font-size: 13.5px; padding: 14px 0; text-align: right; border-bottom: 1px solid var(--line-soft); color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tbl th:not(:first-child), .tbl td:not(:first-child) { padding-left: 18px; }
+  .tbl tbody tr:last-child td { border-bottom: 1px solid var(--line); }
+  .tbl td.l { text-align: left; }
+  .tbl td.pad-r { padding-right: 18px; }
+  .tbl td.pad-l { padding-left: 18px; }
+  .tbl .rk { color: var(--ink-3); font-size: 11px; }
+  .tbl .mdl { display: inline-flex; align-items: center; gap: 9px; color: var(--ink); font-weight: 700; font-family: var(--sans); font-size: 15px; letter-spacing: -0.01em; }
+  .tbl .swatch { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .tbl td.best { color: var(--accent); font-weight: 700; }
+  .tbl .yes { color: var(--accent); font-family: var(--sans); font-weight: 700; }
+  .tbl td.note { text-align: left; white-space: normal; font-family: var(--serif); font-size: 13.5px; line-height: 1.4; color: var(--ink-2); padding-left: 18px; min-width: 220px; }
+  .tbl td.note em { color: var(--accent); font-style: normal; font-weight: 500; }
+  .tbl tfoot td { font-size: 10px; letter-spacing: 0.08em; color: var(--ink-3); padding-top: 12px; text-transform: uppercase; }
+
+  /* ============ B · SCATTER ============ */
+  .scatter-wrap { display: block; }
+  .scatter-wrap svg { width: 100%; height: auto; display: block; }
+  .sc-axis { stroke: var(--line); stroke-width: 1; }
+  .sc-grid { stroke: var(--line-soft); stroke-width: 1; }
+  .sc-tick { font-family: var(--mono); font-size: 11px; fill: var(--ink-3); letter-spacing: 0.04em; }
+  .sc-axlabel { font-family: var(--mono); font-size: 11px; fill: var(--ink-2); letter-spacing: 0.12em; text-transform: uppercase; }
+  .sc-name { font-family: var(--sans); font-weight: 700; font-size: 14px; }
+  .sc-val { font-family: var(--mono); font-size: 11px; fill: var(--ink-3); }
+  .sc-zone { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
+
+  /* ============ C · BARS ============ */
+  .bars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 16px; }
+  .bcol h4 { margin: 0 0 16px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); padding-bottom: 8px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+  .bcol h4 .u { color: var(--ink-3); }
+  .brow { display: grid; grid-template-columns: 1fr; gap: 4px; margin-bottom: 14px; }
+  .brow .blabel { display: flex; justify-content: space-between; align-items: baseline; }
+  .brow .bname { font-family: var(--sans); font-weight: 600; font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+  .brow .bval { font-family: var(--mono); font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 8px; }
+  .brow .btrack { height: 10px; background: color-mix(in srgb, var(--ink) 6%, transparent); position: relative; overflow: hidden; }
+  .brow .bfill { position: absolute; inset: 0 auto 0 0; width: 0; }
+  @media (max-width: 760px) { .bars-grid { grid-template-columns: 1fr; gap: 34px; } }
+</style>
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+  <div class="wrap">
+    <div class="head">
+      <div class="title">Banc<br>d'essai<span class="dot">.</span></div>
+      <div class="meta">VARIANTES · 03<br>SUJET : 5 MODÈLES · 1 TÂCHE<br>MESURE : TEMPS · TOKENS · COÛT</div>
+    </div>
+    <p class="intro">Cinq modèles sur la <b>même tâche</b> : repérer le problème, proposer des solutions. Tous l'ont identifié — c'est la <b>vitesse, le coût et la finesse</b> qui les séparent. Trois façons de lire le même relevé. Dis-moi laquelle on garde.</p>
+
+    <!-- A — TABLE -->
+    <figure>
+      <figcaption>
+        <span class="no">A</span><span class="nm">Tableau relevé</span><span class="rec">recommandé</span>
+        <span class="dz">une ligne par modèle, métriques en colonnes. Les valeurs de tête (les plus basses) sont marquées à l'encre verte.</span>
+      </figcaption>
+      <div class="plate">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <span class="ptag">A · LEDGER</span>
+        <table class="tbl" id="tbl"></table>
+      </div>
+    </figure>
+
+    <!-- B — SCATTER -->
+    <figure>
+      <figcaption>
+        <span class="no">B</span><span class="nm">Nuage coût × temps</span>
+        <span class="dz">chaque modèle placé selon son coût (X) et son temps (Y). Le diamètre du point = tokens dashboard. Coin bas-gauche = rapide & économique.</span>
+      </figcaption>
+      <div class="plate">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <span class="ptag">B · PLOT</span>
+        <div class="scatter-wrap" id="scatter"></div>
+      </div>
+    </figure>
+
+    <!-- C — BARS -->
+    <figure>
+      <figcaption>
+        <span class="no">C</span><span class="nm">Barres comparées</span>
+        <span class="dz">trois petits graphes — temps, coût, tokens — même ordre de modèles partout, pour suivre l'œil d'une colonne à l'autre.</span>
+      </figcaption>
+      <div class="plate">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <span class="ptag">C · BARS</span>
+        <div class="bars-grid" id="bars"></div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+<script src="../assets/texture.js"></script>
+<script>
+  Grain.apply(18);
+  Topo.mount(document.getElementById('topo'), { color: 'rgba(31,74,55,0.05)', levels: 15, cell: 26, scale: 0.0020, seed: 14, emphasizeEvery: 5 });
+
+  // ---- data (ordered by cost, ascending) ----
+  const M = [
+    { name:'GPT 5.3',     color:'var(--m-gpt)',    time:1, tC:49,  tD:277, cost:0.24, note:'OK, mais explication un peu moins claire (formulations ?).' },
+    { name:'Composer 2.5',color:'var(--m-comp)',   time:2, tC:55,  tD:554, cost:0.90, note:'OK, mais encore un peu moins claires.' },
+    { name:'Opus 4.8',    color:'var(--m-opus)',   time:2, tC:69,  tD:574, cost:1.06, note:'Solutions OK.' },
+    { name:'Sonnet 4.6',  color:'var(--m-sonnet)', time:5, tC:103, tD:922, cost:1.58, note:'Solutions OK.' },
+    { name:'Fable',       color:'var(--m-fable)',  time:2, tC:66,  tD:405, cost:1.59, note:'Moins de détail — mais <em>follow-up excellent : ce n\'est pas une limite.</em>' },
+  ];
+  const fr = (n, d=2) => n.toLocaleString('fr-FR', { minimumFractionDigits:d, maximumFractionDigits:d });
+  const minTime = Math.min(...M.map(m=>m.time));
+  const minTC = Math.min(...M.map(m=>m.tC));
+  const minTD = Math.min(...M.map(m=>m.tD));
+  const minCost = Math.min(...M.map(m=>m.cost));
+
+  // ===================== A · TABLE =====================
+  (function(){
+    const head = `<thead><tr>
+      <th class="l">Rg</th>
+      <th class="l pad-r">Modèle</th>
+      <th>Temps</th>
+      <th>Tokens<span class="sub">cursor</span></th>
+      <th>Tokens<span class="sub">dashboard</span></th>
+      <th>Coût</th>
+      <th>Pb.</th>
+      <th class="l pad-l">Solutions</th>
+    </tr></thead>`;
+    const rows = M.map((m,i)=>{
+      const bTime = m.time===minTime ? ' best' : '';
+      const bTC   = m.tC===minTC ? ' best' : '';
+      const bTD   = m.tD===minTD ? ' best' : '';
+      const bCost = m.cost===minCost ? ' best' : '';
+      return `<tr>
+        <td class="l rk">${String(i+1).padStart(2,'0')}</td>
+        <td class="l pad-r"><span class="mdl"><span class="swatch" style="background:${m.color}"></span>${m.name}</span></td>
+        <td class="${bTime.trim()}">~${m.time} min</td>
+        <td class="${bTC.trim()}">${m.tC} k</td>
+        <td class="${bTD.trim()}">${m.tD} k</td>
+        <td class="${bCost.trim()}">${fr(m.cost)} $</td>
+        <td class="yes">✓</td>
+        <td class="note">${m.note}</td>
+      </tr>`;
+    }).join('');
+    const foot = `<tfoot><tr><td colspan="8">▸ valeur de tête (minimum) sur la colonne · coût = tarif dashboard · temps approximatif</td></tr></tfoot>`;
+    document.getElementById('tbl').innerHTML = head + `<tbody>${rows}</tbody>` + foot;
+  })();
+
+  // ===================== B · SCATTER =====================
+  (function(){
+    const W=1000, H=440, mL=64, mR=150, mT=28, mB=58;
+    const x0=mL, x1=W-mR, y0=mT, y1=H-mB;
+    const costMax=1.7, timeMax=5.5;
+    const px = c => x0 + (c/costMax)*(x1-x0);
+    const py = t => y1 - (t/timeMax)*(y1-y0);
+    const rOf = td => 8 + (td-minTD)/(922-minTD)*12;
+
+    const costTicks=[0,0.5,1.0,1.5];
+    const timeTicks=[0,1,2,3,4,5];
+    let g='';
+    // grid + y ticks
+    timeTicks.forEach(t=>{
+      const y=py(t);
+      g+=`<line class="sc-grid" x1="${x0}" y1="${y.toFixed(1)}" x2="${x1}" y2="${y.toFixed(1)}"/>`;
+      g+=`<text class="sc-tick" x="${x0-12}" y="${(y+4).toFixed(1)}" text-anchor="end">${t}</text>`;
+    });
+    // x ticks
+    costTicks.forEach(c=>{
+      const x=px(c);
+      g+=`<text class="sc-tick" x="${x.toFixed(1)}" y="${y1+22}" text-anchor="middle">${fr(c,c===0?0:c%1?2:0)} $</text>`;
+    });
+    // axes
+    g+=`<line class="sc-axis" x1="${x0}" y1="${y0}" x2="${x0}" y2="${y1}"/>`;
+    g+=`<line class="sc-axis" x1="${x0}" y1="${y1}" x2="${x1}" y2="${y1}"/>`;
+    // axis labels
+    g+=`<text class="sc-axlabel" x="${x1}" y="${y1+44}" text-anchor="end">Coût ($) →</text>`;
+    g+=`<text class="sc-axlabel" x="${x0-44}" y="${y0+4}" text-anchor="start" transform="rotate(-90 ${x0-44} ${y0+4})">Temps (min) →</text>`;
+    // zone hints
+    g+=`<text class="sc-zone" x="${x0+10}" y="${y1-10}" fill="var(--accent)" opacity="0.6">◐ rapide · économique</text>`;
+    g+=`<text class="sc-zone" x="${x1-10}" y="${y0+14}" fill="var(--ink-3)" text-anchor="end">lent · coûteux ◑</text>`;
+
+    // points — explicit label placement to avoid the mid-cluster collision
+    const place = { 'GPT 5.3':'right', 'Composer 2.5':'above', 'Opus 4.8':'below', 'Sonnet 4.6':'left', 'Fable':'left' };
+    M.forEach(m=>{
+      const cx=px(m.cost), cy=py(m.time), r=rOf(m.tD);
+      const side = place[m.name] || 'right';
+      let lx, nameY, valY, anchor;
+      if (side==='right')      { lx=cx+r+10; anchor='start';  nameY=cy-2;        valY=cy+13; }
+      else if (side==='left')  { lx=cx-r-10; anchor='end';    nameY=cy-2;        valY=cy+13; }
+      else if (side==='above') { lx=cx;      anchor='middle'; nameY=cy-r-18;     valY=cy-r-5; }
+      else                     { lx=cx;      anchor='middle'; nameY=cy+r+16;     valY=cy+r+29; }
+      g+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${m.color}" fill-opacity="0.16" stroke="${m.color}" stroke-width="1.5"/>`;
+      g+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="2.4" fill="${m.color}"/>`;
+      g+=`<text class="sc-name" x="${lx.toFixed(1)}" y="${nameY.toFixed(1)}" text-anchor="${anchor}" fill="${m.color}">${m.name}</text>`;
+      g+=`<text class="sc-val" x="${lx.toFixed(1)}" y="${valY.toFixed(1)}" text-anchor="${anchor}">${fr(m.cost)} $ · ~${m.time} min · ${m.tD}k tok</text>`;
+    });
+
+    document.getElementById('scatter').innerHTML =
+      `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Nuage de points coût contre temps">${g}</svg>`;
+  })();
+
+  // ===================== C · BARS =====================
+  (function(){
+    const metrics = [
+      { key:'time', title:'Temps',  unit:'min',       fmt:m=>`~${m.time}`,      max:Math.max(...M.map(m=>m.time)),  val:m=>m.time },
+      { key:'cost', title:'Coût',   unit:'$',         fmt:m=>fr(m.cost),        max:Math.max(...M.map(m=>m.cost)),  val:m=>m.cost },
+      { key:'tD',   title:'Tokens', unit:'k · dash.', fmt:m=>`${m.tD}`,         max:Math.max(...M.map(m=>m.tD)),    val:m=>m.tD },
+    ];
+    const html = metrics.map(mt=>{
+      const rows = M.map(m=>{
+        const w = (mt.val(m)/mt.max*100).toFixed(1);
+        return `<div class="brow">
+          <div class="blabel"><span class="bname">${m.name}</span><span class="bval">${mt.fmt(m)}</span></div>
+          <div class="btrack"><div class="bfill" style="width:${w}%;background:${m.color}"></div></div>
+        </div>`;
+      }).join('');
+      return `<div class="bcol"><h4>${mt.title}<span class="u">${mt.unit}</span></h4>${rows}</div>`;
+    }).join('');
+    document.getElementById('bars').innerHTML = html;
+  })();
+</script>
+</body>
+</html>

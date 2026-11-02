@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>exhale — Schéma animé</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/paper.css">
+<style>
+  :root {
+    --paper: #f6f5f1;
+    --paper-2: #edebe4;
+    --ink: #18170f;
+    --ink-2: #4a4636;
+    --ink-3: #8b8672;
+    --accent: #1f4a37;
+    --accent-rgb: 31,74,55;
+    --line: rgba(24,23,15,0.22);
+    --line-soft: rgba(24,23,15,0.12);
+    --topo: rgba(31,74,55,0.06);
+  }
+  .page { padding-bottom: 70px; }
+  .wrap { max-width: 980px; }
+  .head { border-bottom: 2px solid var(--ink); padding: 22px 0 14px; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+  .head .title { font-family: 'Anton', sans-serif; font-size: clamp(30px,4.4vw,52px); line-height: 0.9; text-transform: uppercase; }
+  .head .title .dot { color: var(--accent); }
+  .head .meta { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: var(--ink-2); text-align: right; line-height: 1.6; }
+  .intro { font-family: var(--serif); font-size: clamp(16px,1.7vw,20px); line-height: 1.5; color: var(--ink-2); max-width: 60ch; margin: 24px 0 28px; }
+  .intro b { color: var(--ink); }
+
+  .plate svg { display: block; }
+
+  .controls { display: flex; gap: 10px; align-items: center; margin-top: 20px; }
+  .btn { font-size: 12px; letter-spacing: 0.06em; padding: 9px 16px; }
+  .btn .ic { width: 14px; height: 14px; }
+  .hint { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+  <div class="wrap">
+    <div class="head">
+      <div class="title">Schéma<br>animé<span class="dot">.</span></div>
+      <div class="meta">STYLE MAISON · FIG. A<br>DITHERING · TRANCHES DÉTACHÉES<br>ANIM : TRACÉ SUR LE PAPIER</div>
+    </div>
+    <p class="intro">Le schéma se <b>dessine sur le papier</b> : la grille apparaît, les trois points s'ancrent, le triangle se trace en pointillés, puis les strates s'empilent du bas vers le haut. Idéal en entrée d'article (rejoue au défilement).</p>
+
+    <div class="plate plain">
+      <span class="ptag">FIG. A · ANIMÉ</span>
+      <div id="d-anim"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="replay">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        Rejouer
+      </button>
+      <span class="hint">Se relance aussi à l'entrée dans l'écran.</span>
+    </div>
+  </div>
+</div>
+
+<script src="assets/texture.js"></script>
+<script src="assets/diagram.js"></script>
+<script>
+  Grain.apply(18);
+  Topo.mount(document.getElementById('topo'), { color: 'rgba(31,74,55,0.05)', levels: 15, cell: 26, scale: 0.0020, seed: 14, emphasizeEvery: 5 });
+
+  const target = document.getElementById('d-anim');
+  Diagram.pyramid(target, { style: 'dither', gap: 6 });
+
+  function run() { Diagram.play(target); }
+  // initial play once laid out
+  requestAnimationFrame(() => requestAnimationFrame(run));
+  setTimeout(run, 200);
+
+  document.getElementById('replay').addEventListener('click', run);
+
+  // replay when it re-enters the viewport (debounced)
+  let cooldown = false;
+  const io = new IntersectionObserver((es) => {
+    es.forEach((e) => {
+      if (e.isIntersecting && !cooldown) { cooldown = true; run(); setTimeout(() => { cooldown = false; }, 1200); }
+    });
+  }, { threshold: 0.5 });
+  io.observe(target);
+</script>
+</body>
+</html>

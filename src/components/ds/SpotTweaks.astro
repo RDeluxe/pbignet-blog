@@ -1,0 +1,1067 @@
+---
+/**
+ * SpotTweaks — le panneau de réglages du hero pop color (touche T).
+ *
+ * Outil de DESIGNER, réservé aux pages `/ds/*` : jamais sur une page publique. Porté de
+ * l'atelier OD (`design/od/research/Article - PopColor.html`) le 2026-08-05 pour vivre
+ * ici, typé — l'atelier reçoit les mises à jour par l'export, pas l'inverse.
+ *
+ * Il pilote le PREMIER `.post-hero` de la page via le handle que `HeroPopColor` expose
+ * sur son élément (`hero.spotHero`, événement `spot-hero:ready`). La sortie « Recipe »
+ * est dans la syntaxe des props du composant : elle se colle telle quelle dans un
+ * frontmatter ou une page.
+ *
+ * L'état persiste dans localStorage — mais les DÉFAUTS sont la recipe montée par la
+ * page : un chargement frais montre toujours ce que le fichier décrit.
+ */
+---
+
+<aside class="tw-panel tw-hidden" id="tw-panel" aria-label="Tweak panel">
+  <header class="tw-head">
+    <span class="ttl">Tweaks</span>
+    <button class="tw-x" id="tw-close" type="button" aria-label="Hide panel" title="Hide (T)">×</button>
+  </header>
+  <div class="tw-body">
+    <div id="tw-knobs"></div>
+    <div class="tw-status" id="tw-imgstatus" role="status"></div>
+  </div>
+
+  <details class="tw-out">
+    <summary>Recipe</summary>
+    <textarea id="tw-recipe" readonly spellcheck="false" aria-label="Recipe for HeroPopColor"></textarea>
+  </details>
+
+  <footer class="tw-foot">
+    <span><kbd>T</kbd><kbd>R</kbd></span>
+    <button id="tw-reset" type="button">Reset</button>
+    <button id="tw-copy" class="tw-copy" type="button">Copy recipe</button>
+  </footer>
+</aside>
+
+<button class="tw-restore tw-show" id="tw-restore" type="button" aria-label="Show tweaks panel" title="Tweaks (T)">T</button>
+
+<script>
+  import type { SpotHeroHandle, SpotHeroOptions } from '../../lib/spot-hero'
+  import { Topo } from '../../scripts/texture'
+
+  type Rgb = [number, number, number]
+  type Duo = [string, string]
+
+  interface TweakState {
+    mode: 'pop' | 'invert'
+    keep: 'dither' | 'sharp'
+    keepColor: string
+    threshold: number
+    softness: number
+    pop: number
+    ground: Duo
+    cell: number
+    contrast: number
+    brightness: number
+    shimmer: number
+    coverH: number
+    focalX: number
+    focalY: number
+    title: string
+    titleX: number
+    titleY: number
+    titleInk: 'light' | 'dark'
+  }
+
+  type Knob
+    = | { sec: string }
+      | { k: keyof TweakState, type: 'range', label: string, min: number, max: number, step: number, unit?: string }
+      | { k: keyof TweakState, type: 'text', label: string }
+      | { k: keyof TweakState, type: 'swatch', label: string, options: string[] }
+      | { k: keyof TweakState, type: 'duo', label: string, options: Duo[] }
+      | { k: keyof TweakState, type: 'seg', label: string, options: [string, string][] }
+      | { k: 'image', type: 'image', label: string }
+
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches
+  /* clé VERSIONNÉE : un état persisté par une version antérieure du panneau ne doit
+     jamais s'appliquer — c'est lui qui faisait paraître le mode invert « à l'envers » */
+  const STORAGE_KEY = 'tweaks-ds-hero-pop-color.v2'
+
+  const HUES = ['#c8321e', '#d2691e', '#d9a521', '#3f8f3a', '#1f8a7a', '#2f6fd0', '#7a5ae0', '#c0398f']
+  const GROUNDS: Duo[] = [
+    ['#14160f', '#4a4e3e'], /* olive   */
+    ['#0a120b', '#36482c'], /* forêt   */
+    ['#121212', '#454545'], /* charbon */
+    ['#1c160c', '#5a4a30'], /* sépia   */
+    ['#0f1722', '#3a4a5e'], /* ardoise */
+  ]
+
+  /* Les sources EN COULEUR du repo. Jamais les PNG déjà dithérés : la sélection se fait
+     par teinte — une source monochrome ne fait rien popper. */
+  const PRESETS = [
+    { label: 'bridge red', src: '/photos/source/bridge-red-web.jpg' },
+    { label: 'castle blue', src: '/photos/source/castle-blue-web.jpg' },
+  ]
+
+  const hero = document.querySelector<HTMLElement & { spotHero?: SpotHeroHandle }>('.post-hero')
+  const heroImg = hero?.querySelector<HTMLImageElement>('img.dsrc') ?? null
+  const fade = hero?.nextElementSibling instanceof HTMLElement && hero.nextElementSibling.classList.contains('hero-fade')
+    ? hero.nextElementSibling
+    : null
+
+  function hexToRgb(h: string): Rgb {
+    const s = h.replace('#', '')
+    return [Number.parseInt(s.slice(0, 2), 16), Number.parseInt(s.slice(2, 4), 16), Number.parseInt(s.slice(4, 6), 16)]
+  }
+
+  /* Les défauts SONT la recipe montée par la page : lue sur data-recipe, pas dupliquée. */
+  function defaultsFromMount(): TweakState {
+    const r: Partial<SpotHeroOptions> & { ink?: Rgb, paper?: Rgb } = JSON.parse(hero?.dataset.recipe ?? '{}')
+    const toHex = (c: Rgb) => `#${c.map(v => v.toString(16).padStart(2, '0')).join('')}`
+    return {
+      mode: r.invert ? 'invert' : 'pop',
+      keep: r.keepSharp ? 'sharp' : 'dither',
+      keepColor: typeof r.keepColor === 'string' ? r.keepColor : '#c8321e',
+      threshold: r.hueLo ?? 34,
+      softness: r.hueSpan ?? 62,
+      pop: r.satBoost ?? 0.35,
+      ground: [toHex(r.ink ?? [20, 22, 15]), toHex(r.paper ?? [74, 78, 62])],
+      cell: r.cell ?? 3,
+      contrast: r.contrast ?? 1.3,
+      brightness: r.brightness ?? -0.02,
+      shimmer: REDUCED ? 0 : (r.boil ?? 0.05),
+      coverH: 100,
+      focalX: Math.round((r.focalX ?? 0.5) * 100),
+      focalY: Math.round((r.focalY ?? 0.5) * 100),
+      title: hero?.querySelector('.ph-word')?.textContent?.trim() ?? 'Title',
+      titleX: 4,
+      titleY: 11,
+      titleInk: hero?.dataset.titleInk === 'dark' ? 'dark' : 'light',
+    }
+  }
+
+  const DEFAULTS = defaultsFromMount()
+
+  const KNOBS: Knob[] = [
+    { sec: 'Source' },
+    { k: 'image', type: 'image', label: 'Photo' },
+
+    { sec: 'Selective colour' },
+    { k: 'mode', type: 'seg', label: 'Mode', options: [['pop', 'Pop'], ['invert', 'Invert']] },
+    { k: 'keep', type: 'seg', label: 'Kept zone', options: [['dither', 'Dithered'], ['sharp', 'Sharp']] },
+    { k: 'keepColor', type: 'swatch', label: 'Keep colour', options: HUES },
+    { k: 'threshold', type: 'range', label: 'Threshold', min: -40, max: 130, step: 1 },
+    { k: 'softness', type: 'range', label: 'Edge softness', min: 10, max: 160, step: 1 },
+    { k: 'pop', type: 'range', label: 'Colour pop', min: 0, max: 1, step: 0.05 },
+
+    { sec: 'Dithered ground' },
+    { k: 'ground', type: 'duo', label: 'Tone', options: GROUNDS },
+    { k: 'cell', type: 'range', label: 'Dot size', min: 2, max: 6, step: 1, unit: 'px' },
+    { k: 'contrast', type: 'range', label: 'Contrast', min: 0.8, max: 1.8, step: 0.02 },
+    { k: 'brightness', type: 'range', label: 'Brightness', min: -0.25, max: 0.25, step: 0.01 },
+    { k: 'shimmer', type: 'range', label: 'Shimmer', min: 0, max: 0.18, step: 0.01 },
+
+    { sec: 'Cover & type' },
+    { k: 'coverH', type: 'range', label: 'Cover height', min: 60, max: 100, step: 1, unit: 'vh' },
+    { k: 'focalX', type: 'range', label: 'Focal X', min: 0, max: 100, step: 1, unit: '%' },
+    { k: 'focalY', type: 'range', label: 'Focal Y', min: 0, max: 100, step: 1, unit: '%' },
+    { k: 'title', type: 'text', label: 'Title' },
+    { k: 'titleX', type: 'range', label: 'Title X', min: 0, max: 70, step: 1, unit: '%' },
+    { k: 'titleY', type: 'range', label: 'Title Y', min: 2, max: 62, step: 1, unit: '%' },
+    { k: 'titleInk', type: 'seg', label: 'Title ink', options: [['light', 'Light'], ['dark', 'Dark']] },
+  ]
+
+  /* l'image chargée n'entre PAS dans l'état persisté : une data-URI de plusieurs Mo
+     dépasserait le quota de localStorage */
+  let loadedName = heroImg?.src.split('/').pop() ?? ''
+  let loadedPreset: string | null = null
+
+  function load(): TweakState {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (!raw)
+        return { ...DEFAULTS }
+      const s: TweakState = { ...DEFAULTS, ...JSON.parse(raw) }
+      if (REDUCED)
+        s.shimmer = 0
+      return s
+    }
+    catch {
+      return { ...DEFAULTS }
+    }
+  }
+  function save(s: TweakState) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(s))
+    }
+    catch {}
+  }
+
+  function drawHeroTopo(ink: Rgb) {
+    const topo = hero?.querySelector<HTMLCanvasElement>('canvas.topo-on')
+    if (!topo)
+      return
+    Topo.draw(topo, {
+      color: `rgba(${Math.min(255, ink[0] + 96)}, ${Math.min(255, ink[1] + 110)}, ${Math.min(255, ink[2] + 80)}, 0.22)`,
+      levels: 16,
+      cell: 18,
+      scale: 0.003,
+      seed: 9,
+      emphasizeEvery: 4,
+    })
+  }
+
+  function apply(s: TweakState) {
+    if (!hero)
+      return
+    const ink = hexToRgb(s.ground[0])
+    const paper = hexToRgb(s.ground[1])
+
+    hero.spotHero?.update({
+      cell: s.cell,
+      ink,
+      paper,
+      contrast: s.contrast,
+      brightness: s.brightness,
+      boil: s.shimmer,
+      keepColor: s.keepColor,
+      hueLo: s.threshold,
+      hueSpan: s.softness,
+      satBoost: s.pop,
+      invert: s.mode === 'invert',
+      keepSharp: s.keep === 'sharp',
+      focalX: s.focalX / 100,
+      focalY: s.focalY / 100,
+    })
+    drawHeroTopo(ink)
+
+    /* les variables du composant sont posées en inline par define:vars — on les
+       réécrit au même endroit, sur le hero ET sur son hero-fade */
+    const h = `${s.coverH}vh`
+    const heightChanged = hero.style.getPropertyValue('--phHeight') !== h
+    for (const el of [hero, fade].filter((e): e is HTMLElement => e !== null)) {
+      el.style.setProperty('--phHeight', h)
+      el.style.setProperty('--phGround', ink.join(', '))
+      el.style.setProperty('--phTitleX', `${s.titleX}%`)
+      el.style.setProperty('--phTitleYBase', `${s.titleY}%`)
+    }
+    /* la hauteur change clientHeight sans émettre de resize ; le moteur écoute resize */
+    if (heightChanged)
+      dispatchEvent(new Event('resize'))
+
+    hero.dataset.titleInk = s.titleInk
+    const word = hero.querySelector<HTMLElement>('.ph-word')
+    if (word)
+      word.textContent = s.title
+
+    paint(s)
+    writeRecipe(s)
+  }
+
+  /* ---- la sortie : la recipe aux noms des props du composant ---- */
+  function num(v: number): string {
+    return Number.isInteger(v) ? String(v) : String(Number.parseFloat(v.toFixed(3)))
+  }
+
+  function recipeSnippet(s: TweakState): string {
+    const ink = hexToRgb(s.ground[0])
+    const paper = hexToRgb(s.ground[1])
+    return [
+      'spot={{',
+      `  keepColor: '${s.keepColor}',`,
+      `  ink: [${ink.join(', ')}],`,
+      `  paper: [${paper.join(', ')}],`,
+      `  cell: ${num(s.cell)},`,
+      `  contrast: ${num(s.contrast)},`,
+      `  brightness: ${num(s.brightness)},`,
+      `  boil: ${num(s.shimmer)},`,
+      `  hueLo: ${num(s.threshold)},`,
+      `  hueSpan: ${num(s.softness)},`,
+      `  satBoost: ${num(s.pop)},`,
+      ...(s.mode === 'invert' ? ['  invert: true,'] : []),
+      ...(s.keep === 'sharp' ? ['  keepSharp: true,'] : []),
+      '}}',
+      `title="${s.title}"`,
+      ...(s.titleX !== 4 ? [`titleX="${s.titleX}%"`] : []),
+      `titleY="${s.titleY}%"`,
+      `titleInk="${s.titleInk}"`,
+      `height="${s.coverH}vh"`,
+      `focal={{ x: ${num(s.focalX / 100)}, y: ${num(s.focalY / 100)} }}`,
+      '',
+      '// titleYMobile : override ≤700px à vérifier sur le vrai breakpoint,',
+      '// contraste du titre ≥3:1 MESURÉ (PIPELINE §4.6b).',
+    ].join('\n')
+  }
+
+  function writeRecipe(s: TweakState) {
+    const out = document.querySelector<HTMLTextAreaElement>('#tw-recipe')
+    if (out)
+      out.value = recipeSnippet(s)
+  }
+
+  /* ---- rendu du panneau depuis KNOBS ---- */
+  function fmt(knob: Extract<Knob, { type: 'range' }>, v: number): string {
+    const n = Number.isInteger(v) ? String(v) : v.toFixed(2)
+    return n + (knob.unit ?? '')
+  }
+
+  function paint(s: TweakState) {
+    for (const knob of KNOBS) {
+      if (!('k' in knob) || knob.type === 'image')
+        continue
+      const host = document.getElementById(`k-${knob.k}`)
+      if (!host)
+        continue
+      const v = s[knob.k]
+      if (knob.type === 'range') {
+        (host as HTMLInputElement).value = String(v)
+        const val = document.getElementById(`v-${knob.k}`)
+        if (val)
+          val.textContent = fmt(knob, v as number)
+      }
+      else if (knob.type === 'text') {
+        const input = host as HTMLInputElement
+        if (input.value !== v)
+          input.value = String(v)
+      }
+      else if (knob.type === 'swatch' || knob.type === 'duo') {
+        const key = String(v)
+        host.querySelectorAll('button').forEach(b =>
+          b.setAttribute('aria-pressed', b.dataset.val === key ? 'true' : 'false'))
+      }
+      else if (knob.type === 'seg') {
+        host.querySelectorAll('button').forEach(b =>
+          b.setAttribute('aria-pressed', b.dataset.val === v ? 'true' : 'false'))
+      }
+    }
+  }
+
+  const state = load()
+
+  function commit<K extends keyof TweakState>(key: K, value: TweakState[K]) {
+    state[key] = value
+    save(state)
+    apply(state)
+  }
+
+  /* ---- sonde de lisibilité : le moteur avale son échec (canvas contaminé) ---- */
+  function pixelsReadable(img: HTMLImageElement): boolean {
+    try {
+      const c = document.createElement('canvas')
+      c.width = 1
+      c.height = 1
+      const x = c.getContext('2d')!
+      x.drawImage(img, 0, 0, 1, 1)
+      x.getImageData(0, 0, 1, 1)
+      return true
+    }
+    catch {
+      return false
+    }
+  }
+
+  function status() {
+    const el = document.getElementById('tw-imgstatus')
+    if (!el || !heroImg)
+      return
+    const w = heroImg.naturalWidth
+    const h = heroImg.naturalHeight
+    if (!w) {
+      el.dataset.ok = 'yes'
+      el.innerHTML = 'Chargement…'
+      return
+    }
+    const ok = pixelsReadable(heroImg)
+    el.dataset.ok = ok ? 'yes' : 'no'
+    const dc = hero?.querySelector<HTMLCanvasElement>('canvas.dither-canvas')
+    if (dc)
+      dc.style.visibility = ok ? '' : 'hidden'
+    el.innerHTML = ok
+      ? `<b>${loadedName}</b> · ${w}×${h} · pixels lisibles`
+      : `<b>Pixels illisibles</b> — ${loadedName} : canvas contaminé, le moteur ne peint pas. `
+        + `Charge l'image par le sélecteur de fichier (data-URI), jamais contaminé.`
+  }
+  heroImg?.addEventListener('load', status)
+
+  /* ---- chargeur d'image : un fichier local lu en data-URI ne contamine jamais ---- */
+  function setImage(src: string, name: string) {
+    if (!heroImg)
+      return
+    heroImg.src = src
+    heroImg.alt = `Source photograph: ${name}`
+    paintPresets()
+    status()
+  }
+
+  function loadFile(file: File | null | undefined) {
+    if (!file || !file.type.startsWith('image/'))
+      return
+    const fr = new FileReader()
+    fr.onload = () => {
+      loadedPreset = null
+      loadedName = file.name
+      setImage(String(fr.result), file.name)
+    }
+    fr.readAsDataURL(file)
+  }
+
+  function loadPreset(p: { label: string, src: string }) {
+    loadedPreset = p.src
+    loadedName = p.src.split('/').pop() ?? p.src
+    setImage(p.src, loadedName)
+  }
+
+  function paintPresets() {
+    const host = document.getElementById('k-image-presets')
+    host?.querySelectorAll('button').forEach(b =>
+      b.setAttribute('aria-pressed', b.dataset.src === loadedPreset ? 'true' : 'false'))
+  }
+
+  /* déposer n'importe où sur la page, pas seulement sur le petit bouton */
+  addEventListener('dragover', (e) => {
+    e.preventDefault()
+    document.querySelector<HTMLElement>('.tw-file')?.setAttribute('data-drag', 'on')
+  })
+  addEventListener('dragleave', () => {
+    document.querySelector<HTMLElement>('.tw-file')?.removeAttribute('data-drag')
+  })
+  addEventListener('drop', (e) => {
+    e.preventDefault()
+    document.querySelector<HTMLElement>('.tw-file')?.removeAttribute('data-drag')
+    loadFile(e.dataTransfer?.files?.[0])
+  })
+
+  function build() {
+    const host = document.getElementById('tw-knobs')
+    if (!host)
+      return
+    host.innerHTML = ''
+
+    for (const knob of KNOBS) {
+      if ('sec' in knob) {
+        const h = document.createElement('div')
+        h.className = 'tw-sec'
+        h.textContent = knob.sec
+        host.appendChild(h)
+        continue
+      }
+
+      const row = document.createElement('div')
+      row.className = 'tw-row'
+
+      const lbl = document.createElement('span')
+      lbl.className = 'lbl'
+      lbl.innerHTML = `<span>${knob.label}</span>`
+      if (knob.type === 'range') {
+        const val = document.createElement('span')
+        val.className = 'val'
+        val.id = `v-${knob.k}`
+        lbl.appendChild(val)
+      }
+      row.appendChild(lbl)
+
+      if (knob.type === 'range') {
+        const r = document.createElement('input')
+        r.type = 'range'
+        r.className = 'tw-range'
+        r.id = `k-${knob.k}`
+        r.min = String(knob.min)
+        r.max = String(knob.max)
+        r.step = String(knob.step)
+        r.setAttribute('aria-label', knob.label)
+        r.addEventListener('input', () => commit(knob.k, Number.parseFloat(r.value) as never))
+        row.appendChild(r)
+      }
+      else if (knob.type === 'text') {
+        const t = document.createElement('input')
+        t.type = 'text'
+        t.className = 'tw-text'
+        t.id = `k-${knob.k}`
+        t.setAttribute('aria-label', knob.label)
+        t.addEventListener('input', () => commit(knob.k, t.value as never))
+        row.appendChild(t)
+      }
+      else if (knob.type === 'swatch') {
+        const grid = document.createElement('div')
+        grid.className = 'tw-swatches'
+        grid.id = `k-${knob.k}`
+        grid.setAttribute('role', 'radiogroup')
+        grid.setAttribute('aria-label', knob.label)
+        for (const hex of knob.options) {
+          const b = document.createElement('button')
+          b.type = 'button'
+          b.className = 'tw-swatch'
+          b.dataset.val = hex
+          b.style.background = hex
+          b.setAttribute('aria-label', hex)
+          b.addEventListener('click', () => commit(knob.k, hex as never))
+          grid.appendChild(b)
+        }
+        row.appendChild(grid)
+      }
+      else if (knob.type === 'duo') {
+        const grid = document.createElement('div')
+        grid.className = 'tw-swatches duo'
+        grid.id = `k-${knob.k}`
+        grid.setAttribute('role', 'radiogroup')
+        grid.setAttribute('aria-label', knob.label)
+        for (const pair of knob.options) {
+          const b = document.createElement('button')
+          b.type = 'button'
+          b.className = 'tw-swatch'
+          b.dataset.val = String(pair)
+          b.style.background = `linear-gradient(105deg, ${pair[0]} 0 50%, ${pair[1]} 50% 100%)`
+          b.setAttribute('aria-label', pair.join(' / '))
+          b.addEventListener('click', () => commit(knob.k, pair as never))
+          grid.appendChild(b)
+        }
+        row.appendChild(grid)
+      }
+      else if (knob.type === 'image') {
+        const pick = document.createElement('label')
+        pick.className = 'tw-file'
+        pick.textContent = 'Choose file · or drop anywhere'
+        const inp = document.createElement('input')
+        inp.type = 'file'
+        inp.accept = 'image/*'
+        inp.addEventListener('change', () => loadFile(inp.files?.[0]))
+        pick.appendChild(inp)
+        row.appendChild(pick)
+
+        const grid = document.createElement('div')
+        grid.className = 'tw-presets'
+        grid.id = 'k-image-presets'
+        grid.setAttribute('role', 'radiogroup')
+        grid.setAttribute('aria-label', 'Project sources')
+        for (const p of PRESETS) {
+          const b = document.createElement('button')
+          b.type = 'button'
+          b.dataset.src = p.src
+          b.textContent = p.label
+          b.title = p.src
+          b.addEventListener('click', () => loadPreset(p))
+          grid.appendChild(b)
+        }
+        row.appendChild(grid)
+      }
+      else if (knob.type === 'seg') {
+        const seg = document.createElement('div')
+        seg.className = 'tw-seg'
+        seg.id = `k-${knob.k}`
+        seg.setAttribute('role', 'radiogroup')
+        seg.setAttribute('aria-label', knob.label)
+        for (const [val, label] of knob.options) {
+          const b = document.createElement('button')
+          b.type = 'button'
+          b.dataset.val = val
+          b.textContent = label
+          b.addEventListener('click', () => commit(knob.k, val as never))
+          seg.appendChild(b)
+        }
+        row.appendChild(seg)
+      }
+
+      host.appendChild(row)
+    }
+  }
+
+  /* ---- ouverture : replié par défaut (la preview d'abord), la pastille T le rappelle ---- */
+  const panel = document.getElementById('tw-panel')!
+  const restore = document.getElementById('tw-restore')!
+
+  function setPanelVisible(v: boolean) {
+    panel.classList.toggle('tw-hidden', !v)
+    restore.classList.toggle('tw-show', !v)
+  }
+  document.getElementById('tw-close')?.addEventListener('click', () => setPanelVisible(false))
+  restore.addEventListener('click', () => setPanelVisible(true))
+
+  function reset() {
+    Object.assign(state, DEFAULTS)
+    save(state)
+    apply(state)
+  }
+  document.getElementById('tw-reset')?.addEventListener('click', reset)
+
+  /* ---- copie de la recipe ---- */
+  const copyBtn = document.getElementById('tw-copy')!
+  const outBox = document.querySelector<HTMLTextAreaElement>('#tw-recipe')!
+
+  function flash(label: string) {
+    copyBtn.textContent = label
+    copyBtn.dataset.done = 'on'
+    setTimeout(() => {
+      copyBtn.textContent = 'Copy recipe'
+      delete copyBtn.dataset.done
+    }, 1400)
+  }
+
+  copyBtn.addEventListener('click', async () => {
+    const text = recipeSnippet(state)
+    try {
+      await navigator.clipboard.writeText(text)
+      flash('Copied')
+      return
+    }
+    catch { /* refusé — replis */ }
+    const details = outBox.closest('details')
+    if (details)
+      details.open = true
+    outBox.focus()
+    outBox.select()
+    flash('Select + ⌘C')
+  })
+
+  /* ---- raccourcis ---- */
+  addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey)
+      return
+    const t = e.target as HTMLElement
+    if (t.matches('input, textarea, select, [contenteditable]'))
+      return
+    if (e.key === 't' || e.key === 'T') {
+      e.preventDefault()
+      setPanelVisible(panel.classList.contains('tw-hidden'))
+    }
+    else if (e.key === 'r' || e.key === 'R') {
+      e.preventDefault()
+      reset()
+    }
+  })
+
+  /* démarrage : attendre le handle si le hero n'est pas encore monté */
+  function start() {
+    build()
+    apply(state)
+    status()
+  }
+  if (hero?.spotHero)
+    start()
+  else
+    hero?.addEventListener('spot-hero:ready', start, { once: true })
+</script>
+
+<style>
+  /* Le panneau — outil de designer. Zéro arrondi, aucune ombre : il respecte la feuille
+     qu'il règle. Valeurs internes en littéral (un seul composant, PIPELINE §4.7). */
+  .tw-panel {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 100;
+    width: 288px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    font-family: var(--sans);
+    transition:
+      transform var(--dur-base) cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity var(--dur-base) ease;
+  }
+  .tw-panel.tw-hidden {
+    transform: translateX(calc(100% + 32px));
+    opacity: 0;
+    pointer-events: none;
+  }
+  .tw-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--ink);
+    position: sticky;
+    top: 0;
+    background: var(--paper);
+    z-index: 1;
+  }
+  .tw-head .ttl {
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-label);
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .tw-head .tw-x {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-3);
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 0;
+  }
+  .tw-head .tw-x:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  .tw-body {
+    padding: 14px 16px 16px;
+  }
+
+  .tw-body :global(.tw-sec) {
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tr-micro);
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 18px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .tw-body :global(.tw-sec:first-child) {
+    margin-top: 0;
+  }
+
+  .tw-body :global(.tw-row) {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 13px;
+  }
+  .tw-body :global(.tw-row .lbl) {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .tw-body :global(.tw-row .lbl .val) {
+    font-size: var(--fs-data);
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+
+  .tw-body :global(.tw-swatches) {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+  }
+  .tw-body :global(.tw-swatches.duo) {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+  }
+  .tw-body :global(.tw-swatch) {
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 0;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    transition:
+      transform var(--dur-fast) ease,
+      border-color var(--dur-fast) ease;
+  }
+  .tw-body :global(.tw-swatch:hover) {
+    transform: translateY(-2px);
+    border-color: var(--ink);
+  }
+  .tw-body :global(.tw-swatch[aria-pressed='true']) {
+    border: 2px solid var(--ink);
+  }
+
+  .tw-body :global(.tw-range) {
+    appearance: none;
+    width: 100%;
+    height: 16px;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
+  }
+  .tw-body :global(.tw-range::-webkit-slider-runnable-track) {
+    height: 1px;
+    background: var(--line);
+    border: 0;
+  }
+  .tw-body :global(.tw-range::-webkit-slider-thumb) {
+    appearance: none;
+    width: 11px;
+    height: 11px;
+    margin-top: -5px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    transition: background var(--dur-fast) ease;
+  }
+  .tw-body :global(.tw-range:hover::-webkit-slider-thumb) {
+    background: var(--paper-2);
+  }
+  .tw-body :global(.tw-range::-moz-range-track) {
+    height: 1px;
+    background: var(--line);
+    border: 0;
+  }
+  .tw-body :global(.tw-range::-moz-range-thumb) {
+    width: 11px;
+    height: 11px;
+    border-radius: 0;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+  }
+
+  .tw-body :global(.tw-seg) {
+    display: flex;
+    border: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .tw-body :global(.tw-seg button) {
+    flex: 1;
+    padding: 7px 8px;
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--line);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    transition:
+      color var(--dur-base) ease,
+      background var(--dur-base) ease;
+  }
+  .tw-body :global(.tw-seg button:first-child) {
+    border-left: 0;
+  }
+  .tw-body :global(.tw-seg button:hover) {
+    background: var(--paper-2);
+    color: var(--ink);
+  }
+  .tw-body :global(.tw-seg button[aria-pressed='true']) {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .tw-body :global(.tw-text) {
+    width: 100%;
+    padding: 7px 9px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+  .tw-body :global(.tw-text:hover) {
+    border-color: var(--ink);
+  }
+
+  .tw-body :global(.tw-file) {
+    display: block;
+    width: 100%;
+    padding: 9px 10px;
+    cursor: pointer;
+    background: var(--paper);
+    border: 1px dashed var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    text-align: center;
+    transition:
+      background var(--dur-base) ease,
+      border-color var(--dur-base) ease,
+      color var(--dur-base) ease;
+  }
+  .tw-body :global(.tw-file:hover),
+  .tw-body :global(.tw-file[data-drag='on']) {
+    background: var(--paper-2);
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  .tw-body :global(.tw-file input) {
+    display: none;
+  }
+
+  .tw-body :global(.tw-presets) {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+  .tw-body :global(.tw-presets button) {
+    padding: 6px 7px;
+    cursor: pointer;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition:
+      background var(--dur-base) ease,
+      color var(--dur-base) ease,
+      border-color var(--dur-base) ease;
+  }
+  .tw-body :global(.tw-presets button:hover) {
+    background: var(--paper-2);
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  .tw-body :global(.tw-presets button[aria-pressed='true']) {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  .tw-status {
+    font-family: var(--mono);
+    font-size: 9px;
+    line-height: 1.6;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+    border-top: 1px solid var(--line-soft);
+    padding-top: 7px;
+    margin-top: 4px;
+  }
+  .tw-status :global(b) {
+    color: var(--ink);
+    font-weight: 400;
+  }
+  .tw-status[data-ok='no'] :global(b) {
+    color: var(--riso-red-ink);
+  }
+
+  .tw-out {
+    border-top: 1px solid var(--line);
+  }
+  .tw-out summary {
+    padding: 9px 16px;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tr-micro);
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .tw-out summary::-webkit-details-marker {
+    display: none;
+  }
+  .tw-out summary:hover {
+    color: var(--ink);
+    background: var(--paper-2);
+  }
+  .tw-out textarea {
+    display: block;
+    width: 100%;
+    height: 210px;
+    resize: vertical;
+    padding: 10px 16px;
+    border: 0;
+    border-top: 1px solid var(--line-soft);
+    background: var(--paper-2);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    line-height: 1.65;
+    letter-spacing: 0.01em;
+  }
+
+  /* pied collant : à 16 réglages le contenu défile — la sortie doit rester atteignable */
+  .tw-foot {
+    position: sticky;
+    bottom: 0;
+    background: var(--paper);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--ink);
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tr-micro);
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .tw-foot button {
+    background: transparent;
+    border: 0;
+    color: var(--ink-3);
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+  }
+  .tw-foot button:hover {
+    color: var(--ink);
+  }
+  kbd {
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    padding: 2px 4px;
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+
+  /* l'état copié INVERSE les deux plans d'un coup : le contraste ne baisse jamais */
+  .tw-copy {
+    padding: 4px 9px;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    transition:
+      background var(--dur-base) ease,
+      color var(--dur-base) ease;
+  }
+  .tw-copy:hover {
+    background: var(--paper-2);
+  }
+  .tw-copy[data-done='on'] {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* bouton de rappel — la seule trace visible du panneau quand il est replié */
+  .tw-restore {
+    position: fixed;
+    top: 64px;
+    right: 16px;
+    z-index: 100;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--dur-base) ease;
+  }
+  .tw-restore:hover {
+    background: var(--paper-2);
+  }
+  .tw-restore.tw-show {
+    display: flex;
+  }
+
+  .tw-panel :focus-visible,
+  .tw-restore:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 720px) {
+    .tw-panel {
+      left: 16px;
+      right: 16px;
+      width: auto;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tw-panel,
+    .tw-body :global(.tw-seg button),
+    .tw-body :global(.tw-swatch) {
+      transition: none;
+    }
+  }
+</style>

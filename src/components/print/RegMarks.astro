@@ -1,0 +1,54 @@
+---
+/**
+ * RegMarks — les quatre repères de repérage aux coins de la feuille.
+ * Mobilier d'impression : purement décoratif au sens sémantique (aria-hidden), mais
+ * porteur de sens de marque — une feuille imprimée en a.
+ *
+ * **Positionnés sur la FEUILLE, pas sur le viewport.** On était en `fixed`, donc les repères
+ * restaient collés à l'écran pendant le défilement ; CD l'a tranché le 2026-08-04 en une
+ * phrase qui règle la question : « marks belong to the sheet and scroll with it ; your fixed
+ * is the bug ». Le conteneur reste statique, donc les repères se résolvent sur `body`, qui
+ * porte `position: relative` dans `base.css` — soit toute la hauteur de la feuille.
+ */
+---
+
+<div class="marks" aria-hidden="true">
+  <div class="regmark tl"></div>
+  <div class="regmark tr"></div>
+  <div class="regmark bl"></div>
+  <div class="regmark br"></div>
+</div>
+
+<style>
+  .regmark {
+    position: absolute;
+    width: var(--regmark-size);
+    height: var(--regmark-size);
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0.65;
+  }
+  .regmark::before,
+  .regmark::after {
+    content: '';
+    position: absolute;
+    background: var(--ink);
+  }
+  .regmark::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+  .regmark::after { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
+
+  .tl { top: var(--regmark-inset); left: var(--regmark-inset); }
+  .tr { top: var(--regmark-inset); right: var(--regmark-inset); }
+  .bl { bottom: var(--regmark-inset); left: var(--regmark-inset); }
+  .br { bottom: var(--regmark-inset); right: var(--regmark-inset); }
+
+  /* narrow: the 20px gutter is inside a mark 16px in and 22px wide, so the top marks sat
+     on the brand and the back link (critique 2026-11-02, n° 18). They shrink into the
+     corner instead of the chrome moving: a printed sheet's marks sit in its margin. */
+  @media (max-width: 600px) {
+    .regmark {
+      --regmark-size: 12px;
+      --regmark-inset: 4px;
+    }
+  }
+</style>

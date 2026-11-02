@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>exhale — Banc couleur Paper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f6f5f1;--paper-2:#edebe4;--ink:#18170f;--ink-2:#4a4636;--ink-3:#8b8672;--line:rgba(24,23,15,.2);--line-soft:rgba(24,23,15,.12);--accent:#1f4a37;--mono:'Space Mono',monospace;--sans:'Archivo',sans-serif}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{display:grid;grid-template-columns:300px 1fr;background:var(--paper);color:var(--ink);font-family:var(--sans);overflow:hidden;transition:background .15s}
+a{color:var(--accent)}a:hover{color:var(--ink)}
+.rail{border-right:1px solid var(--line);padding:22px 20px 28px;overflow-y:auto;display:flex;flex-direction:column;gap:22px}
+.rail h1{margin:0;font-size:15px;font-weight:800;letter-spacing:-.01em}
+.rail h1 small{display:block;font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;margin-top:4px}
+.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);margin:0 0 8px}
+.sec{border-top:1px solid var(--line-soft);padding-top:14px}
+select{width:100%;font-family:var(--mono);font-size:12px;padding:7px 8px;border:1px solid var(--line);background:transparent;color:var(--ink)}
+.sw-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sw{display:flex;flex-direction:column;gap:5px;padding:0;border:none;background:none;cursor:pointer;text-align:left}
+.sw .chip{height:40px;border:1px solid var(--line);position:relative}
+.sw.on .chip{outline:1.5px solid var(--ink);outline-offset:2px}
+.sw .nm{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--ink-2);line-height:1.35}
+.sw .hx{font-family:var(--mono);font-size:9px;color:var(--ink-3)}
+.sl{display:grid;grid-template-columns:14px 1fr 52px;gap:8px;align-items:center;margin-bottom:10px}
+.sl .k{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.sl output{font-family:var(--mono);font-size:10.5px;color:var(--ink-2);text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:1px;background:var(--ink-2);outline-offset:4px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:11px;height:11px;background:var(--paper);border:1.5px solid var(--ink);cursor:ew-resize}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:0;background:var(--paper);border:1.5px solid var(--ink);cursor:ew-resize}
+.out{display:flex;flex-direction:column;gap:6px}
+.out button{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);background:transparent;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--ink)}
+.out button:hover{border-color:var(--ink-2)}
+.out .dot{width:16px;height:16px;border:1px solid var(--line)}
+.out .cp{font-size:9px;color:var(--ink-3);letter-spacing:.1em}
+.note{font-family:var(--mono);font-size:9.5px;line-height:1.6;color:var(--ink-3);margin:0}
+.stage{position:relative;background:var(--paper-2)}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:none;background:var(--paper)}
+</style>
+</head>
+<body>
+<aside class="rail">
+  <h1>Banc couleur<small>token · --paper</small></h1>
+  <div class="sec"><p class="lbl">Page</p>
+    <select id="page">
+      <option value="../01_Home.html">01 · Home</option>
+      <option value="../02_Article.html">02 · Article</option>
+      <option value="../0_NORTHSTAR.html">0 · Northstar</option>
+      <option value="../Pâte graphique.html">Pâte graphique</option>
+      <option value="../Pâte graphique - animation.html">Pâte graphique · animation</option>
+      <option value="Article - spot colour.html">R&D · Article spot colour</option>
+      <option value="Boxes - banc d'essai.html">R&D · Boxes</option>
+    </select>
+  </div>
+  <div class="sec"><p class="lbl">Gammes · refs</p><div class="sw-grid" id="swatches"></div></div>
+  <div class="sec"><p class="lbl">Réglage fin · oklch</p>
+    <div class="sl"><span class="k">L</span><input type="range" id="rL" min="0.86" max="0.995" step="0.001"><output id="oL"></output></div>
+    <div class="sl"><span class="k">C</span><input type="range" id="rC" min="0" max="0.045" step="0.0005"><output id="oC"></output></div>
+    <div class="sl"><span class="k">H</span><input type="range" id="rH" min="0" max="360" step="1"><output id="oH"></output></div>
+  </div>
+  <div class="sec out"><p class="lbl">Sortie</p>
+    <button id="cpP"><span class="dot" id="dP"></span><span id="hP"></span><span class="cp">COPIER</span></button>
+    <button id="cpP2"><span class="dot" id="dP2"></span><span id="hP2"></span><span class="cp">COPIER</span></button>
+  </div>
+  <div class="sec"><p class="note">N.B. — les images tramées (PNG cuits) et les canvas dither gardent leur teinte d'origine ; seuls les tokens CSS bougent. Quand une teinte est retenue, on la propage en dur partout.</p></div>
+</aside>
+<main class="stage"><iframe id="fr" title="aperçu"></iframe></main>
+<script>
+(() => {
+'use strict';
+// ── oklch ⇄ srgb ──
+const cbrt = Math.cbrt;
+function hex2rgb(h){h=h.replace('#','');return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255)}
+function rgb2hex(r){return '#'+r.map(v=>Math.round(Math.min(1,Math.max(0,v))*255).toString(16).padStart(2,'0')).join('')}
+const s2l = c => c<=0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055,2.4);
+const l2s = c => c<=0.0031308 ? 12.92*c : 1.055*Math.pow(c,1/2.4)-0.055;
+function rgb2oklch(rgb){
+  const [r,g,b] = rgb.map(s2l);
+  const l=cbrt(.4122214708*r+.5363325363*g+.0514459929*b), m=cbrt(.2119034982*r+.6806995451*g+.1073969566*b), s=cbrt(.0883024619*r+.2817188376*g+.6299787005*b);
+  const L=.2104542553*l+.793617785*m-.0040720468*s, a=1.9779984951*l-2.428592205*m+.4505937099*s, bb=.0259040371*l+.7827717662*m-.808675766*s;
+  const C=Math.hypot(a,bb); let H=Math.atan2(bb,a)*180/Math.PI; if(H<0)H+=360;
+  return {L,C,H};
+}
+function oklch2rgb({L,C,H}){
+  const a=C*Math.cos(H*Math.PI/180), b=C*Math.sin(H*Math.PI/180);
+  let l=L+.3963377774*a+.2158037573*b, m=L-.1055613458*a-.0638541728*b, s=L-.0894841775*a-1.291485548*b;
+  l=l**3; m=m**3; s=s**3;
+  return [4.0767416621*l-3.3077115913*m+.2309699292*s, -1.2684380046*l+2.6097574011*m-.3413193965*s, -.0041960863*l-.7034186147*m+1.707614701*s].map(l2s);
+}
+const hex2lch = h => rgb2oklch(hex2rgb(h));
+const lch2hex = c => rgb2hex(oklch2rgb(c));
+// paper→paper-2 delta, mesuré sur la paire actuelle
+const A0 = hex2lch('#ece6da'), A2 = hex2lch('#e3dccd'); // paire v1 — fixe le delta paper→paper-2
+const D = {L:A2.L-A0.L, C:A2.C-A0.C, H:A2.H-A0.H};
+const P0 = hex2lch('#f6f5f1');
+const paper2 = c => ({L:c.L+D.L, C:Math.max(0,c.C+D.C), H:(c.H+D.H+360)%360});
+
+const SWATCHES = [
+  ['Actuel · blanc cassé','#f6f5f1'],
+  ['Ancien · v1','#ece6da'],
+  ['Bleuté · SoundToy','#eaeef1'],
+  ['Greige rosé · Nature','#e7ded7'],
+  ['Écru · Monday','#f1e9d7'],
+  ['Ivoire · Nagano','#f3ecdc'],
+  ['Crème vieillie · poster','#e6dcc6'],
+  ['Gris pierre','#e8e6e0'],
+];
+
+const $=id=>document.getElementById(id);
+const fr=$('fr'), rL=$('rL'), rC=$('rC'), rH=$('rH');
+let state = {page:'../01_Home.html', L:P0.L, C:P0.C, H:P0.H};
+try{ const s=JSON.parse(localStorage.getItem('dp-paper-bench')); if(s&&s.L)state=s; }catch(e){}
+
+// swatches
+const swWrap=$('swatches');
+SWATCHES.forEach(([nm,hx])=>{
+  const b=document.createElement('button'); b.className='sw'; b.dataset.hex=hx;
+  b.innerHTML='<span class="chip" style="background:'+hx+'"></span><span class="nm">'+nm+'</span><span class="hx">'+hx+'</span>';
+  b.addEventListener('click',()=>{ const c=hex2lch(hx); state.L=c.L; state.C=c.C; state.H=c.H; sync(); apply(); });
+  swWrap.appendChild(b);
+});
+
+function current(){ return {L:state.L,C:state.C,H:state.H}; }
+function apply(){
+  const c=current(), hp=lch2hex(c), hp2=lch2hex(paper2(c));
+  // outil lui-même
+  document.documentElement.style.setProperty('--paper',hp);
+  document.documentElement.style.setProperty('--paper-2',hp2);
+  // page dans l'iframe
+  try{ const de=fr.contentDocument&&fr.contentDocument.documentElement;
+    if(de){ de.style.setProperty('--paper',hp,'important'); de.style.setProperty('--paper-2',hp2,'important'); } }catch(e){}
+  $('hP').textContent='--paper: '+hp; $('hP2').textContent='--paper-2: '+hp2;
+  $('dP').style.background=hp; $('dP2').style.background=hp2;
+  // marquer le swatch actif
+  document.querySelectorAll('.sw').forEach(b=>b.classList.toggle('on', b.dataset.hex.toLowerCase()===hp.toLowerCase()));
+  localStorage.setItem('dp-paper-bench',JSON.stringify(state));
+}
+function sync(){
+  rL.value=state.L; rC.value=state.C; rH.value=state.H;
+  $('oL').textContent=(+state.L).toFixed(3); $('oC').textContent=(+state.C).toFixed(4); $('oH').textContent=Math.round(state.H)+'°';
+}
+[[rL,'L'],[rC,'C'],[rH,'H']].forEach(([el,k])=>el.addEventListener('input',()=>{ state[k]=+el.value; sync(); apply(); }));
+$('page').addEventListener('change',e=>{ state.page=e.target.value; fr.src=state.page; localStorage.setItem('dp-paper-bench',JSON.stringify(state)); });
+[['cpP','hP'],['cpP2','hP2']].forEach(([b,h])=>$(b).addEventListener('click',()=>{
+  const hx=$(h).textContent.split(': ')[1]; navigator.clipboard&&navigator.clipboard.writeText(hx);
+  const cp=$(b).querySelector('.cp'); cp.textContent='COPIÉ ✓'; setTimeout(()=>cp.textContent='COPIER',900);
+}));
+fr.addEventListener('load',()=>{ apply(); setTimeout(apply,300); });
+$('page').value=state.page; fr.src=state.page; sync(); apply();
+})();
+</script>
+</body>
+</html>

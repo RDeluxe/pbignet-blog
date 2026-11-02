@@ -1,0 +1,67 @@
+---
+/**
+ * StatRow — la rangée d'instruments en tête d'article : lecture, date, lieu, édition.
+ *
+ * Ce sont des DONNÉES, pas des compteurs décoratifs : chaque cellule dit quelque chose
+ * qu'un lecteur peut vouloir savoir avant de s'engager (PRODUCT.md, principe 2).
+ */
+interface Stat {
+  key: string
+  value: string
+  /** met la valeur à l'encre de la page — un seul par rangée */
+  accent?: boolean
+}
+
+interface Props {
+  stats: Stat[]
+}
+
+const { stats } = Astro.props
+---
+
+<dl class="statrow">
+  {stats.map(s => (
+    <div class="st">
+      <dt class="k">{s.key}</dt>
+      <dd class="v" data-accent={s.accent ? 'on' : 'off'}>{s.value}</dd>
+    </div>
+  ))}
+</dl>
+
+<style>
+  .statrow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 0 0 clamp(30px, 4vw, 44px);
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .st { padding: var(--space-sm) var(--space-m) var(--space-sm) 0; }
+
+  .k {
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    letter-spacing: var(--tr-tag);
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .v {
+    margin: 5px 0 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    color: var(--ink);
+  }
+  .v[data-accent='on'] {
+    color: var(--accent-text);
+    font-weight: var(--w-bold);
+  }
+
+  @media (max-width: 700px) {
+    .statrow { grid-template-columns: 1fr 1fr; }
+    .st { border-bottom: 1px solid var(--line-soft); }
+  }
+</style>

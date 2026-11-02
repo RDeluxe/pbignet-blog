@@ -1,0 +1,143 @@
+---
+/**
+ * Callout — la note épinglée du corps de texte.
+ *
+ * C'est la variante **E1** du banc `research/Boxes - banc d'essai.html`, tranchée dans
+ * `Design Notes.md` (« Box audit — July 2026 », DECIDED final) : boîte en filet, **deux
+ * croix de repérage** (haut-gauche + bas-droite), points estompés au pas de 16px, et une
+ * **étiquette mono qui casse le filet du haut** — comme une note punaisée sur une épreuve.
+ *
+ * ⚠️ **Aucune barre d'accent à gauche, jamais.** C'est l'interdit de marque le plus net
+ * (« No left accent bar anywhere ») : le gold portait 4px dans le NORTHSTAR et 3px dans
+ * `.method-note` de l'article, et c'était le P2 de la critique Impeccable — le liseré
+ * gauche est le tell IA le plus reconnaissable. `PullQuote` a été tranché de la même façon.
+ *
+ * Le tag et les croix sont tracés en CSS (gradients + pseudo-éléments) : aucune image, donc
+ * ils suivent l'encre de la page.
+ */
+interface Props {
+  /** l'étiquette mono qui casse le filet du haut */
+  tag?: string
+  /** titre de la note (facultatif — une note peut n'être qu'un paragraphe) */
+  title?: string
+  /** niveau du titre, à accorder à la hiérarchie de la page qui l'accueille */
+  titleAs?: 'h2' | 'h3' | 'h4'
+  as?: 'aside' | 'div'
+}
+
+const { tag = 'N.B.', title, titleAs: Title = 'h4', as: Tag = 'aside' } = Astro.props
+---
+
+<Tag class="callout">
+  <span class="nb">{tag}</span>
+  {title && <Title class="ct">{title}</Title>}
+  <div class="cbody"><slot /></div>
+</Tag>
+
+<style>
+  .callout {
+    /* Valeurs du banc (E1 : `.co` + `.co-e1` + `.fill-dots-soft` + `.cx`), absentes de
+     * `tokens/` — un seul endroit, à remonter en tokens.
+     */
+    --cross-offset: calc(-1 * var(--cross-out));
+
+    position: relative;
+    padding: var(--cell) var(--space-l);
+    border: 1px solid var(--line);
+
+    /* Le pas des points EST l'interligne (`--cell`), pas une valeur décorative : c'est ce qui
+     * fait qu'une note se lit comme écrite sur un carnet à points et non posée dessus. On
+     * était à 16px avec un décalage d'un demi-pas « pour que la trame ne touche pas le
+     * filet » — une justification cosmétique qui cassait l'alignement du texte. Le gold
+     * cadre à `0 0` (cf. tokens/space.css, `--cell`). */
+    background-color: var(--paper);
+    background-image: radial-gradient(var(--dot-ink) 1px, transparent 1.4px);
+    background-size: var(--cell) var(--cell);
+    background-position: 0 0;
+  }
+
+  /* les deux croix : un seul pseudo-élément chacune, la croix étant faite de deux
+   * gradients (une barre verticale + une barre horizontale) centrés dans le carré.
+   */
+  .callout::before,
+  .callout::after {
+    content: '';
+    position: absolute;
+    width: var(--cross-size);
+    height: var(--cross-size);
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--ink-2) 0 0),
+      linear-gradient(var(--ink-2) 0 0);
+    background-size: 1px 100%, 100% 1px;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+  .callout::before { top: var(--cross-offset); left: var(--cross-offset); }
+  .callout::after { right: var(--cross-offset); bottom: var(--cross-offset); }
+
+  /* l'étiquette casse le filet du haut : elle chevauche la bordure et masque le trait
+   * avec le fond du papier. `background` opaque obligatoire, sinon le filet la traverse.
+   */
+  .nb {
+    position: absolute;
+    top: -8px;
+    left: 14px;
+    padding: 0 7px;
+    background: var(--paper);
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    letter-spacing: var(--tr-tag);
+    text-transform: uppercase;
+    color: var(--accent-text);
+  }
+
+  .ct {
+    margin: 0 0 var(--space-xs);
+    font-family: var(--sans);
+    font-weight: var(--w-bold);
+    font-size: 15px; /* TODO token: --fs-callout-title (15px, absent de type.css) */
+  }
+
+  /* Le slot reçoit du **texte courant** (le banc n'y met qu'un paragraphe). Les marges d'un
+   * `<p>` passé par l'appelant ne sont pas atteignables d'ici sans `:global()`, qui est un
+   * aveu (PIPELINE §4.3) : la note porte sa typographie, pas la mise en page d'un corps.
+   */
+  .cbody {
+    font-family: var(--serif);
+    font-size: var(--fs-callout);
+    /* l'interligne vaut un carreau : les lignes s'assoient sur les points. C'était
+       `--lh-body-tight` (1.5), sans rapport avec le pas de la trame — donc du texte qui
+       flottait sur une grille au lieu d'y être écrit. */
+    line-height: var(--cell);
+    color: var(--ink-2);
+  }
+
+  /* The slot holds the caller's paragraphs: their own margins would add to the padding
+     (a 14.5px gap under the last line, critique 2026-11-02 n° 13). The note owns its
+     interior, so trimming the first and last child is its business, not Prose's. */
+  .cbody :global(> *) {
+    margin: 0 0 var(--cell);
+  }
+  .cbody :global(> :last-child) {
+    margin-bottom: 0;
+  }
+
+  /* Aucune transition ni animation dans ce composant (la note est statique par contrat),
+   * donc rien à couper pour `prefers-reduced-motion` — `base.css` couvre le reste du site.
+   */
+
+  /* Dans un corps d'article, la note prend le rythme de la citation (2.2em) et reste à
+   * largeur de colonne : elle n'interrompt PAS le flux. Règle de CD, 2026-08-04 —
+   * « callouts do belong in essays ; what they don't do is interrupt the column ». Seule la
+   * `.figure` en débord mérite un `data-flow="continued"`.
+   *
+   * Le `:global()` porte sur l'ANCÊTRE, pas sur notre intérieur : le composant réagit à son
+   * contexte, il ne va pas bidouiller celui de `Prose`. C'est l'inverse du `:global()` que
+   * PIPELINE §4.3 interdit, et c'est la forme exacte de la règle de CD, qui vit elle aussi
+   * dans `Callout.css` et non dans `Prose.css` — la marge contextuelle appartient à la boîte.
+   */
+  :global(.prose) .callout {
+    margin: 2.2em 0;
+  }
+</style>

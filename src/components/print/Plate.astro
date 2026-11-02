@@ -1,0 +1,132 @@
+---
+/**
+ * Plate — la boîte de **présentation statique** : figures, tableaux de valeurs, diagrammes.
+ *
+ * C'est la variante **B6** du banc `research/Boxes - banc d'essai.html`, tranchée dans
+ * `Design Notes.md` (« Box audit — July 2026 », DECIDED final) :
+ * cadre « grille empruntée » + grille ultra-légère **sur papier nu**.
+ *
+ * Le cadre n'est pas une bordure posée sur la boîte : ce sont **quatre lignes du carreau**
+ * qui foncent et **filent ~13px au-delà des angles** (`#`), motif emprunté à la réf NATURE
+ * du dossier d'inspiration. D'où deux pseudo-éléments plutôt qu'un `border` : une bordure
+ * s'arrête aux angles, ces lignes non.
+ *
+ * Contrat — la plate **ne fait que cadrer** :
+ * - pas de photo flottante dedans, pas d'ombre portée (« No floating photos inside plates.
+ *   No drop shadows anywhere. ») ;
+ * - le contenu qui possède déjà une grille interne (un diagramme, dont les points sont
+ *   calés dessus) la garde et demande `grid={false}` — c'est le cas C1 du banc, « le
+ *   graphique possède son fond ; la plate n'ajoute que le cadre » ;
+ * - aucun espacement extérieur : c'est au conteneur de le poser (PIPELINE §4.4). Prévoir
+ *   ≥13px de marge latérale, sinon le débord du cadre est coupé.
+ *
+ * `surface="recessed"` est le **secondaire** (B4 : la même plate sur `--paper-2`), à
+ * réserver aux environnements chargés — `--paper-2` reste réservé aux panneaux en retrait
+ * et aux remplissages de hover.
+ */
+interface Props {
+  /** fond. `paper` = le cas décidé (B6). `recessed` = B4, secondaire « en retrait ». */
+  surface?: 'paper' | 'recessed'
+  /** la grille ultra-légère. `false` quand le contenu apporte sa propre grille. */
+  grid?: boolean
+  /** référence de figure, en haut à droite : « FIG · 01 » */
+  tag?: string
+  as?: 'figure' | 'div'
+}
+
+const { surface = 'paper', grid = true, tag, as: Tag = 'div' } = Astro.props
+---
+
+<Tag class="plate" data-surface={surface} data-grid={grid ? 'on' : 'off'}>
+  {tag && <span class="plate-tag">{tag}</span>}
+  <slot />
+</Tag>
+
+<style>
+  .plate {
+    /* Valeurs du banc (B6), absentes de `tokens/` — un seul endroit, à remonter en tokens.
+     */
+    --plate-rule: var(--rule-frame);
+    --plate-rule-ink: var(--line-strong);
+
+    position: relative;
+    /* le padding vaut un carreau, pour que le contenu démarre sur une ligne de trame */
+    padding: var(--cell);
+
+    /* Ce qui fait la « grille empruntée » : les lignes de texte tombent SUR le carreau.
+     * Sans ça la trame n'est qu'un fond quadrillé (cf. tokens/space.css, `--cell`).
+     * Le gold l'écrit `.plate p, .plate li { line-height: var(--cell) }` parce que son CSS
+     * est global ; ici la propriété est **héritée**, donc la poser sur la racine suffit et
+     * évite un `:global()` — que PIPELINE §4.3 réserve à `Prose`. */
+    line-height: var(--cell);
+  }
+
+  .plate[data-surface='paper'] { background-color: var(--paper); }
+  .plate[data-surface='recessed'] { background-color: var(--paper-2); }
+
+  /* la grille empruntée : deux paires de lignes qui filent au-delà des angles.
+   * ::before = les horizontales (débord gauche/droite), ::after = les verticales.
+   */
+  .plate::before,
+  .plate::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+  }
+  .plate::before {
+    inset: 0 calc(-1 * var(--plate-overshoot));
+    border-top: var(--plate-rule) solid var(--plate-rule-ink);
+    border-bottom: var(--plate-rule) solid var(--plate-rule-ink);
+  }
+  .plate::after {
+    inset: calc(-1 * var(--plate-overshoot)) 0;
+    border-left: var(--plate-rule) solid var(--plate-rule-ink);
+    border-right: var(--plate-rule) solid var(--plate-rule-ink);
+  }
+
+  /* Carreau de cahier : mineure = un carreau, majeure tous les quatre — les deux dérivent de
+     `--cell`, elles ne sont pas deux réglages indépendants. */
+  .plate[data-grid='on'] {
+    --cell-major: calc(var(--cell) * 4);
+
+    background-image:
+      linear-gradient(var(--plate-grid-major) 1px, transparent 1px),
+      linear-gradient(90deg, var(--plate-grid-major) 1px, transparent 1px),
+      linear-gradient(var(--plate-grid-minor) 1px, transparent 1px),
+      linear-gradient(90deg, var(--plate-grid-minor) 1px, transparent 1px);
+    background-size:
+      var(--cell-major) var(--cell-major),
+      var(--cell-major) var(--cell-major),
+      var(--cell) var(--cell),
+      var(--cell) var(--cell);
+  }
+
+  /* la référence de figure du banc (`.ptag` : 9.5px / 0.14em) : on prend le pas le plus
+   * proche de l'échelle mono — --fs-micro (9px) avec le tracking d'étiquette (0.14em).
+   */
+  .plate-tag {
+    position: absolute;
+    top: 9px;
+    right: 11px;
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tr-tag);
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /* Aucune transition ni animation dans ce composant (la plate est statique par contrat),
+   * donc rien à couper pour `prefers-reduced-motion` — `base.css` couvre le reste du site.
+   */
+
+  /* Dans un corps d'article, la plate prend le rythme de la citation et reste à largeur de
+   * colonne — voir la note de `Callout.astro` sur ce `:global()` d'ancêtre, qui reproduit
+   * celui du gold (`.prose .plate` vit dans `Plate.css`, pas dans `Prose.css`).
+   *
+   * À cet endroit une plate B6 n'est pas une image mais un REGISTRE : le gold en donne le
+   * patron, un `tag` « Ledger · One Week » et des lignes en `MonoLabel`.
+   */
+  :global(.prose) .plate {
+    margin: 2.2em 0;
+  }
+</style>

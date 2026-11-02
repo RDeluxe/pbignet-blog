@@ -1,0 +1,42 @@
+/* ArticleBar — sticky reading bar; JS adds .over-hero while the cover shows */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  transition: background .3s ease, border-color .3s ease, color .3s ease;
+}
+.topbar .progress { position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--accent); transition: width .12s linear; }
+.topbar .tb-in { max-width: var(--maxw); margin: 0 auto; padding: 13px var(--gutter); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-ml); }
+.topbar .brand { font-family: var(--display); font-size: 20px; letter-spacing: .02em; line-height: 1; }
+.topbar .brand .dot { color: var(--accent); }
+.topbar .tb-title { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar .tb-back { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; }
+.topbar .tb-back:hover { color: var(--accent); }
+/* index variant — fixed bar, absent at the top, resolves in with a dither
+ * once the hero is fully scrolled (and dissolves out on the way back) */
+.topbar[data-context='index'] { position: fixed; top: 0; left: 0; right: 0; opacity: 0; pointer-events: none; }
+.topbar[data-context='index'] .tb-nav { display: flex; justify-content: center; gap: var(--space-l); font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; min-width: 0; }
+.topbar[data-context='index'] .tb-nav a { color: var(--ink-2); }
+.topbar[data-context='index'] .tb-nav a:hover { color: var(--accent); }
+.topbar[data-context='index'].is-on { opacity: 1; pointer-events: auto; animation: bar-dither-in .42s steps(1, end); }
+.topbar[data-context='index'].is-off { animation: bar-dither-out .42s steps(1, end); }
+@keyframes bar-dither-in {
+  0% { -webkit-mask-image: radial-gradient(circle, #000 .6px, transparent .8px); mask-image: radial-gradient(circle, #000 .6px, transparent .8px); -webkit-mask-size: 5px 5px; mask-size: 5px 5px; }
+  30% { -webkit-mask-image: radial-gradient(circle, #000 1.1px, transparent 1.3px); mask-image: radial-gradient(circle, #000 1.1px, transparent 1.3px); -webkit-mask-size: 5px 5px; mask-size: 5px 5px; }
+  55% { -webkit-mask-image: radial-gradient(circle, #000 1.7px, transparent 1.9px); mask-image: radial-gradient(circle, #000 1.7px, transparent 1.9px); -webkit-mask-size: 5px 5px; mask-size: 5px 5px; }
+  80% { -webkit-mask-image: radial-gradient(circle, #000 2.4px, transparent 2.6px); mask-image: radial-gradient(circle, #000 2.4px, transparent 2.6px); -webkit-mask-size: 5px 5px; mask-size: 5px 5px; }
+}
+@keyframes bar-dither-out {
+  0% { opacity: 1; -webkit-mask-image: radial-gradient(circle, #000 2.4px, transparent 2.6px); mask-image: radial-gradient(circle, #000 2.4px, transparent 2.6px); -webkit-mask-size: 5px 5px; mask-size: 5px 5px; }
+  35% { opacity: 1; -webkit-mask-image: radial-gradient(circle, #000 1.7px, transparent 1.9px); mask-image: radial-gradient(circle, #000 1.7px, transparent 1.9px); -webkit-mask-size: 5px 5px; mask-size: 5px 5px; }
+  70% { opacity: 1; -webkit-mask-image: radial-gradient(circle, #000 1px, transparent 1.2px); mask-image: radial-gradient(circle, #000 1px, transparent 1.2px); -webkit-mask-size: 5px 5px; mask-size: 5px 5px; }
+}
+/* immersive state — JS adds this only while the cover is on screen */
+.topbar.over-hero { background: transparent; border-color: transparent; }
+.topbar.over-hero .brand,
+.topbar.over-hero .tb-back { color: var(--cover-ink-light); text-shadow: 0 1px 14px rgba(0,0,0,.5); }
+.topbar.over-hero .tb-title { color: rgba(241,235,221,.0); }
+.topbar.over-hero .progress { opacity: 0; }
+@media print { .topbar .progress { display: none !important; } }

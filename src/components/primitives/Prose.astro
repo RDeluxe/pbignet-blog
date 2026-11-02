@@ -1,0 +1,196 @@
+---
+/**
+ * Prose — le corps de lecture longue : mesure, rythme, hiérarchie.
+ *
+ * ⚠️ **Le seul endroit où `:global()` est légitime** (PIPELINE §4.3). Le HTML vient de
+ * Markdoc : il n'existe aucun composant à qui passer une prop. Prose **possède** son
+ * contenu, il ne va pas bidouiller l'intérieur d'un autre composant — c'est la différence
+ * avec le `:global(.coll)` qu'on a supprimé de la page d'accueil.
+ */
+interface Props {
+  /**
+   * Numérote les sous-titres 01/02/03 via un compteur CSS — le balisage reste du Markdown
+   * ordinaire. À réserver aux **vraies séquences** argumentatives : la critique Impeccable
+   * prévient que ça devient un tic si c'est un réflexe sur chaque article.
+   */
+  numbered?: boolean
+  /** lettrine sur le premier paragraphe */
+  dropCap?: boolean
+}
+
+const { numbered = false, dropCap = false } = Astro.props
+---
+
+<div
+  class="prose"
+  data-numbered={numbered ? 'on' : 'off'}
+  data-drop-cap={dropCap ? 'on' : 'off'}
+>
+  <slot />
+</div>
+
+<style>
+  .prose {
+    /* la mesure vaut pour le TEXTE : les gouttières s'ajoutent, elles ne la rognent pas.
+       Le gold écrit `max-width: 66ch` + `padding: … var(--gutter)` avec box-sizing:
+       border-box, ce qui ramène la colonne à ~52ch sur desktop — écart assumé, on suit
+       l'intention documentée du NORTHSTAR (66ch) plutôt que son implémentation. */
+    max-width: calc(var(--measure-body) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+    counter-reset: sub;
+    /* a bare URL is one unbreakable word: without this it pushes the page sideways on
+       narrow screens. Only breaks a word that would overflow, so text is unchanged. */
+    overflow-wrap: break-word;
+  }
+
+  /* ⚠️ ENFANT DIRECT, jamais descendant — et ce n'est pas une préférence d'écriture.
+   *
+   * Markdoc rend nos composants DANS le flux de la prose (`{% callout %}`, `{% plate %}`),
+   * et un `<p>` écrit à l'intérieur d'un callout est alors aussi un descendant de `.prose`.
+   * En sélecteur descendant, cette règle bat l'héritage et impose au callout la taille et
+   * l'interligne du corps : mesuré à 16,5px/25,575px au lieu de 14,5px/24px, donc du texte
+   * qui ne tombe plus sur la trame de points — le mécanisme du carreau défait par le
+   * conteneur.
+   *
+   * Le gold écrit `.prose > p` pour cette raison exacte. Une boîte imbriquée porte sa propre
+   * typographie ; la prose n'habille que SES paragraphes. La même règle vaut pour tous les
+   * blocs ci-dessous (titres, citations, listes, filets) ; l'inline (`a`, `code`, `strong`)
+   * reste en descendant, c'est un traitement de texte courant valable partout.
+   */
+  .prose :global(> p) {
+    margin: 0 0 1.45em;
+    font-family: var(--serif);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+  .prose :global(p > strong),
+  .prose :global(p > b),
+  .prose :global(li > strong),
+  .prose :global(li > b) {
+    color: var(--ink);
+    font-weight: var(--w-semibold);
+  }
+
+  /* the first paragraph carries the voice by its full ink, not by its size: a larger one
+     only worked on posts that open on a hook, and most migrated posts do not (critique
+     2026-11-02, n° 14). The drop cap marks the opening. */
+  .prose :global(> p:first-child) {
+    color: var(--ink);
+  }
+  .prose[data-drop-cap='on'] :global(> p:first-child::first-letter) {
+    float: left;
+    padding: var(--space-optical-6) var(--space-s) 0 0;
+    font-family: var(--display);
+    font-weight: var(--w-regular);
+    font-size: 3.1em;
+    line-height: 0.74;
+    color: var(--accent);
+  }
+
+  /* h2: the original « spec sheet » h2 (Space Mono, regular, capitals, tracked, over a
+     hairline), only grown from 12px to about 18px: it was smaller than the body and
+     quieter than h3 (critique 2026-11-02, n° 5). Pierrick kept this one of three. */
+  .prose :global(> h2) {
+    margin: 2.6em 0 1.1em;
+    padding-bottom: var(--space-s);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: clamp(16px, calc(14.5px + 0.33vw), 18px);
+    font-weight: var(--w-regular);
+    line-height: 1.4;
+    letter-spacing: var(--tr-data);
+    text-transform: uppercase;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .prose[data-numbered='on'] :global(> h2)::before {
+    counter-increment: sub;
+    content: counter(sub, decimal-leading-zero);
+    margin-right: var(--space-s);
+    color: var(--accent-text);
+  }
+
+  /* h3 sits under the mono h2: Archivo semibold at the body's size, so the capitals and
+     the rule of the h2 stay the bigger event, and the sans alone sets it off the text */
+  .prose :global(> h3) {
+    margin: 1.8em 0 0.6em;
+    font-family: var(--sans);
+    font-weight: var(--w-semibold);
+    font-size: var(--fs-h3);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  /* deeper levels come from imported posts: a step under h3, in the sans */
+  .prose :global(> h4),
+  .prose :global(> h5),
+  .prose :global(> h6) {
+    margin: 1.6em 0 0.5em;
+    font-family: var(--sans);
+    font-weight: var(--w-semibold);
+    font-size: var(--fs-body-sm);
+    line-height: 1.3;
+    color: var(--ink);
+  }
+
+  .prose :global(a) {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .prose :global(> ul),
+  .prose :global(> ol) {
+    margin: 0 0 1.45em;
+    padding-left: 1.4em;
+    font-family: var(--serif);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--ink-2);
+  }
+  .prose :global(li) { margin-bottom: 0.5em; }
+  .prose :global(li)::marker { color: var(--ink-3); }
+
+  .prose :global(code) {
+    font-family: var(--mono);
+    font-size: 0.92em;
+    background: var(--paper-2);
+    padding: 1px 5px;
+  }
+  .prose :global(> pre) {
+    margin: 0 0 1.45em;
+    padding: var(--space-m);
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+  .prose :global(pre code) {
+    background: none;
+    padding: 0;
+  }
+
+  .prose :global(> hr) {
+    margin: 2.4em 0;
+    border: none;
+    border-top: 1px solid var(--line);
+  }
+
+  /* À l'impression, un paragraphe orphelin sur deux lignes est illisible.
+   *
+   * Seul bloc où le sélecteur DESCENDANT est le bon, contrairement à tout ce qui précède :
+   * `break-inside` ne touche ni la taille ni le rythme, donc il ne peut pas écraser la
+   * typographie d'une boîte imbriquée — et un paragraphe dans un callout mérite autant de ne
+   * pas être coupé en deux qu'un paragraphe de corps.
+   */
+  @media print {
+    .prose :global(p) { break-inside: avoid; }
+    .prose :global(h2),
+    .prose :global(h3) { break-after: avoid; }
+  }
+</style>

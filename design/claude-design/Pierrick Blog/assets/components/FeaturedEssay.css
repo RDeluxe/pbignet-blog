@@ -1,0 +1,7 @@
+/* FeaturedEssay — word-over-photo feature band (the hero move, reprised) */
+.feature { display: block; position: relative; height: min(64vh, 560px); overflow: hidden; background: #2a2620; }
+.feature img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
+.feature .ftag { position: absolute; z-index: 2; top: 18px; left: 18px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cover-ink-light); background: rgba(20,18,12,0.5); padding: var(--space-2xs) 9px; }
+.feature .fword { position: absolute; z-index: 2; left: 3%; bottom: 4%; margin: 0; font-family: var(--display); font-size: clamp(70px,13vw,180px); line-height: 0.8; text-transform: lowercase; color: var(--cover-ink-light); text-shadow: 0.045em 0.045em 0 #7a2414; letter-spacing: 0.005em; }
+.feature .fmeta { position: absolute; z-index: 2; right: 4%; bottom: 8%; text-align: right; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: #36281f; line-height: 1.7; }
+.feature .fmeta b { color: #ad3318; }

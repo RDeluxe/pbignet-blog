@@ -1,17 +1,79 @@
 ---
+import Hero from '../components/Hero.astro'
+import IndexBar from '../components/IndexBar.astro'
+import Masthead from '../components/Masthead.astro'
+import PhotoFrame from '../components/PhotoFrame.astro'
+import PostRow from '../components/PostRow.astro'
+import Grid from '../components/primitives/Grid.astro'
+import Lede from '../components/primitives/Lede.astro'
+import Section from '../components/primitives/Section.astro'
+import Stack from '../components/primitives/Stack.astro'
+import SectionHead from '../components/SectionHead.astro'
+import SiteFooter from '../components/SiteFooter.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { getPosts } from '../lib/posts'
 
+// the light launch (2026-11-02): only Writing is built, so the home drops the sections
+// that link to pages not built yet. Field Note, Field Guides and Setup return with them.
+const posts = (await getPosts()).slice(0, 4)
+
+const photos = [
+  { src: '/photos/street-dither.png', alt: 'Tokyo backstreet', caption: 'Tokyo · sakura', number: '№012', ratio: 'lead' as const },
+  { src: '/photos/fuji-dither.png', alt: 'Kawaguchiko, Fuji', caption: 'Kawaguchiko', number: '№001', ratio: 'wide' as const },
+  { src: '/photos/torii-red.png', alt: 'Torii, Miyajima', caption: 'Miyajima', number: '№014', ratio: 'wide' as const },
+]
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Astro</title>
-  </head>
-  <body>
-    <h1>Astro</h1>
-  </body>
-</html>
+<BaseLayout>
+  <IndexBar />
+
+  <Section as="header" rhythm="none">
+    <Masthead currentPath="/" />
+    <Lede size="intro" spaced>
+      I build software, direct the art of games, and photograph everything in between.
+    </Lede>
+    <Hero photoSrc="/photos/arc-cdither.png" />
+  </Section>
+
+  <main>
+    <Section>
+      <SectionHead title="Writing" meta="[ OPINIONS · NOTES ]" />
+      <Lede measure="tight">
+        Essays and unfiled notes, in English and French: building software, leading teams, designing games.
+      </Lede>
+      <Stack spaced>
+        {posts.map(({ post, number }) => (
+          <PostRow
+            index={number}
+            tag={post.data.tag}
+            tagAccent={post.data.tag === 'Essay'}
+            title={post.data.title}
+            description={post.data.description}
+            readTime={post.data.readTime}
+            pubDate={post.data.pubDate}
+            href={`/writing/${post.id}`}
+            lang={post.data.lang}
+          />
+        ))}
+      </Stack>
+    </Section>
+
+    <Section>
+      <SectionHead title="Photographs" meta="[ 35MM · DITHERED · 2024–26 ]" />
+      <Grid cols={3} lead>
+        {photos.map(p => (
+          <PhotoFrame
+            src={p.src}
+            alt={p.alt}
+            caption={p.caption}
+            number={p.number}
+            ratio={p.ratio}
+          />
+        ))}
+      </Grid>
+    </Section>
+
+  </main>
+
+  <SiteFooter />
+</BaseLayout>

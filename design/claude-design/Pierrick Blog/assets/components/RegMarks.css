@@ -1,0 +1,11 @@
+/* RegMarks — registration / crop marks pinned to page corners.
+ * (.tl/.tr/.bl/.br are legacy class variants — used by every archive page;
+ * convert to data-* on their next pass) */
+.regmark { position: absolute; width: 22px; height: 22px; pointer-events: none; z-index: 3; opacity: 0.65; }
+.regmark::before, .regmark::after { content: ""; position: absolute; background: var(--ink); }
+.regmark::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+.regmark::after { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
+.regmark.tl { top: 16px; left: 16px; }
+.regmark.tr { top: 16px; right: 16px; }
+.regmark.bl { bottom: 16px; left: 16px; }
+.regmark.br { bottom: 16px; right: 16px; }

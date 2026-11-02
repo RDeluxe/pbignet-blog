@@ -1,0 +1,133 @@
+---
+/**
+ * GearCard — la case d'un objet du setup (numéro · nom · caractéristique).
+ *
+ * C'est une **tile**, comme `CollCard`, donc elle porte le même contrat **D2** de
+ * l'audit des boîtes (`Design Notes.md`, « Box audit — July 2026 ») : « bare at rest
+ * (1px line border) → 1px corner crosses + ink border + paper-2 bg on hover. Corners =
+ * focus signal. » Valeurs relevées au banc `research/Boxes - banc d'essai.html`
+ * (`.tile` · `.t-d2` · `.cx`).
+ *
+ * Pas de variante « grille filet » ici (pas de prop `bordered`) : cette tile n'est
+ * employée que dans une `<Grid gap="grid">`. Le jour où elle entre dans une
+ * `<Grid gap="hairline">`, reprendre la prop de `CollCard` — d'ici là ce serait une prop
+ * morte. La géométrie des croix est dupliquée entre les deux tiles en attendant les
+ * tokens `--tile-cx-*` (ou une primitive `Tile`).
+ *
+ * Sa TYPOGRAPHIE reste en valeurs dures : `GearCard` est encore sur la liste « reste aux
+ * tokens » de PIPELINE §8, et ce passage-ci ne traite que la boîte.
+ */
+interface Props {
+  number: string
+  name: string
+  meta: string
+  href: string
+}
+
+const { number, name, meta, href } = Astro.props
+---
+
+<a class="gear" href={href}>
+  <div>
+    <div class="gnum">{number}</div>
+    <div class="gname">{name}</div>
+  </div>
+  <div class="gmeta">{meta}</div>
+</a>
+
+<style>
+  .gear {
+    /* géométrie des croix d'angle — banc D2 (`.cx`) : bras de 17px, filet d'1px, croix
+       centrée sur l'angle donc débordant de 9px (elle tombe dans la gouttière de 12px de
+       la grille). `--cx-mid` = position du bras dans sa croix, (17 − 1) / 2 = 8px. Les trois
+       valeurs sont des tokens partagés avec la tile CollCard et le callout E1. */
+    --cx-len: var(--cross-size);
+    --cx-w: var(--cross-weight);
+    --cx-out: var(--cross-out);
+    --cx-mid: calc((var(--cx-len) - var(--cx-w)) / 2);
+    --cx-bar: linear-gradient(var(--ink-2) 0 0);
+
+    position: relative;
+    border: 1px solid var(--line);
+    background: var(--paper); /* nue au repos, papier plein (banc `.tile`) */
+    padding: var(--space-m);
+    /* TODO token: 116px (hauteur plancher d'une tile de setup) → --tile-h-gear */
+    min-height: 116px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: background var(--dur-base) ease, border-color var(--dur-base) ease;
+  }
+
+  /* Les quatre croix, sans un nœud de DOM en plus et sans image : deux pseudo-éléments
+     alignés sur le cadre élargi de `--cx-out`, l'un portant les bras verticaux, l'autre
+     les bras horizontaux. */
+  .gear::before,
+  .gear::after {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--cx-out));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--dur-fast) ease;
+    background-repeat: no-repeat;
+    background-image: var(--cx-bar), var(--cx-bar), var(--cx-bar), var(--cx-bar);
+  }
+  .gear::before {
+    background-size: var(--cx-w) var(--cx-len);
+    background-position:
+      left var(--cx-mid) top 0,
+      right var(--cx-mid) top 0,
+      left var(--cx-mid) bottom 0,
+      right var(--cx-mid) bottom 0;
+  }
+  .gear::after {
+    background-size: var(--cx-len) var(--cx-w);
+    background-position:
+      left 0 top var(--cx-mid),
+      right 0 top var(--cx-mid),
+      left 0 bottom var(--cx-mid),
+      right 0 bottom var(--cx-mid);
+  }
+
+  /* un seul état, que la souris et le clavier reçoivent à l'identique */
+  .gear:hover,
+  .gear:focus-visible {
+    background: var(--paper-2);
+    border-color: var(--ink-2);
+  }
+  .gear:hover::before,
+  .gear:hover::after,
+  .gear:focus-visible::before,
+  .gear:focus-visible::after {
+    opacity: 1;
+  }
+
+  .gnum {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.12em;
+  }
+  .gname {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 17px;
+    margin-top: var(--space-xs);
+  }
+  .gmeta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-2);
+    margin-top: var(--space-optical-6);
+  }
+
+  /* redondant avec la coupe globale de `base.css`, gardé comme au banc */
+  @media (prefers-reduced-motion: reduce) {
+    .gear,
+    .gear::before,
+    .gear::after {
+      transition: none;
+    }
+  }
+</style>

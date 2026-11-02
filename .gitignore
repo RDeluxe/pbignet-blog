@@ -1,5 +1,7 @@
 # build output
 dist/
+# export lisible pour Claude Design (pnpm build:cd)
+dist-cd/
 # generated types
 .astro/
 
@@ -22,3 +24,12 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Playwright
+.playwright-mcp/
+
+# Captures de dev/vérification — toujours dans .screenshots/, jamais commitées (cf. CLAUDE.md)
+.screenshots/
+
+# Claude Code : réglages locaux machine (permissions) — partager settings.json seulement
+.claude/settings.local.json

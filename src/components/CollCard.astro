@@ -1,0 +1,159 @@
+---
+import Tag from './Tag.astro'
+
+/**
+ * CollCard — la carte de collection (Field Guides).
+ *
+ * C'est une **tile** au sens de l'audit des boîtes (`Design Notes.md`, « Box audit —
+ * July 2026 »), donc elle porte le contrat **D2**, DÉCIDÉ (final, juillet 2026) :
+ * « bare at rest (1px line border) → 1px corner crosses + ink border + paper-2 bg on
+ * hover. Corners = focus signal. »
+ *
+ * Valeurs relevées au banc `research/Boxes - banc d'essai.html` (`.tile` + `.t-d2` +
+ * `.cx`) : croix de 17px, filet 1px en `--ink-2`, centrée sur l'angle (9px dehors),
+ * fondu d'opacité `.18s`, fond/bordure en `.2s`.
+ *
+ * Le « lift −3px » d'avant est retiré : l'audit ne le retient pas, D2 unifie le hover.
+ */
+interface Props {
+  tag: string
+  tagAccent?: boolean
+  title: string
+  description: string
+  footer: string
+  href: string
+  /**
+   * La carte porte son propre cadre (défaut). Passer `false` dans une
+   * `<Grid gap="hairline">` : c'est la grille qui fournit les filets, et le fond doit
+   * alors être opaque pour masquer celui de la grille.
+   */
+  bordered?: boolean
+}
+
+const { tag, tagAccent = false, title, description, footer, href, bordered = true } = Astro.props
+---
+
+<a class="coll" href={href} data-bordered={bordered ? 'on' : 'off'}>
+  <Tag accent={tagAccent}>{tag}</Tag>
+  <h3>{title}</h3>
+  <p>{description}</p>
+  <span class="coll-foot">{footer} →</span>
+</a>
+
+<style>
+  .coll {
+    /* géométrie des croix d'angle — banc D2 (`.cx`) : bras de 17px, filet d'1px,
+       croix centrée sur l'angle donc débordant de 9px. `--cx-mid` = la position du bras
+       dans sa croix, (17 − 1) / 2 = 8px au banc. Les trois valeurs sont des tokens
+       partagés : les mêmes croix servent au callout E1. */
+    --cx-len: var(--cross-size);
+    --cx-w: var(--cross-weight);
+    --cx-out: var(--cross-out);
+    --cx-mid: calc((var(--cx-len) - var(--cx-w)) / 2);
+    --cx-bar: linear-gradient(var(--ink-2) 0 0);
+
+    position: relative;
+    /* TODO token: 20px (padding de tile, banc `.tile`) → --space-tile ; hors échelle */
+    padding: var(--space-l);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+    /* nue au repos : papier plein, pas de teinte d'encre (banc `.tile`).
+       Le fond opaque est aussi ce qui masque le filet d'une `<Grid gap="hairline">`. */
+    background: var(--paper);
+    transition: background var(--dur-slow) ease, border-color var(--dur-slow) ease;
+  }
+
+  .coll[data-bordered='on'] {
+    border: 1px solid var(--line);
+  }
+  .coll[data-bordered='off'] {
+    /* dans une grille filet, c'est la grille qui trace. Les croix rentrent à l'intérieur
+       du cadre (`--cx-out: 0`) : la gouttière ne fait qu'1px, une croix débordante
+       s'écrirait sur la cellule voisine. */
+    --cx-out: 0px;
+    border: none;
+  }
+
+  /* Les quatre croix, sans un seul nœud de DOM en plus et sans image : deux
+     pseudo-éléments alignés sur le cadre élargi de `--cx-out`, l'un portant les quatre
+     bras verticaux, l'autre les quatre bras horizontaux. */
+  .coll::before,
+  .coll::after {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--cx-out));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--dur-fast) ease;
+    background-repeat: no-repeat;
+    background-image: var(--cx-bar), var(--cx-bar), var(--cx-bar), var(--cx-bar);
+  }
+  .coll::before {
+    background-size: var(--cx-w) var(--cx-len);
+    background-position:
+      left var(--cx-mid) top 0,
+      right var(--cx-mid) top 0,
+      left var(--cx-mid) bottom 0,
+      right var(--cx-mid) bottom 0;
+  }
+  .coll::after {
+    background-size: var(--cx-len) var(--cx-w);
+    background-position:
+      left 0 top var(--cx-mid),
+      right 0 top var(--cx-mid),
+      left 0 bottom var(--cx-mid),
+      right 0 bottom var(--cx-mid);
+  }
+
+  /* Un seul état de survol, et le clavier le reçoit à l'identique : les coins SONT le
+     signal de regard, ils doivent apparaître aussi au focus. */
+  .coll:hover,
+  .coll:focus-visible {
+    background: var(--paper-2);
+  }
+  .coll[data-bordered='on']:hover,
+  .coll[data-bordered='on']:focus-visible {
+    border-color: var(--ink-2);
+  }
+  .coll:hover::before,
+  .coll:hover::after,
+  .coll:focus-visible::before,
+  .coll:focus-visible::after {
+    opacity: 1;
+  }
+
+  h3 {
+    margin: 0;
+    font-family: var(--sans);
+    font-weight: var(--w-bold);
+    font-size: var(--fs-card-title);
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: var(--fs-body-xs);
+    color: var(--ink-2);
+    line-height: var(--lh-body-tight);
+  }
+
+  .coll-foot {
+    margin-top: auto;
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
+  }
+
+  /* redondant avec la coupe globale de `base.css`, gardé comme au banc : le contrat de
+     la tile est lisible sans transition. */
+  @media (prefers-reduced-motion: reduce) {
+    .coll,
+    .coll::before,
+    .coll::after {
+      transition: none;
+    }
+  }
+</style>

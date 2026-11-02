@@ -1,0 +1,97 @@
+/* type.css — familles, graisses, échelles.
+ *
+ * CE FICHIER EST LA SOURCE DES VALEURS (pivot 2026-08-04 : le code fait foi).
+ * Doctrine : `design/doctrine/0_NORTHSTAR.html` §06 Type.
+ * Les familles sont self-hosted via @fontsource (cf. BaseLayout) : les noms locaux
+ * portent le suffixe « Variable » là où la variable font est utilisée (un chargement
+ * par CDN écrirait « Archivo » sans suffixe).
+ *
+ * RÈGLE : toute valeur de type utilisée par un composant doit remonter ici. Si un
+ * composant a besoin d'une échelle absente, on l'ajoute — on ne l'écrit pas en dur.
+ */
+
+:root {
+  /* ---- familles ---- */
+  --display: 'Anton', 'Archivo Variable', sans-serif;   /* titres, hero, section heads */
+  --sans: 'Archivo Variable', system-ui, sans-serif;    /* UI, titres de post */
+  --mono: 'Space Mono', ui-monospace, monospace;        /* mobilier print, labels, données */
+  --serif: 'Newsreader Variable', Georgia, serif;       /* corps de lecture, leads */
+
+  /* ---- graisses ---- */
+  --w-regular: 400;
+  --w-semibold: 600;   /* titres de post */
+  --w-bold: 700;       /* titres de carte */
+
+  /* ---- échelles display / titres (fluides) ---- */
+  --fs-hero: clamp(96px, 17.5vw, 256px);   /* Hero home — la photo traverse les lettres */
+  --lh-hero: 0.8;
+  --tr-hero: 0.012em;
+
+  /* cover d'article — le mot de couverture, posé sur la photo.
+   * 176px / 0.9 : plafond relevé de 120 à 176px (décision Pierrick 2026-10-31, alignement
+   * sur le kit) ; 0.9 reste la décision du 2026-08-05 (recipe Shimanto). Le clamp ne garde
+   * la pente fluide que sous ~700px pour ne pas déborder en étroit.
+   */
+  --fs-cover: clamp(52px, 17vw, 176px);
+  --lh-cover: 0.9;
+  --tr-cover: 0.03em;
+
+  --fs-shead: clamp(28px, 5vw, 56px);      /* ouverture de section */
+  --lh-shead: 0.94;
+  --tr-shead: 0.005em;
+
+  --fs-title: clamp(19px, 2.4vw, 27px);    /* titre de post en liste */
+  --lh-title: 1.12;
+  --tr-title: -0.01em;
+
+  --fs-card-title: 19px;                   /* titre de carte collection */
+
+  /* ---- lede (paragraphe serif d'introduction) ----
+   * DEUX échelles, héritées du gold historique (01_Home.html) :
+   *   `.lead-serif`  → le lede sous un en-tête de section
+   *   `.hero-intro`  → l'accroche d'ouverture de la home
+   * J'avais cru y voir un doublon et je les ai fusionnées sur une troisième valeur
+   * inventée (clamp(20px,2.6vw,30px)) : c'était une décision de design non validée.
+   */
+  --fs-lead: clamp(20px, 2.4vw, 28px);
+  --fs-lead-intro: clamp(19px, 2.2vw, 26px);
+  --lh-lead: 1.32;
+  --measure-lede: 30ch;
+  --measure-lede-tight: 24ch;
+
+  /* ---- corps de lecture ---- */
+  /* lot 3 scale (Impeccable critique of 2026-11-02, §2): 17 / 18 / 19px at 390 / 1080 /
+     1600. The 66ch measure grows with it, back towards ~75 characters per line. */
+  --fs-body: clamp(17px, calc(16px + 0.2vw), 19px);
+  --lh-body: 1.6;
+  --fs-body-sm: 15px;                      /* description de post */
+  --fs-body-xs: 14px;                      /* texte de carte */
+  --lh-body-tight: 1.5;
+  --measure-body: 66ch;                    /* mesure de lecture longue */
+  --measure-desc: 56ch;                    /* mesure des descriptions en liste */
+
+  /* ---- titres et blocs du corps de lecture (même échelle, §2 de la critique) ---- */
+  --fs-h3: var(--fs-body);  /* under the ~18px mono h2: the sans sets it off, not size */
+  /* callout text: its line-height is the dot grid (`--cell`, 24px) */
+  --fs-callout: clamp(16px, calc(15px + 0.15vw), 17px);
+  /* the pulled quote, the only display quote (`{% pullquote %}`) */
+  --fs-pullquote: clamp(21px, 2.8vw, 27px);
+
+  /* ---- mobilier print (mono) ----
+   * une taille par rôle, le tracking suit le rôle : plus c'est petit, plus c'est tracké.
+   */
+  /* ---- logotype ----
+   * « exhale » en Anton, deux tailles selon la place : la barre de méta et le pied.
+   */
+  --fs-brand-sm: 26px;
+  --fs-brand-lg: 40px;
+  --tr-brand: 0.02em;
+
+  /* interlignage aéré des blocs mono multi-lignes (mentions, crédits) */
+  --lh-loose: 1.7;
+
+  --fs-micro: 9px;     --tr-micro: 0.18em;   /* numéro de code-barre */
+  --fs-tag: 10px;      --tr-tag: 0.14em;     /* tags de catégorie */
+  --fs-label: 11px;    --tr-label: 0.16em;   /* mono labels, meta de section */
+  --fs-data: 12px;     --tr-data: 0.1em;     /* index de post, valeurs de metabar */
+}

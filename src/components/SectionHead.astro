@@ -1,0 +1,73 @@
+---
+/**
+ * SectionHead — l'en-tête d'une section : titre display + meta mono.
+ *
+ * Une seule échelle de titre, celle du gold. J'avais ajouté une variante `size="md"` avec
+ * un `--fs-shead-md` inventé : absente de CD, et utilisée nulle part. Supprimée.
+ */
+interface Props {
+  title: string
+  meta?: string
+  /** `row` = titre et meta sur la même ligne de base (défaut), `stack` = meta sous le titre. */
+  align?: 'row' | 'stack'
+  /** the title's level: h1 when the section head opens the page (writing index, 404) */
+  titleAs?: 'h1' | 'h2'
+}
+
+const { title, meta, align = 'row', titleAs: Title = 'h2' } = Astro.props
+---
+
+<div class="shead" data-align={align}>
+  <Title class="stitle">{title}</Title>
+  {meta && <div class="shead-meta">{meta}</div>}
+</div>
+
+<style>
+  /* les props arrivent en data-attributes : une seule règle de base, les variantes
+     s'expriment en sélecteurs d'attribut. Pas de concaténation de classes côté JS. */
+  .shead {
+    display: flex;
+    gap: var(--space-m);
+    margin-bottom: var(--space-ml);
+  }
+  .shead[data-align='row'] {
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .shead[data-align='stack'] {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-optical-6);
+  }
+
+  .stitle {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: var(--w-regular);
+    font-size: var(--fs-shead);
+    line-height: var(--lh-shead);
+    letter-spacing: var(--tr-shead);
+    text-transform: uppercase;
+  }
+
+  .shead-meta {
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    color: var(--ink-3);
+    letter-spacing: var(--tr-data);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* en étroit : la meta passe sous le titre plutôt que de déborder le viewport.
+     Le breakpoint gagne sur la variante `row` — c'est voulu, une media query et un
+     sélecteur d'attribut ont la même spécificité, donc l'ordre dans le fichier tranche. */
+  @media (max-width: 560px) {
+    .shead[data-align='row'] {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-optical-6);
+    }
+    .shead-meta { white-space: normal; }
+  }
+</style>

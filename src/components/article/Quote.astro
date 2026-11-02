@@ -1,0 +1,97 @@
+---
+/**
+ * Quote — a quote to READ, in the run of the text: every Markdown `> …`, and
+ * `{% quote source="…" %}` when the quote names where it comes from.
+ *
+ * Body size, Newsreader italic, in front of a ghost: the quote's own first letter, oversized
+ * and faded, behind the text (the « ghost numerals » of NORTHSTAR §06, keyed to the words
+ * rather than to a count). It is not a drop cap: the text does not wrap around it, and it
+ * sits behind the words at a sixth of the ink. The display size belongs to `PullQuote` (`{% pullquote %}`) alone: a Markdown quote used to
+ * get it, and a four-line quote with a bare URL came out 264px tall (critique 2026-11-02,
+ * n° 6). Never a left accent bar (Design Notes, July 2026).
+ */
+interface Props {
+  /** where the quote comes from, in the furniture's mono under the quote */
+  source?: string
+  /** the source's address, when it has one */
+  href?: string
+}
+
+const { source, href } = Astro.props
+
+// The ghost is the first letter or digit of the words: an opening quote mark, an
+// apostrophe or a bracket is skipped, so « 'Tis » gives T and « "1989… » gives 1.
+const body = await Astro.slots.render('default')
+const words = body.replaceAll(/<[^>]*>/g, ' ').replaceAll(/&[#\w]+;/g, ' ')
+const ghost = /[\p{L}\p{N}]/u.exec(words)?.[0].toUpperCase() ?? ''
+---
+
+<figure class="quote" data-ghost={ghost}>
+  <blockquote cite={href} set:html={body} />
+  {source && (
+    <figcaption class="src">
+      {href ? <a href={href}>{source}</a> : source}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  /* A quote to read, kept neutral until a form is chosen (five tracks were shown on
+     2026-11-02): body size, Newsreader italic, set in by one cell, no ornament. The
+     display size belongs to PullQuote alone. */
+  .quote {
+    position: relative;
+    isolation: isolate;
+    /* the ghost is taller than a one-line quote: the figure keeps its height, so the
+       letter never runs under the next paragraph nor gets cut (a cropped Q reads as an O) */
+    min-height: calc(4 * var(--cell));
+    margin: 2em 0;
+    padding: var(--space-m) 0 0 calc(2 * var(--cell));
+  }
+  .quote::before {
+    content: attr(data-ghost);
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: -0.02em;
+    font-family: var(--display);
+    font-size: calc(4.5 * var(--cell));
+    font-weight: var(--w-regular);
+    line-height: 0.86;
+    color: color-mix(in srgb, var(--accent) 16%, transparent);
+    pointer-events: none;
+  }
+
+  blockquote {
+    margin: 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--ink);
+  }
+  /* the slot is the quote's own paragraphs and lists, rendered by Markdoc */
+  blockquote :global(> *) { margin: 0 0 0.8em; }
+  blockquote :global(> :last-child) { margin-bottom: 0; }
+  blockquote :global(ul),
+  blockquote :global(ol) { padding-left: 1.2em; }
+
+  .src {
+    margin-top: var(--space-s);
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-data);
+    color: var(--ink-3);
+    overflow-wrap: anywhere;
+  }
+  .src a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  @media print {
+    .quote { break-inside: avoid; }
+  }
+</style>

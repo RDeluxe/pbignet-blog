@@ -1,0 +1,47 @@
+---
+/**
+ * Stack — une pile verticale d'éléments de même nature (lignes de post, notes, blocs).
+ *
+ * C'est la primitive qui absorbe le dernier CSS de composition des pages : le
+ * `.posts { margin-top: … }` recopié dès qu'une liste suit un en-tête de section.
+ *
+ * `gap="none"` est le défaut : une liste de lignes à filets partagés (`PostRow`) ne veut
+ * AUCUN espace entre ses enfants — la séparation est le filet, pas le vide. Les enfants
+ * gardent leurs `:first-of-type` / `:last-of-type`, la pile ne s'insère pas entre eux.
+ */
+interface Props {
+  /**
+   * espacement entre les enfants, **nommé comme les crans de l'échelle** (`--space-s/m/l`)
+   * pour que la prop et le token ne puissent pas se contredire. `none` = les enfants se
+   * touchent.
+   */
+  gap?: 'none' | 's' | 'm' | 'l'
+  /** espace au-dessus de la pile — quand elle suit un en-tête ou un lede (cf. `Lede spaced`) */
+  spaced?: boolean
+}
+
+const { gap = 'none', spaced = false } = Astro.props
+---
+
+<div class="stack" data-gap={gap} data-spaced={spaced ? 'on' : 'off'}>
+  <slot />
+</div>
+
+<style>
+  .stack {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stack[data-gap='none'] { gap: 0; }
+  /* `s` et `l` valaient 10px et 22px, deux valeurs hors échelle qu'aucun appelant
+     n'utilisait : les aligner sur les crans ne change aucun pixel rendu. */
+  .stack[data-gap='s'] { gap: var(--space-s); }
+  .stack[data-gap='m'] { gap: var(--space-m); }
+  .stack[data-gap='l'] { gap: var(--space-l); }
+
+  /* Espace entre un en-tête de section et sa liste. Valait 28px, hérité d'un style en ligne
+     de `01_Home` ; CD l'a snappé sur le cran voisin en arbitrant l'échelle (2026-08-04) et
+     l'a résorbé chez lui en `.post-list`. */
+  .stack[data-spaced='on'] { margin-top: var(--space-xl); }
+</style>

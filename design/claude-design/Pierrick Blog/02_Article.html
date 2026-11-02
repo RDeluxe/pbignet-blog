@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" data-ink="sepia">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>On taste as a competitive advantage — exhale</title>
+<meta name="description" content="Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity. A field essay by Pierrick Bignet.">
+<link rel="canonical" href="https://exhale.blog/articles/taste">
+<meta property="og:type" content="article">
+<meta property="og:title" content="On taste as a competitive advantage">
+<meta property="og:description" content="Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity.">
+<meta property="og:url" content="https://exhale.blog/articles/taste">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="On taste as a competitive advantage">
+<meta name="twitter:description" content="Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/paper.css">
+
+</head>
+<body>
+<canvas class="topo-layer" id="topo"></canvas>
+<div class="grain-layer"></div>
+<div class="vignette"></div>
+<div class="regmark tl"></div><div class="regmark tr"></div>
+<div class="regmark bl"></div><div class="regmark br"></div>
+
+<div class="page">
+
+  <!-- sticky reading bar — solid + reachable by default; JS only adds the immersive state -->
+  <header class="topbar" id="topbar">
+    <div class="progress" id="progress"></div>
+    <div class="tb-in">
+      <a class="brand" href="Home.html" aria-label="exhale home">exhale</a>
+      <div class="tb-title" id="tbTitle">On taste as a competitive advantage</div>
+      <a class="tb-back" href="#" aria-label="Back to Writing">← Writing</a>
+    </div>
+  </header>
+
+  <!-- ===================== COVER ===================== -->
+  <!-- hero: simple-dither — tune --dither-line (e.g. style="--dither-line:30%") -->
+  <section class="post-hero" id="hero" data-screen-label="Cover">
+    <img class="dsrc" src="assets/photos/arc.jpg" alt="A steel arch sculpture on the Setouchi coast, Naoshima">
+    <canvas class="dither-canvas"></canvas>
+    <canvas class="topo-on" id="topoHero"></canvas>
+    <div class="grain-on"></div>
+    <div class="scrim"></div>
+
+    <h1 class="ph-word">Taste</h1>
+
+    <div class="ph-sub">
+      <div class="big">Naoshima</div>
+      <div class="sm">SETOUCHI · PANASONIC GX80 · DITHERED 8×8 · ⓒ P. BIGNET</div>
+    </div>
+    <div class="ph-vcap">DOT · PAPER / FIELD ESSAY Nº 014</div>
+    <div class="ph-cue">SCROLL ↓</div>
+  </section>
+
+  <!-- ===================== ARTICLE ===================== -->
+  <article>
+    <div class="article">
+      <div class="statrow">
+        <div class="st"><div class="k">Reading</div><div class="v"><b>8</b> MIN</div></div>
+        <div class="st"><div class="k">Date</div><div class="v">MAY 2026</div></div>
+        <div class="st"><div class="k">Place</div><div class="v">NAOSHIMA, JP</div></div>
+        <div class="st"><div class="k">Edition</div><div class="v">Nº 014</div></div>
+      </div>
+
+      <div class="art-tags"><span class="tag" data-accent="on">Essay</span><span class="tag">Craft</span><span class="tag">Building</span></div>
+
+      <h1 class="art-title">On taste as a competitive advantage</h1>
+      <p class="art-dek">Everyone agrees taste matters. Almost no one can say what it is. That gap is the whole opportunity.</p>
+      <div class="art-byline">Filed by <b>Pierrick Bignet</b> · Engineer by trade, artist by default</div>
+
+      <div class="prose">
+        <p class="lede">Taste is the thing teams praise after the fact and never budget for in advance. A product ships. It feels right. Someone calls it tasteful, as if taste were weather. It is not weather. It is a sequence of small refusals, made by someone who was paying attention when it was cheaper not to.</p>
+
+        <p>We talk about it like a gift because that lets us off the hook. If taste is innate, it cannot be a line item. It cannot be reviewed, scheduled, or defended in a planning meeting. Convenient. It is also wrong.</p>
+
+        <h2 class="sub"><span class="n">01</span>What taste actually is</h2>
+
+        <p>Taste is the ability to notice a wrong detail before a user does, and to care enough to fix it when no one is watching. It is mostly subtraction. The tasteful version of anything is usually the version with fewer apologies in it.</p>
+
+        <p>This is unglamorous work. You remove a gradient. You align a baseline that was off by two pixels. You delete the third call to action because two were already one too many. None of it photographs well. All of it compounds.</p>
+
+        <div class="plate"><span class="ptag">Ledger · One Week</span>
+          <p class="mono-note">001 · GRADIENT — REMOVED, HERO GROUND</p>
+          <p class="mono-note">002 · BASELINE — REALIGNED, −2PX, NAV</p>
+          <p class="mono-note">003 · CTA Nº3 — DELETED, TWO REMAIN</p>
+        </div>
+
+        <div class="pull">Craft is not a finish you apply at the end. It is a set of decisions you refuse to defer.</div>
+
+        <p>The refusal is the expensive part. Deferring is free and feels productive. You ship the adequate thing, on time, and promise to revisit it. The revisit never comes, because the next adequate thing is already due.</p>
+
+        <h2 class="sub"><span class="n">02</span>Why it wins</h2>
+
+        <p>Features get copied in a quarter. Pricing gets matched in a week. The accumulated weight of a thousand correct small decisions does not transfer. A competitor can read your changelog. They cannot read the meetings where you said no.</p>
+      </div>
+
+      <figure class="figure" data-width="wide">
+        <div class="frame" data-dither="on" id="fig1">
+          <img class="dsrc" src="assets/photos/pier.jpg" alt="A jetty reaching into the calm Setouchi sea">
+          <canvas class="dither-canvas"></canvas>
+          <div class="grain-on"></div>
+        </div>
+        <figcaption class="figcap">
+          <span>Naoshima, Setouchi inland sea. The work is mostly in what was left out.</span>
+          <span class="r">PLATE 01 · DUOTONE SEPIA</span>
+        </figcaption>
+      </figure>
+
+      <div class="prose" data-flow="continued">
+        <p>That is the moat. Not the taste itself, which is cheap to admire, but the operating cost of maintaining it. Most organisations will not pay it. They will ship the adequate thing and call the difference subjective, because subjective things do not appear in the quarterly review.</p>
+
+        <h2 class="sub"><span class="n">03</span>The catch</h2>
+
+        <p>Taste resists measurement, so it loses every argument against a metric. You cannot A/B test the feeling of coherence. You can only protect the people who have it, and give them the authority to remove things.</p>
+
+        <div class="callout" data-tag="Caveat">
+          <p>Taste is not consensus. A panel converges on the familiar, and the familiar is what everyone else already ships. If a review must vote, let it vote on what to remove.</p>
+        </div>
+
+        <p>That authority is the actual competitive advantage. The taste is just what it looks like from the outside. Hire for it, shield it from the roadmap, and let it cut. Then watch how long it takes anyone to copy the result without copying the cost.</p>
+      </div>
+    </div>
+
+    <div class="art-end">
+      <div class="em"><span class="dot">●</span> File under: <b>things that are obvious in hindsight and impossible to schedule.</b><br>Next: <b>Field Notes on Game Direction</b>. Pillars, vibe, scope, and the art of saying no.</div>
+    </div>
+  </article>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="site" data-variant="article">
+    <div class="fin">
+      <div>
+        <div class="f-brand">exhale</div>
+        <div class="f-sub">The personal index of Pierrick Bignet. Engineer by trade, artist by default. Built on paper, light and dots.</div>
+      </div>
+      <div class="f-col">
+        <h4>Read</h4>
+        <a href="Home.html">Index</a>
+        <a href="#">Writing</a>
+        <a href="#">Field Guides</a>
+        <a href="#">Now</a>
+      </div>
+      <div class="f-mark">
+        <div class="barcode"></div>
+        <div class="barcode-num">PB · 2026 · 34.46N 133.99E · ∞</div>
+        <div class="f-credit">SET IN ANTON · ARCHIVO<br>SPACE MONO · NEWSREADER</div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script src="assets/texture.js"></script>
+<script src="assets/dither.js"></script>
+<script>
+  // --- texture: page contours, sepia-tinted ---
+  Grain.apply(20);
+  Topo.mount(document.getElementById('topo'), {
+    color: getComputedStyle(document.documentElement).getPropertyValue('--topo').trim() || 'rgba(154,120,56,0.06)',
+    levels: 15, cell: 26, scale: 0.0020, seed: 14, emphasizeEvery: 5
+  });
+
+  // --- HERO: sepia duotone dither dissolving the sky + contours over it ---
+  // darker bias so the bright sky resolves to a dense sepia halftone the light title can sit on
+  // duotone tuned PER IMAGE — deep navy dots on a pale-sky tone, keyed to this
+  // coastal frame, at Study 01's density (contrast 1.45 / brightness 0 / fps 12)
+  Dither.photo(document.querySelector('.post-hero'), {
+    cell: 3, ink: '22,46,74', paper: '203,217,225',
+    contrast: 1.45, brightness: 0.0, boil: 0.05, fps: 12
+  });
+  Topo.mount(document.getElementById('topoHero'), {
+    color: 'rgba(24,46,72,0.26)', levels: 16, cell: 18, scale: 0.0030, seed: 9, emphasizeEvery: 4
+  });
+
+  // --- BODY photo: gentle sepia duotone, slow boil (engine freezes under reduced-motion) ---
+  Dither.photo(document.getElementById('fig1'), {
+    cell: 3, ink: '70,52,22', paper: 'var(--paper)',
+    contrast: 1.26, brightness: 0.04, boil: 0.04, fps: 10
+  });
+
+  // --- reading progress + immersive nav reveal (enrichment only; nav is usable without JS) ---
+  (function () {
+    var bar = document.getElementById('progress');
+    var topbar = document.getElementById('topbar');
+    var hero = document.getElementById('hero');
+
+    function onScroll() {
+      var h = document.documentElement;
+      var max = (h.scrollHeight - h.clientHeight) || 1;
+      var p = Math.min(1, Math.max(0, (window.scrollY || h.scrollTop) / max));
+      bar.style.width = (p * 100).toFixed(2) + '%';
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+
+    // sticky bar floats transparent while the cover is on screen, solidifies over the body
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && e.intersectionRatio > 0.35) topbar.classList.add('over-hero');
+          else topbar.classList.remove('over-hero');
+        });
+      }, { threshold: [0, 0.35, 0.6] });
+      io.observe(hero);
+    }
+  })();
+</script>
+</body>
+</html>
