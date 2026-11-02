@@ -71,7 +71,7 @@
   --measure-desc: 56ch;                    /* mesure des descriptions en liste */
 
   /* ---- titres et blocs du corps de lecture (même échelle, §2 de la critique) ---- */
-  --fs-h3: clamp(18px, calc(16px + 0.25vw), 20px);
+  --fs-h3: var(--fs-body);  /* under the ~18px mono h2: the sans sets it off, not size */
   /* callout text: its line-height is the dot grid (`--cell`, 24px) */
   --fs-callout: clamp(16px, calc(15px + 0.15vw), 17px);
   /* the pulled quote, the only display quote (`{% pullquote %}`) */
