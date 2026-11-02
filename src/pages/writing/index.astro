@@ -9,8 +9,7 @@
  * `01_Home.html` — même en-tête, même lede, même ligne — plutôt que d'inventer une
  * direction. L'encre reste l'olive par défaut : sépia est réservé aux articles.
  */
-import MainNav from '../../components/MainNav.astro'
-import Metabar from '../../components/Metabar.astro'
+import Masthead from '../../components/Masthead.astro'
 import PostRow from '../../components/PostRow.astro'
 import Lede from '../../components/primitives/Lede.astro'
 import Section from '../../components/primitives/Section.astro'
@@ -28,8 +27,7 @@ const posts = await getPosts()
   description="Essays and unfiled notes, in English and French: building software, leading teams, designing games."
 >
   <Section as="header" rhythm="none">
-    <Metabar />
-    <MainNav currentPath="/writing" />
+    <Masthead currentPath="/writing" />
   </Section>
 
   <main>

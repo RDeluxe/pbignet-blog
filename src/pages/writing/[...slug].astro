@@ -5,7 +5,9 @@ import ArticleBar from '../../components/article/ArticleBar.astro'
 import ArticleFoot from '../../components/article/ArticleFoot.astro'
 import ArticleHead from '../../components/article/ArticleHead.astro'
 import CoverSlot from '../../components/hero/CoverSlot.astro'
+import Masthead from '../../components/Masthead.astro'
 import Prose from '../../components/primitives/Prose.astro'
+import Section from '../../components/primitives/Section.astro'
 import SiteFooter from '../../components/SiteFooter.astro'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 import { formatMonth } from '../../lib/date'
@@ -34,6 +36,10 @@ const stats = [
 
 {/* les articles roulent en sépia : une encre par page, mobilier + type (NORTHSTAR §05) */}
 <BaseLayout title={`${d.title} — exhale`} description={d.dek ?? d.description} ink="sepia">
+  {/* the masthead opens the page like everywhere; the reading bar takes over once it is gone */}
+  <Section as="header" rhythm="none">
+    <Masthead currentPath="/writing" />
+  </Section>
   <ArticleBar title={d.title} overCover={!!d.cover} lang={d.lang} />
 
   <article lang={d.lang}>

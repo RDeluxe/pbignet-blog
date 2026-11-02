@@ -1,8 +1,7 @@
 ---
 import Hero from '../components/Hero.astro'
 import IndexBar from '../components/IndexBar.astro'
-import MainNav from '../components/MainNav.astro'
-import Metabar from '../components/Metabar.astro'
+import Masthead from '../components/Masthead.astro'
 import PhotoFrame from '../components/PhotoFrame.astro'
 import PostRow from '../components/PostRow.astro'
 import Grid from '../components/primitives/Grid.astro'
@@ -29,8 +28,7 @@ const photos = [
   <IndexBar />
 
   <Section as="header" rhythm="none">
-    <Metabar />
-    <MainNav currentPath="/" />
+    <Masthead currentPath="/" />
     <Lede size="intro" spaced>
       I build software, direct the art of games, and photograph everything in between.
     </Lede>

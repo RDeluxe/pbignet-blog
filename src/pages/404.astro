@@ -1,10 +1,10 @@
 ---
 /**
- * 404 — a page the index does not have. No new design: the article's top bar (its back
- * link points home), then a section head, a lede, and the latest posts in the list's own
+ * 404 — a page the index does not have. No new design: the site's masthead, then a
+ * section head, a lede, and the latest posts in the list's own
  * rows, so that the way on is one click away (critique 2026-11-02, n° 22 and 23).
  */
-import ArticleBar from '../components/article/ArticleBar.astro'
+import Masthead from '../components/Masthead.astro'
 import PostRow from '../components/PostRow.astro'
 import Lede from '../components/primitives/Lede.astro'
 import Section from '../components/primitives/Section.astro'
@@ -18,7 +18,9 @@ const latest = (await getPosts()).slice(0, 5)
 ---
 
 <BaseLayout title="Not found — exhale" description="This page is not in the index." noindex>
-  <ArticleBar title="Not found" backHref="/" backLabel="← Home" />
+  <Section as="header" rhythm="none">
+    <Masthead />
+  </Section>
 
   <main>
     <Section>

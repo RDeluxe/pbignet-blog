@@ -494,8 +494,8 @@
 
     <h3 class="blk">Vertical rhythm</h3>
     <table class="spec">
-      <tr><td>1 · Metabar</td><td>5-column mono data strip + exhale mark, under a 2px ink rule.</td></tr>
-      <tr><td>2 · Nav</td><td>Mono links, hairline rule, right-aligned About / Travel.</td></tr>
+      <tr><td>1 · Masthead</td><td>One row, the same on every page (home, index, article, 404), under a 2px ink rule: mono nav links on the left, one mono ident line (name · coords · last filed), the Anton <b>exhale</b> mark at the far right. Narrow: nav + mark keep the row, the ident drops below. <b>Only built sections show</b>: a section still to come is hidden, never announced (no “soon”, no dead link, no reserved slot); it returns by flipping its flag in <code>src/data/nav.ts</code>. <i>Decided 2026-11-02, replacing the metabar strip + nav pair and lot 2's visible “soon” entries.</i></td></tr>
+      <tr><td>2 · Bars</td><td>Fixed, absent at the top, shown once the masthead or the hero has scrolled away: the home's index bar (nav), an article's reading bar (title + reading gauge).</td></tr>
       <tr><td>3 · Hero</td><td>The photo-through-type move. ~82vh, capped 760px.</td></tr>
       <tr><td>4 · Sections</td><td><code>.shead</code> + lead serif + content. Spaced <code>clamp(64px,8vw,110px)</code> apart.</td></tr>
       <tr><td>5 · Feature</td><td>Full-bleed word-over-photo break between sections.</td></tr>

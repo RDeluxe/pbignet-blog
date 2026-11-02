@@ -6,9 +6,10 @@
  * dissout au retour. Décision CD, août 2026.
  *
  * ⚠️ **Composant distinct d'`ArticleBar`, et c'est volontaire.** Les deux se ressemblent à
- * l'œil et n'ont presque rien en commun en comportement : celle-ci est `fixed`, masquée par
- * défaut, observe le **hero** et anime un masque ; l'autre est `sticky`, toujours visible,
- * observe la **cover**, publie sa hauteur et anime une jauge de lecture. Les réunir sous un
+ * l'œil, et toutes deux sont `fixed` et masquées en haut de page, mais le reste diffère :
+ * celle-ci observe le **hero**, porte la nav et anime un masque ; l'autre observe le
+ * **masthead**, porte le titre, passe transparente sur la **cover** et anime une jauge de
+ * lecture. Les réunir sous un
  * `data-context` mettait deux scripts et deux balisages derrière un `if` — deux composants
  * déguisés en un.
  *

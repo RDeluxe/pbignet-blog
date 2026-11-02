@@ -321,7 +321,7 @@ migration.
 src/components/
   primitives/    Section · Wrap · Grid · Lede   (+ Stack, Prose, Bleed à venir)
   print/         RegMarks · Barcode · MonoLabel
-  <marque>.astro Hero · PostRow · PhotoFrame · Tag · CollCard · Metabar…
+  <marque>.astro Hero · PostRow · PhotoFrame · Tag · CollCard · Masthead…
 ```
 
 Trois familles :

@@ -1,6 +1,5 @@
 ---
 import { footer } from '../data/nav'
-import LockedItem from './LockedItem.astro'
 import Wrap from './primitives/Wrap.astro'
 import Barcode from './print/Barcode.astro'
 import MonoLabel from './print/MonoLabel.astro'
@@ -23,11 +22,7 @@ import MonoLabel from './print/MonoLabel.astro'
       {footer.map(col => (
         <div class="foot-col">
           <h4>{col.title}</h4>
-          {col.items.map(item => (
-            item.locked
-              ? <span class="foot-locked"><LockedItem labels={[item.label]} /></span>
-              : <a href={item.href}>{item.label}</a>
-          ))}
+          {col.items.map(item => <a href={item.href}>{item.label}</a>)}
         </div>
       ))}
 
@@ -82,8 +77,7 @@ import MonoLabel from './print/MonoLabel.astro'
     color: var(--ink-3);
     margin: 0 0 var(--space-s);
   }
-  .foot-col a,
-  .foot-col .foot-locked {
+  .foot-col a {
     display: block;
     font-family: var(--mono);
     font-size: var(--fs-data);

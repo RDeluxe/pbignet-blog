@@ -1,0 +1,103 @@
+---
+/**
+ * Masthead — the site's one header row, the same on every page (header review,
+ * 2026-11-02, variant B chosen by Pierrick). It replaced the metabar + nav pair: one row
+ * under the sheet's 2px ink rule, with the way around the site on the left, one mono ident
+ * line of real data, and the Anton mark at the far right.
+ *
+ * Only built sections show: a section still to come is hidden, not announced (no « soon »,
+ * no dead link, no reserved slot). It comes back by flipping its flag in `data/nav.ts`.
+ */
+import { navItems } from '../data/nav'
+import { formatMonth } from '../lib/date'
+import { getPosts } from '../lib/posts'
+
+interface Props {
+  /** the page's own section, marked as current */
+  currentPath?: string
+}
+
+const { currentPath } = Astro.props
+const [latest] = await getPosts()
+const ident = ['P. Bignet', 'Lyon 45.76N 4.83E', latest && `Filed ${formatMonth(latest.post.data.pubDate)}`]
+  .filter(Boolean)
+  .join(' · ')
+---
+
+<div class="mast">
+  <nav class="nav" aria-label="Main">
+    {navItems.map(item => (
+      <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>{item.label}</a>
+    ))}
+  </nav>
+  <p class="ident">{ident}</p>
+  <a class="brand" href="/" aria-label="exhale, home">exhale</a>
+</div>
+
+<style>
+  .mast {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas: 'nav ident brand';
+    align-items: baseline;
+    gap: var(--space-s) var(--space-2xl);
+    padding: var(--space-sm) 0 11px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .nav {
+    grid-area: nav;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-optical-6) var(--space-xl);
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    letter-spacing: 0.05em;
+  }
+  .nav a {
+    position: relative;
+    color: var(--ink-2);
+    padding-bottom: 2px;
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  /* ~44px hit area without moving anything */
+  .nav a::after {
+    content: '';
+    position: absolute;
+    inset: -13px -6px;
+  }
+  .nav a:hover,
+  .nav a[aria-current='page'] {
+    color: var(--accent-text);
+    border-color: var(--accent);
+  }
+
+  .ident {
+    grid-area: ident;
+    margin: 0;
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    letter-spacing: var(--tr-tag);
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .brand {
+    grid-area: brand;
+    font-family: var(--display);
+    font-size: var(--fs-brand-sm);
+    letter-spacing: var(--tr-brand);
+    line-height: 1;
+  }
+
+  /* narrow: the nav and the mark keep the first row, the ident takes the second */
+  @media (max-width: 880px) {
+    .mast {
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        'nav brand'
+        'ident ident';
+    }
+  }
+</style>
