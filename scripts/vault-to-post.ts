@@ -370,11 +370,20 @@ function asList(value: unknown): string[] {
 
 /* ------------------------------------------------------------------ conversion */
 
+/**
+ * Publication dates of migrated posts whose note has no `posted_on`, keyed by Ghost slug.
+ * Source: the `article:published_time` of the post on the old Ghost blog. A `posted_on`
+ * in the note wins; once the note has one, its line here can go.
+ */
+const GHOST_DATES: Record<string, string> = {
+  'looking-for-a-seed-en': '2024-01-22', // 2024-01-22T20:53:52Z, the day after the French one
+}
+
 async function convert(note: Note, siblings: Note[]): Promise<string> {
   const bySlug = new Set(siblings.map(n => n.slug))
   const byTitle = new Map(siblings.map(n => [basename(n.path, extname(n.path)), n.slug]))
 
-  let date = asDate(note.meta.posted_on) ?? asDate(note.meta.pubDate)
+  let date = asDate(note.meta.posted_on) ?? asDate(note.meta.pubDate) ?? GHOST_DATES[note.slug]
   if (!date) {
     // a translation without a date takes its original's, the note it links to
     const linked = [...note.body.matchAll(/\[\[([^\]|#]+)/g)]

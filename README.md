@@ -81,8 +81,9 @@ le `.mdoc` est donc écrasée au prochain import de la même note : on corrige l
 
 Ce que la note fournit, dans son frontmatter :
 
-- `posted_on` : la date. Sans elle, une traduction prend la date de la note qu'elle cite en
-  wikilink (son original) ; sinon le script s'arrête.
+- `posted_on` : la date. Sans elle, un article migré prend celle de la table `GHOST_DATES`
+  du script (la date de publication sur Ghost), puis une traduction prend la date de la note
+  qu'elle cite en wikilink (son original) ; sinon le script s'arrête.
 - `tags`, `serie`, `link` (l'URL de l'ancien blog Ghost, gardée pour de futures redirections).
 - facultatifs : `title` (sinon le nom du fichier, sans « FR - » ni « (EN) »), `description`
   (sinon le premier paragraphe), `lang` (sinon « FR - » / « (EN) », sinon les mots du texte).
