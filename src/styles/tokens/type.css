@@ -28,10 +28,11 @@
   --tr-hero: 0.012em;
 
   /* cover d'article — le mot de couverture, posé sur la photo.
-   * 120px / 0.9 : décision Pierrick 2026-08-05 (recipe Shimanto). Le clamp ne garde
+   * 176px / 0.9 : plafond relevé de 120 à 176px (décision Pierrick 2026-10-31, alignement
+   * sur le kit) ; 0.9 reste la décision du 2026-08-05 (recipe Shimanto). Le clamp ne garde
    * la pente fluide que sous ~700px pour ne pas déborder en étroit.
    */
-  --fs-cover: clamp(52px, 17vw, 120px);
+  --fs-cover: clamp(52px, 17vw, 176px);
   --lh-cover: 0.9;
   --tr-cover: 0.03em;
 
