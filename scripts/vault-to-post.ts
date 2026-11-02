@@ -19,6 +19,8 @@
  * - slug: the Ghost slug when the note has a `link` (old URLs keep their path), else the
  *   title, slugified;
  * - Obsidian callouts become `{% callout %}`; the « imported from the blog » callout goes;
+ * - a post migrated from Ghost loses the feature image the import put at the top of its
+ *   body (only callouts before it): it will get a cover of its own;
  * - `![[file]]` and remote images are copied into `public/writing/<slug>/`;
  * - wikilinks and links to the old Ghost blog point at the migrated post when there is
  *   one (any note of the same folder), else become plain text (wikilinks) or stay as is;
@@ -231,6 +233,18 @@ function convertCallouts(text: string): string {
   return out.join('\n')
 }
 
+/**
+ * Ghost's feature image, which the import put at the top of the body: an image line
+ * with nothing but callouts before it. Only for posts migrated from Ghost; the post
+ * gets a new cover of its own.
+ */
+function dropGhostCover(text: string, fromGhost: boolean): string {
+  if (!fromGhost)
+    return text
+  const match = text.match(/^((?:\s*\{% callout[\s\S]*?\{% \/callout %\})*\s*)!\[[^\]]*\]\([^)\s]+(?:\s+"[^"]*")?\)[ \t]*(?:\n|$)/)
+  return match ? match[1] + text.slice(match[0].length) : text
+}
+
 /** a blockquote line holding nothing but an image is a Ghost import artefact */
 function unquoteImages(text: string): string {
   return text.replace(/^>\s*(!\[[^\]]*\]\([^)]+\))\s*$/gm, '$1')
@@ -322,13 +336,13 @@ async function convert(note: Note, siblings: Note[]): Promise<string> {
     console.warn(`  ! ${basename(note.path)}: no posted_on, takes ${date} from « ${basename(linked!.path)} »`)
   }
 
-  let body = outsideCode(note.body, text => convertCallouts(unquoteImages(text)))
+  const link = typeof note.meta.link === 'string' && note.meta.link ? note.meta.link : undefined
+  let body = dropGhostCover(outsideCode(note.body, text => convertCallouts(unquoteImages(text))), Boolean(link && ghostSlug(link)))
   const hasH1 = /^# /m.test(body.replace(/^```[\s\S]*?\n```.*$/gm, ''))
   body = outsideCode(body, text => rewriteLinks(demoteHeadings(text, hasH1), bySlug, byTitle))
   body = await localizeImages(body, note)
   body = `${body.trim().replace(/\n{3,}/g, '\n\n')}\n`
 
-  const link = typeof note.meta.link === 'string' && note.meta.link ? note.meta.link : undefined
   const series = typeof note.meta.serie === 'string' && note.meta.serie ? note.meta.serie : undefined
   const frontmatter = {
     title: note.title,
