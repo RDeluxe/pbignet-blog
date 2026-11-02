@@ -59,6 +59,12 @@ const writing = defineCollection({
     pubDate: z.coerce.date(),
     tag: z.enum(['Essay', 'Note']),
     readTime: z.number(),
+    /** language of the text; the site chrome stays in English */
+    lang: z.enum(['en', 'fr']).default('en'),
+    /** a run of posts, e.g. « You are the CEO » */
+    series: z.string().optional(),
+    /** the post's URL on the old Ghost blog, kept for future redirects */
+    link: z.string().url().optional(),
 
     /* ---- champs de page d'article (optionnels : l'index n'en a pas besoin) ---- */
     /** chapeau sous le titre. À défaut, `description` est réutilisée. */
