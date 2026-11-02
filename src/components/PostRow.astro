@@ -10,21 +10,24 @@ interface Props {
   readTime: number
   pubDate: Date
   href: string
+  /** language of the post: a non-English one says so under its date, so that a
+   *  translation is told apart from its original */
+  lang?: 'en' | 'fr'
 }
 
-const { index, tag, tagAccent = false, title, description, readTime, pubDate, href } = Astro.props
+const { index, tag, tagAccent = false, title, description, readTime, pubDate, href, lang = 'en' } = Astro.props
 
 const month = pubDate.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase()
 ---
 
-<a class="post" href={href}>
+<a class="post" href={href} hreflang={lang}>
   <span class="idx">{index}</span>
-  <span>
+  <span lang={lang}>
     <Tag accent={tagAccent}>{tag}</Tag>
     <div class="ptitle">{title}</div>
     <div class="pdesc">{description}</div>
   </span>
-  <span class="pmeta">{readTime} MIN<br />{month}</span>
+  <span class="pmeta">{readTime} MIN<br />{month}{lang !== 'en' && <><br />{lang.toUpperCase()}</>}</span>
 </a>
 
 <style>
