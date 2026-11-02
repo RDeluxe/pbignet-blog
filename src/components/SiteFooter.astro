@@ -25,7 +25,7 @@ import MonoLabel from './print/MonoLabel.astro'
           <h4>{col.title}</h4>
           {col.items.map(item => (
             item.locked
-              ? <span class="foot-locked"><LockedItem label={item.label} /></span>
+              ? <span class="foot-locked"><LockedItem labels={[item.label]} /></span>
               : <a href={item.href}>{item.label}</a>
           ))}
         </div>

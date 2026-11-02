@@ -10,9 +10,3 @@ const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', '
 export function formatMonth(date: Date): string {
   return `${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`
 }
-
-/** « 22.01.24 », the metabar's day */
-export function formatDay(date: Date): string {
-  const two = (n: number) => String(n).padStart(2, '0')
-  return `${two(date.getUTCDate())}.${two(date.getUTCMonth() + 1)}.${two(date.getUTCFullYear() % 100)}`
-}

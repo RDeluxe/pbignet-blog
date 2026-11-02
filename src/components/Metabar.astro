@@ -1,30 +1,30 @@
 ---
-import { formatDay } from '../lib/date'
+import { formatMonth } from '../lib/date'
 import { getPosts } from '../lib/posts'
 
 interface Props {
-  /** the edition's date; by default the latest post's, never a frozen value (n° 27) */
+  /** when the index last filed something: the latest post's month, never a frozen value */
   date?: string
   location?: string
 }
 
 const [latest] = await getPosts()
-const { date = latest ? formatDay(latest.post.data.pubDate) : '', location = 'Lyon, FR' } = Astro.props
+const { date = latest ? formatMonth(latest.post.data.pubDate) : '', location = 'Lyon, FR' } = Astro.props
 ---
 
+<!-- Only real data (header review, 2026-11-02, distill): « Title · Personal Index » and
+     « Edition · Vol. ∞ » described the format, not the index; they went. -->
 <div class="metabar">
-  <div class="m"><div class="k">Title</div><div class="v">Personal Index</div></div>
-  <div class="m"><div class="k">Date</div><div class="v">{date}</div></div>
-  <div class="m"><div class="k">Edition</div><div class="v">Vol. ∞</div></div>
   <div class="m"><div class="k">Filed by</div><div class="v">P. Bignet</div></div>
   <div class="m"><div class="k">Location</div><div class="v">{location}</div></div>
+  <div class="m"><div class="k">Last filed</div><div class="v">{date}</div></div>
   <a class="brand" href="/">exhale</a>
 </div>
 
 <style>
   .metabar {
     display: grid;
-    grid-template-columns: repeat(5, 1fr) auto;
+    grid-template-columns: repeat(3, 1fr) auto;
     /* TODO token: 18px → --space-… ? (vaut --space-head, réservé aux en-têtes de section) */
     gap: 0 var(--space-ml);
     border-bottom: 2px solid var(--ink);
@@ -57,8 +57,13 @@ const { date = latest ? formatDay(latest.post.data.pubDate) : '', location = 'Ly
     text-align: right;
   }
 
+  /* narrow: the brand on its own row above the three fields, which keep one row */
   @media (max-width: 880px) {
-    .metabar { grid-template-columns: 1fr 1fr; }
-    .brand { grid-column: span 2; text-align: left; }
+    .metabar {
+      grid-template-columns: repeat(3, auto);
+      justify-content: space-between;
+      row-gap: var(--space-s);
+    }
+    .brand { grid-row: 1; grid-column: 1 / -1; text-align: left; }
   }
 </style>

@@ -1,33 +1,39 @@
 ---
 /**
- * LockedItem — a section the index announces but has not built yet (Pierrick kept them
- * visible at lot 2). It is not a link, and it says so: the label in the quiet ink, then a
- * mono « soon » mark. The old one was a bare span with a French tooltip, invisible to
- * touch, that looked like a dead link (critique 2026-11-02, n° 12).
+ * LockedItem — sections the index announces but has not built yet (Pierrick kept them
+ * visible at lot 2). Not links, and they say so: the labels in the quiet ink, then ONE
+ * mono « soon » mark for the run. One mark per entry made six in a row in the nav, a
+ * roadmap rather than a way around (header review, 2026-11-02); the footer still passes
+ * one label at a time.
  *
- * Its size and tracking come from where it sits (nav, footer); it owns only the ink and
- * the mark.
+ * Size and tracking come from where it sits (nav, footer); it owns the ink and the mark.
  */
 interface Props {
-  label: string
+  labels: string[]
 }
 
-const { label } = Astro.props
+const { labels } = Astro.props
 ---
 
-<span class="lock">{label}<span class="soon">soon</span></span>
+<span class="lock">
+  {labels.map((label, i) => (
+    <span>{label}{i === labels.length - 1 && <span class="soon">soon</span>}</span>
+  ))}
+</span>
 
 <style>
-  .lock {
+  /* the run has no box of its own: its labels flow in the parent's row, with its gaps */
+  .lock { display: contents; }
+  .lock > span {
     color: var(--ink-3);
     cursor: default;
   }
   .soon {
     margin-left: 0.5em;
+    vertical-align: 0.2em;
     font-family: var(--mono);
     font-size: var(--fs-micro);
     letter-spacing: var(--tr-micro);
     text-transform: uppercase;
-    vertical-align: 0.2em;
   }
 </style>

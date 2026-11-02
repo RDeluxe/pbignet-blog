@@ -1,35 +1,26 @@
 ---
 /** les entrées vivent dans `src/data/nav.ts` : la barre index affiche les mêmes */
+import type { NavItem } from '../data/nav'
 import { primary as items, secondary as right } from '../data/nav'
 import LockedItem from './LockedItem.astro'
 
 const { currentPath } = Astro.props as { currentPath?: string }
+
+// the built sections lead; the announced ones follow as one quiet run, one « soon » each side
+const live = (list: NavItem[]) => list.filter(i => !i.locked)
+const locked = (list: NavItem[]) => list.filter(i => i.locked)
 ---
 
 <nav class="main" aria-label="Main">
-  {items.map(item => (
-    item.locked
-      ? (
-          <LockedItem label={item.label} />
-        )
-      : (
-          <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
-            {item.label}
-          </a>
-        )
+  {live(items).map(item => (
+    <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>{item.label}</a>
   ))}
+  {locked(items).length > 0 && <LockedItem labels={locked(items).map(i => i.label)} />}
   <span class="sp"></span>
-  {right.map(item => (
-    item.locked
-      ? (
-          <LockedItem label={item.label} />
-        )
-      : (
-          <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
-            {item.label}
-          </a>
-        )
+  {live(right).map(item => (
+    <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>{item.label}</a>
   ))}
+  {locked(right).length > 0 && <LockedItem labels={locked(right).map(i => i.label)} />}
 </nav>
 
 <style>
