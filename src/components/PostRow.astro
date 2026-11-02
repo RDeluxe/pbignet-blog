@@ -1,4 +1,5 @@
 ---
+import { formatMonth } from '../lib/date'
 import Tag from './Tag.astro'
 
 interface Props {
@@ -13,21 +14,25 @@ interface Props {
   /** language of the post: a non-English one says so under its date, so that a
    *  translation is told apart from its original */
   lang?: 'en' | 'fr'
+  /** the title's level in the page's outline: h2 under the page's h1, h3 under a section head */
+  titleAs?: 'h2' | 'h3'
 }
 
-const { index, tag, tagAccent = false, title, description, readTime, pubDate, href, lang = 'en' } = Astro.props
-
-const month = pubDate.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase()
+const { index, tag, tagAccent = false, title, description, readTime, pubDate, href, lang = 'en', titleAs: Title = 'h3' } = Astro.props
 ---
 
 <a class="post" href={href} hreflang={lang}>
   <span class="idx">{index}</span>
-  <span lang={lang}>
-    <Tag accent={tagAccent}>{tag}</Tag>
-    <div class="ptitle">{title}</div>
-    <div class="pdesc">{description}</div>
+  <div class="body" lang={lang}>
+    <span class="ptag"><Tag accent={tagAccent}>{tag}</Tag></span>
+    <Title class="ptitle">{title}</Title>
+    <p class="pdesc">{description}</p>
+  </div>
+  <span class="pmeta">
+    <span>{readTime} MIN</span>
+    <span>{formatMonth(pubDate)}</span>
+    {lang !== 'en' && <span>{lang.toUpperCase()}</span>}
   </span>
-  <span class="pmeta">{readTime} MIN<br />{month}{lang !== 'en' && <><br />{lang.toUpperCase()}</>}</span>
 </a>
 
 <style>
@@ -55,6 +60,7 @@ const month = pubDate.toLocaleDateString('en-GB', { month: 'short', year: 'numer
   }
 
   .ptitle {
+    margin: 0;
     font-family: var(--sans);
     font-weight: var(--w-semibold);
     font-size: var(--fs-title);
@@ -64,6 +70,8 @@ const month = pubDate.toLocaleDateString('en-GB', { month: 'short', year: 'numer
   }
 
   .pmeta {
+    display: flex;
+    flex-direction: column;
     font-family: var(--mono);
     font-size: var(--fs-label);
     letter-spacing: 0.04em;
@@ -77,9 +85,33 @@ const month = pubDate.toLocaleDateString('en-GB', { month: 'short', year: 'numer
     font-family: var(--serif);
     font-size: var(--fs-body-sm);
     color: var(--ink-2);
-    margin-top: var(--space-xs);
+    margin: var(--space-xs) 0 0;
     max-width: var(--measure-desc);
     line-height: var(--lh-body-tight);
   }
 
+  /* Narrow: the three columns left the title 198px wide, broken over 3-4 lines (critique
+     2026-11-02, n° 19). The number and the meta move onto the tag's line, and the title and
+     its description take the full width below. */
+  @media (max-width: 520px) {
+    .post {
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas:
+        'idx tag meta'
+        'title title title'
+        'desc desc desc';
+      gap: var(--space-xs) var(--space-s);
+      align-items: center;
+    }
+    .body { display: contents; }
+    .idx { grid-area: idx; padding-top: 0; }
+    .ptag { grid-area: tag; }
+    .ptitle { grid-area: title; margin-top: var(--space-xs); }
+    .pdesc { grid-area: desc; margin-top: 0; }
+    .pmeta {
+      grid-area: meta;
+      flex-direction: row;
+      gap: var(--space-s);
+    }
+  }
 </style>
