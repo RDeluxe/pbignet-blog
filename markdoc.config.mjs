@@ -41,6 +41,9 @@ export default defineMarkdocConfig({
      * `{ render: null }` seul les jetterait.
      */
     document: { ...nodes.document, render: null },
+
+    /** every Markdown quote is a reading quote: the same component as `{% quote %}` */
+    blockquote: { ...nodes.blockquote, render: component('./src/components/article/Quote.astro') },
   },
 
   tags: {
@@ -77,6 +80,29 @@ export default defineMarkdocConfig({
       render: component('./src/components/article/PullQuote.astro'),
       attributes: {
         source: { type: String },
+      },
+    },
+
+    /** a quote to read, with where it comes from (`source`, `href`) */
+    quote: {
+      render: component('./src/components/article/Quote.astro'),
+      attributes: {
+        source: { type: String },
+        href: { type: String },
+      },
+    },
+
+    /**
+     * an image a post brings, its caption as children (inline Markdown allowed). Written
+     * by the vault import for every image with or without a caption.
+     */
+    figure: {
+      render: component('./src/components/article/ArticlePlate.astro'),
+      attributes: {
+        src: { type: String, required: true },
+        alt: { type: String, required: true },
+        kind: { type: String, matches: ['plate', 'capture'] },
+        wide: { type: Boolean },
       },
     },
 

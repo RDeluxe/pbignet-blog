@@ -140,32 +140,6 @@ const { numbered = false, dropCap = false } = Astro.props
     color: var(--ink);
   }
 
-  /* Markdown quote (`> …`): a quote to READ, at the body's size plus one, in Newsreader
-     italic, set in from the column between two rules. The display treatment belongs to
-     `{% pullquote %}` alone (critique 2026-11-02, n° 6). Never a left accent bar
-     (Design Notes, July 2026: « No left accent bar anywhere »). */
-  .prose :global(> blockquote) {
-    margin: 2em 0;
-    padding: var(--space-m) var(--space-l);
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: var(--fs-quote);
-    line-height: var(--lh-body);
-    color: var(--ink);
-  }
-  .prose :global(> blockquote > *) {
-    margin: 0 0 0.8em;
-  }
-  .prose :global(> blockquote > :last-child) {
-    margin-bottom: 0;
-  }
-  .prose :global(> blockquote ul),
-  .prose :global(> blockquote ol) {
-    padding-left: 1.2em;
-  }
-
   .prose :global(a) {
     color: var(--accent-text);
     text-decoration: underline;

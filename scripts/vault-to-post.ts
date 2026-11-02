@@ -26,7 +26,15 @@
  *   translation shares with its original is stored once, in the first note's folder;
  * - wikilinks and links to the old Ghost blog point at the migrated post when there is
  *   one (any note of the same folder), else become plain text (wikilinks) or stay as is;
- * - bold that Markdown would print as `**` (a space inside the delimiters) is mended;
+ * - bold that Markdown would print as `**` (a space inside the delimiters) is mended, and
+ *   so are stray single `*`;
+ * - Ghost's 💡 cards keep a callout only when they open on a title, else they go back
+ *   into the text; the 💡 marks go;
+ * - headings lose their emoji and their bold, never skip a level, and lose the `---` Ghost
+ *   put under them; a one-line quote opening on an emoji becomes a heading;
+ * - a quote ending on its source (a URL, a link) becomes `{% quote source href %}`;
+ * - an image and its caption become `{% figure %}`, with a real alt;
+ * - a French post gets French spacing before `; : ? ! »` and after `«`;
  * - when the body uses `#` headings, every heading moves down a level: the page owns h1.
  */
 
@@ -216,6 +224,24 @@ function markdocString(value: string): string {
   return JSON.stringify(value)
 }
 
+/** the 💡 or the flag a Ghost card opens on */
+const GHOST_MARK = /^\s*(?:💡|\p{Regional_Indicator}{2})\s*/u
+
+/**
+ * A Ghost 💡 card is a real aside only when it opens on a title (a short line, not a
+ * sentence, followed by its text): it keeps a callout, the title in its attribute. Any
+ * other card was a highlighted sentence, and the caller puts it back into the text: five
+ * pinned notes on one post is wallpaper, not punctuation (critique 2026-11-02, n° 21).
+ */
+function ghostCard(lines: string[]): { title: string, body: string[] } | undefined {
+  const first = lines[0].trim().replace(/^\*\*(.*)\*\*$/, '$1').trim()
+  const rest = lines.slice(1)
+  const plain = first.replace(/^"(.*)"$/, '$1')
+  if (!rest.some(l => l.trim()) || plain.length > 90 || /[.:;,…]$/.test(plain))
+    return undefined
+  return { title: plain, body: rest.join('\n').trim().split('\n') }
+}
+
 /** `> [!type] title` blocks → `{% callout %}`. Plain blockquotes stay blockquotes. */
 function convertCallouts(text: string): string {
   const lines = text.split('\n')
@@ -232,9 +258,24 @@ function convertCallouts(text: string): string {
       content.push(lines[i].replace(/^>\s?/, ''))
     }
     const type = head[1].toLowerCase()
-    const title = head[2].trim()
+    let title = head[2].trim()
     if (IMPORT_NOTICE.test(title) || IMPORT_NOTICE.test(content.join(' ')))
       continue
+    // a Ghost card: an untitled note opening on 💡 (or on a flag, for the language switch)
+    if (!title && content.length && GHOST_MARK.test(content[0])) {
+      const isTip = content[0].trimStart().startsWith('💡')
+      content[0] = content[0].replace(GHOST_MARK, '')
+      if (isTip) {
+        const card = ghostCard(content)
+        if (!card) {
+          // a highlighted sentence, not an aside: it goes back into the text
+          out.push('', ...content, '')
+          continue
+        }
+        title = card.title
+        content.splice(0, content.length, ...card.body)
+      }
+    }
     const attrs: string[] = []
     const tag = CALLOUT_TAGS[type] ?? (type in CALLOUT_TAGS ? undefined : type.toUpperCase())
     if (tag)
@@ -279,6 +320,161 @@ function fixBold(text: string): string {
     .replace(/(\p{Extended_Pictographic}\uFE0F?)\*\*(?=\p{P})/gu, '$1 **')
 }
 
+/**
+ * Single `*` that Markdown would print: an empty emphasis between two words (`À* *priori`)
+ * goes, a space just inside a closing `*` (`*hard skills – *`) moves outside, and a caption
+ * Ghost split around a blank line (`*` alone, then `… ui.*`) is joined again.
+ */
+function fixItalic(text: string): string {
+  return text
+    .replace(/(\S)\* \*(\S)/g, '$1 $2')
+    .replace(/(^|[\s(])\*([^*\s][^*\n]*?) \*(?=[\s,.;:!?)]|$)/gm, '$1*$2*')
+    .replace(/^\*[ \t]*\n[ \t]*\n([^\n*][^\n]*\*)$/gm, '*$1')
+}
+
+/** a pictograph at the start of a heading or a pseudo-title (✅ 🤔 ❌ 🎯) */
+const LEAD_EMOJI = /^(?:\p{Extended_Pictographic}\uFE0F?\s*)+/u
+
+/**
+ * What Ghost made of headings, mended in one pass over the lines:
+ * - an emoji opening a heading goes (it broke the page's one ink), and so does bold
+ *   wrapping a whole heading;
+ * - a level never skips: `#####` under `###` becomes `####`;
+ * - a one-line quote opening on an emoji was a pseudo-title (« 🎯 Faire passer un
+ *   entretien… »): it becomes the heading one level under the current one;
+ * - a `---` right under a heading drew a second rule under the heading's own.
+ */
+function mendHeadings(text: string): string {
+  const lines = text.split('\n')
+  const out: string[] = []
+  let level = 1
+  let afterHeading = false
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const heading = line.match(/^(#{1,6})\s(.*)$/)
+    const pseudo = !heading
+      && /^>\s*\p{Extended_Pictographic}/u.test(line)
+      && !(lines[i + 1] ?? '').startsWith('>')
+      && !(lines[i - 1] ?? '').startsWith('>')
+    if (heading || pseudo) {
+      const wanted = heading ? heading[1].length : Math.min(level + 1, 4)
+      const depth = Math.max(2, Math.min(wanted, level + 1))
+      const title = (heading ? heading[2] : line.replace(/^>\s*/, ''))
+        .trim()
+        .replace(LEAD_EMOJI, '')
+        .replace(/^\*\*(.*)\*\*$/, '$1')
+        .trim()
+      out.push(`${'#'.repeat(depth)} ${title}`)
+      level = depth
+      afterHeading = true
+      continue
+    }
+    if (afterHeading && /^[-*_]{3,}\s*$/.test(line))
+      continue
+    if (line.trim())
+      afterHeading = false
+    out.push(line)
+  }
+  return out.join('\n')
+}
+
+/**
+ * Plain quotes, the ones that are not callouts:
+ * - a line glued under a quote without `>` is Markdown's lazy continuation, which pulled
+ *   the author's own comment into the quote: a blank line ends the quote first;
+ * - a last line that is a bare URL or opens on a link names the source: the quote becomes
+ *   `{% quote source href %}`, the source out of the quoted text (critique 2026-11-02, n° 6).
+ */
+function mendQuotes(text: string): string {
+  const lines = text.split('\n')
+  const out: string[] = []
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].startsWith('>')) {
+      out.push(lines[i])
+      continue
+    }
+    const block: string[] = []
+    while (i < lines.length && lines[i].startsWith('>'))
+      block.push(lines[i++].replace(/^>\s?/, ''))
+    i--
+    if (lines[i + 1]?.trim())
+      lines.splice(i + 1, 0, '')
+    const last = block.at(-1)!.trim()
+    const url = last.match(/^(https?:\/\/\S+)$/)
+    const link = last.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)(.*)$/)
+    if (block.length > 1 && (url || link)) {
+      const source = url ? new URL(url[1]).hostname.replace(/^www\./, '') : `${link![1]}${link![3]}`.trim()
+      const href = url ? url[1] : link![2]
+      out.push(`{% quote source=${markdocString(source)} href=${markdocString(href)} %}`, ...block.slice(0, -1).map(l => l.trim()), '{% /quote %}')
+      continue
+    }
+    out.push(...block.map(l => `> ${l}`))
+  }
+  return out.join('\n')
+}
+
+/** a 💡 opening a paragraph, as Ghost wrote its tips outside the cards */
+function dropTipMarks(text: string): string {
+  return text.replace(/^💡\s*/gmu, '')
+}
+
+/** the alt texts written for the migrated images, by public path and language */
+const IMAGE_ALTS = JSON.parse(readFileSync(join(REPO, 'scripts/image-alts.json'), 'utf8')) as Record<string, Partial<Record<'fr' | 'en', string>>>
+
+function plainText(markdown: string): string {
+  return markdown
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/[*_`]+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * An image alone on its line, and its caption when the next line is one (`*…*` in italic,
+ * or a bare URL: the tweet it shows) → `{% figure %}`, the caption as its children. The alt
+ * comes from `scripts/image-alts.json`, else the note's own unless it is the post's title,
+ * else the caption: Ghost gave every image the post's title (critique 2026-11-02, n° 9).
+ * A new image without an entry in the file is reported on the console.
+ */
+function figures(text: string, note: Note): string {
+  return text.replace(
+    /^!\[([^\]]*)\]\((\S+?)\)[ \t]*(?:\n(\*[^\n]+\*|https?:\/\/\S+)[ \t]*)?$/gm,
+    (_, alt: string, src: string, caption?: string) => {
+      let children = ''
+      if (caption?.startsWith('http')) {
+        const u = new URL(caption)
+        children = `[${u.hostname.replace(/^www\./, '')}${u.pathname}](${caption})`
+      }
+      else if (caption) {
+        children = caption.replace(/^\*(.*)\*$/, '$1').trim()
+      }
+      const own = alt.trim() && alt.trim() !== note.title ? alt.trim() : ''
+      const text = IMAGE_ALTS[src]?.[note.lang] || own || (children && plainText(children)) || ''
+      if (!text)
+        console.warn(`  ! ${basename(note.path)}: no alt for ${src}`)
+      const attrs = `src=${markdocString(src)} alt=${markdocString(text)} kind="capture"`
+      return children ? `{% figure ${attrs} %}\n${children}\n{% /figure %}` : `{% figure ${attrs} /%}`
+    },
+  )
+}
+
+/**
+ * French typography for a French post: a narrow no-break space before `; ? ! »` and after
+ * `«`, a no-break space before `:`. Only where the author typed a space, so URLs and code
+ * are left alone; inline code spans are skipped (critique 2026-11-02, n° 16).
+ */
+function frenchSpacing(text: string): string {
+  return text
+    .split(/(`[^`\n]*`)/)
+    .map((part, i) => (i % 2 === 1
+      ? part
+      : part
+          .replace(/ +([;?»]|!(?!\[))/g, '\u202F$1')
+          .replace(/ +:(?=\s|$)/gm, '\u00A0:')
+          .replace(/« +/g, '«\u202F')))
+    .join('')
+}
+
 function demoteHeadings(text: string, enabled: boolean): string {
   if (!enabled)
     return text
@@ -304,7 +500,8 @@ function rewriteLinks(text: string, bySlug: Set<string>, byTitle: Map<string, st
 function describe(body: string): string {
   const paragraph = body
     .replace(/^```[\s\S]*?\n```.*$/gm, '')
-    .replace(/^\{%[\s\S]*?\n\{% \/callout %\}$/gm, '')
+    // a block tag and its content (not a self-closing `/%}` one)
+    .replace(/^\{% (\w+)\b[^\n]*[^/\n] %\}\n[\s\S]*?\{% \/\1 %\}$/gm, '')
     .split(/\n\s*\n/)
     .map(p => p.trim())
     .find(p => p
@@ -396,10 +593,13 @@ async function convert(note: Note, siblings: Note[]): Promise<string> {
   }
 
   const link = typeof note.meta.link === 'string' && note.meta.link ? note.meta.link : undefined
-  let body = dropGhostCover(outsideCode(note.body, text => fixBold(convertCallouts(unquoteImages(text)))), Boolean(link && ghostSlug(link)))
+  let body = dropGhostCover(outsideCode(note.body, text => fixItalic(fixBold(convertCallouts(unquoteImages(text))))), Boolean(link && ghostSlug(link)))
   const hasH1 = /^# /m.test(body.replace(/^```[\s\S]*?\n```.*$/gm, ''))
-  body = outsideCode(body, text => rewriteLinks(demoteHeadings(text, hasH1), bySlug, byTitle))
+  body = outsideCode(body, text => mendQuotes(dropTipMarks(mendHeadings(rewriteLinks(demoteHeadings(text, hasH1), bySlug, byTitle)))))
   body = await localizeImages(body, note, siblings)
+  body = outsideCode(body, text => figures(text, note))
+  if (note.lang === 'fr')
+    body = outsideCode(body, frenchSpacing)
   body = `${body.trim().replace(/\n{3,}/g, '\n\n')}\n`
 
   const minutes = readingTime(body)

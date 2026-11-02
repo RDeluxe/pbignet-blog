@@ -23,8 +23,8 @@ Aujourd'hui je voudrais parler de l'avenir du métier de développeur et des ét
 
 **TL:DR**: **Vous n'êtes plus développeur·euse, vous êtes lead**.
 - Il est temps de vous former au role de lead, même si c'est inconfortable ;
-- Une analogie très efficace : considérez que vos agents AI sont des juniors fraichement arrivés ;
-- Avant de prompter, posez vous les bonnes questions : Est-ce que vos specs sont claires ? La tâche n'est pas trop grosse ? Vous avez fourni la documentation nécessaire pour que le nouveau venu puisse comprendre comment le projet fonctionne et quelles règles respecter ? Si ce n'est pas le cas, retravaillez votre prompt et le contexte.
+- Une analogie très efficace : considérez que vos agents AI sont des juniors fraichement arrivés ;
+- Avant de prompter, posez vous les bonnes questions : Est-ce que vos specs sont claires ? La tâche n'est pas trop grosse ? Vous avez fourni la documentation nécessaire pour que le nouveau venu puisse comprendre comment le projet fonctionne et quelles règles respecter ? Si ce n'est pas le cas, retravaillez votre prompt et le contexte.
 
 ---
 ## Un aperçu du futur
@@ -36,24 +36,25 @@ Pour les tâches banales, le parallélisme n'est plus [réservé à quelques ear
 
 Bien sûr, les limitations des LLMs ne vont pas disparaître, et je suis convaincu que ces limitations sont là pour rester. Mais nous n'avons pas encore atteint leur plafond de verre, et je pense qu'on peut dire sans risque que les LLMs vont écrire la majeure partie de notre code dans les prochaines années.
 
-**Mais du coup, que deviennent les développeurs·euses ?**
+**Mais du coup, que deviennent les développeurs·euses ?**
 
-![](/writing/fr-developers-are-dead-long-live-lead-developers/cleanshot-2026-01-21-at-10-03-03.png)
-*Ryan Dahl, créateur de Node.js. Le hasard des dates de publications*
+{% figure src="/writing/fr-developers-are-dead-long-live-lead-developers/cleanshot-2026-01-21-at-10-03-03.png" alt="Tweet de Ryan Dahl (@rough__sea), 19 janvier 2026 : l'ère des humains qui écrivent du code est terminée, même si les SWE ont encore du travail. Plus de 4 millions de vues." kind="capture" %}
+Ryan Dahl, créateur de Node.js. Le hasard des dates de publications
+{% /figure %}
 
 ## Un agent AI est un développeur junior
 
-À bien des égards, j'ai l'impression que travailler avec des agents IA, c'est comme travailler avec une équipe de nouveaux développeurs juniors. Ils ont beaucoup de choses en commun :
+À bien des égards, j'ai l'impression que travailler avec des agents IA, c'est comme travailler avec une équipe de nouveaux développeurs juniors. Ils ont beaucoup de choses en commun :
 
-- Ils manquent de capacités d'abstraction comparés aux devs seniors ;
-- Ils manquent de contexte en dehors de la tech elle-même (enjeux métier, business, relation client) ;
-- Ils se réinitialisent (pour la plupart) à chaque tâche, c'est comme avoir un nouveau junior à chaque fois ;
+- Ils manquent de capacités d'abstraction comparés aux devs seniors ;
+- Ils manquent de contexte en dehors de la tech elle-même (enjeux métier, business, relation client) ;
+- Ils se réinitialisent (pour la plupart) à chaque tâche, c'est comme avoir un nouveau junior à chaque fois ;
 - Ils sont, généralement, incapables de gérer des tâches trop grosses par eux-mêmes ;
-- Ils peuvent s'engouffrer à fond dans la mauvaise direction ;
-- Ils ne devraient pas — et généralement ne sont pas capables de — prendre de décisions techniques clés, comme les choix technologiques et d'architecture (c'est partiellement vrai pour les humains) ;
+- Ils peuvent s'engouffrer à fond dans la mauvaise direction ;
+- Ils ne devraient pas — et généralement ne sont pas capables de — prendre de décisions techniques clés, comme les choix technologiques et d'architecture (c'est partiellement vrai pour les humains) ;
 - Ils ont beaucoup de mal quand il s'agit de plomberie (relier les technologies ensemble, configuration, etc.).
 
-Bien sûr, les LLMs ont certains avantages comparés aux devs juniors :
+Bien sûr, les LLMs ont certains avantages comparés aux devs juniors :
 
 - Ils "maitrisent" beaucoup de langages différents (mais rappelez-vous que cette connaissance est toujours superficielle à bien des égards) ;
 - Ils peuvent ingurgiter beaucoup de contexte en peu de temps ;
@@ -61,6 +62,7 @@ Bien sûr, les LLMs ont certains avantages comparés aux devs juniors :
 - Et, bien sûr, ils sont extrêmement rapides.
 
 > Think of AI like training a [smart intern](https://every.to/napkin-math/meet-your-new-finance-intern-gpt-4). To train someone junior well, you need to be prescriptive: How do you write an email? What tone do you use with clients? What does excellent work look like? What are the steps? What are the pitfalls? The more specific your guidelines, the more you set them up for success.
+
 *Même en dehors du développement, penser aux LLMs comme des stagiaires ou des juniors est un [bon cadre de réflexion](https://every.to/p/i-talked-to-more-than-100-companies-about-ai-here-s-what-s-actually-working)*
 
 **Cette analogie agent / dev junior m'a aidé à comprendre ce que je pouvais attendre d'un agent, et comment je devrais le "gérer".**
@@ -71,18 +73,19 @@ Cerise sur le gateau, la gestion d'équipes tech est un sujet bien documenté (a
 C'est évident, mais travailler avec des machines ne remplacera jamais les avantages de travailler avec de vrais collègues, en chair et en os, qu'ils soient juniors ou seniors. L'émulation, l'apprentissage, les interactions humaines sont toutes des expériences nécessaires et enrichissantes qu'aucun LLM ne pourra jamais fournir. Ne tombez pas dans ce piège.
 {% /callout %}
 
-## Orchestrateur != lead developer
+## Orchestrateur != lead developer
 
-Donc, vous avez une équipe de juniors vraiment motivés à votre disposition. Vous en faites quoi ?
+Donc, vous avez une équipe de juniors vraiment motivés à votre disposition. Vous en faites quoi ?
 
-![](/writing/fr-developers-are-dead-long-live-lead-developers/cleanshot-2026-01-21-at-10-09-21.png)
-https://x.com/jaimefjorge/status/2011381315929583747
+{% figure src="/writing/fr-developers-are-dead-long-live-lead-developers/cleanshot-2026-01-21-at-10-09-21.png" alt="Tweet de Jaime Jorge : développement et ingénierie logicielle sont désormais deux métiers, et le premier est fini. Le développeur concurrence une boucle bash, l'ingénieur orchestre les boucles." kind="capture" %}
+[x.com/jaimefjorge/status/2011381315929583747](https://x.com/jaimefjorge/status/2011381315929583747)
+{% /figure %}
 
 Le mot **orchestrateur** est sur beaucoup de lèvres. En tant qu'orchestrateur, vous ne touchez plus du tout au code. Vous conservez une vision "macro" du projet, de ses objectifs, de la liste des tâches et problèmes à résoudre. Vous écrivez les dites tâches, vous alimentez le système, et vous regardez les agents développer, 'review', etc.
 
 Dans la majorité des cas, je ne crois pas dans un tel futur. Reléguer les développeurs à un rôle de "Project Manager", mais sans la vision produit qui va avec, entraine de facto une perte de connexion avec le code.
 
-Et c'est le genre de scénario s'est produit avant les LLMs : on sait tous ce qui se passe quand un **project manager fournit un flux infini de user-stories à une équipe de développeurs juniors** (qui, dans le cas des LLMs, ne deviennent jamais seniors), sans la supervision d'un développeur plus expérimenté.
+Et c'est le genre de scénario s'est produit avant les LLMs : on sait tous ce qui se passe quand un **project manager fournit un flux infini de user-stories à une équipe de développeurs juniors** (qui, dans le cas des LLMs, ne deviennent jamais seniors), sans la supervision d'un développeur plus expérimenté.
 
 La vélocité initiale sera effectivement impressionnante, d'autant que le project manager a généralement une bonne **vision** du produit à construire, mais comme souvent avec les LLMs, cette vélocité initiale finira par s'effondrer. 
 
@@ -100,18 +103,18 @@ Donc au lieu d'orchestrateurs, je pense que la bonne analogie est **lead develop
 
 ## Responsabilités d'un lead developer
 
-Donc, en tant que tech lead d'une équipe de développeurs juniors — et en mettant de côté toute la partie RH — quelles sont vos responsabilités ?
+Donc, en tant que tech lead d'une équipe de développeurs juniors — et en mettant de côté toute la partie RH — quelles sont vos responsabilités ?
 
-- Vous **prenez les décisions techniques clés** (encore plus quand votre équipe est composée d'Agents IA) ;
-- Vous vous assurez que la **dette technique du projet reste raisonnable**, en faisant des 'review' de code, en autorisant des raccourcis quand nécessaire, etc. ;
-- Vous avez une **vision claire du Produit**, et vous assurez que cette vision est transmise à l'équipe tech ;
-- Vous **décomposez le travail** (ex. user stories et ticketing) du côté Produit vers le côté technique et après quelques échanges avec votre équipe, vous le distribuez ;
-- Vous **vous salissez les mains de temps en temps** pour [rester affûté](Use it or lose it), et pour vous attaquer aux problèmes les plus difficiles, comme poser la structure de base, choisir les techs, travailler sur des PoC, etc. ;
+- Vous **prenez les décisions techniques clés** (encore plus quand votre équipe est composée d'Agents IA) ;
+- Vous vous assurez que la **dette technique du projet reste raisonnable**, en faisant des 'review' de code, en autorisant des raccourcis quand nécessaire, etc. ;
+- Vous avez une **vision claire du Produit**, et vous assurez que cette vision est transmise à l'équipe tech ;
+- Vous **décomposez le travail** (ex. user stories et ticketing) du côté Produit vers le côté technique et après quelques échanges avec votre équipe, vous le distribuez ;
+- Vous **vous salissez les mains de temps en temps** pour [rester affûté](Use it or lose it), et pour vous attaquer aux problèmes les plus difficiles, comme poser la structure de base, choisir les techs, travailler sur des PoC, etc. ;
 - Vous révisez et **améliorez les processus continuellement**.
 
 ## Développement piloté par les specs
 
-Cette approche correspond bien à la méthode de "développement piloté par les specs" ('spec driven development'), qui est basée sur le flux de travail suivant :
+Cette approche correspond bien à la méthode de "développement piloté par les specs" ('spec driven development'), qui est basée sur le flux de travail suivant :
 
 ```
 ┌────────────────────┐
@@ -144,35 +147,36 @@ Cette approche correspond bien à la méthode de "développement piloté par les
 ```
 *Schéma du [repo open-specs](https://github.com/Fission-AI/OpenSpec)*
 
-Donc, demain, en tant que lead developer dans une agence web / startup / scale-up, votre travail ressemblera probablement à ceci :
+Donc, demain, en tant que lead developer dans une agence web / startup / scale-up, votre travail ressemblera probablement à ceci :
 
-1. **Prendre un ticket** qui vous est assigné dans Linear ;
-2. **Discuter** avec un Agent pour trouver la bonne approche technique pour la tâche. Peut-être décomposer les tâches en plusieurs morceaux (rappelez-vous, les LLMs sont des devs juniors !) ;
-3. **Écrire des fichiers de specs** pour vos morceaux, avec des attentes claires ;
-4. **Lancer un nouvel agent**, et fournir un fichier de spec ;
-5. **Attendre** que l'agent termine sa tâche. Vous pouvez vouloir paralléliser (plus sur cela plus tard) ;
-6. **Réviser le travail de l'agent**. Si l'agent est parti dans la mauvaise direction, vos specs doivent être améliorées : vous faites un rollback et recommencez (ce qui est plus rapide que de discuter sans fin avec le LLM ! Ne mettez pas [de pièces dans la machine](article)) ;
-7. **Livrer le travail**. L'agent sera responsable du nettoyage de la documentation ;
-8. **Réviser votre processus** : si les règles / compétences doivent être améliorées, c'est votre responsabilité de le faire.
+1. **Prendre un ticket** qui vous est assigné dans Linear ;
+2. **Discuter** avec un Agent pour trouver la bonne approche technique pour la tâche. Peut-être décomposer les tâches en plusieurs morceaux (rappelez-vous, les LLMs sont des devs juniors !) ;
+3. **Écrire des fichiers de specs** pour vos morceaux, avec des attentes claires ;
+4. **Lancer un nouvel agent**, et fournir un fichier de spec ;
+5. **Attendre** que l'agent termine sa tâche. Vous pouvez vouloir paralléliser (plus sur cela plus tard) ;
+6. **Réviser le travail de l'agent**. Si l'agent est parti dans la mauvaise direction, vos specs doivent être améliorées : vous faites un rollback et recommencez (ce qui est plus rapide que de discuter sans fin avec le LLM ! Ne mettez pas [de pièces dans la machine](article)) ;
+7. **Livrer le travail**. L'agent sera responsable du nettoyage de la documentation ;
+8. **Réviser votre processus** : si les règles / compétences doivent être améliorées, c'est votre responsabilité de le faire.
 
 Encore une fois, à quelques exceptions près, ce flux de travail est exactement ce que vous pourriez faire avec des développeurs juniors humains. **Sauf que cela peut prendre moins d'une minute au lieu d'heures ou de jours.**
 
-![](/writing/developers-are-dead-long-live-lead-developers/cleanshot-2026-01-19-at-17-18-00-2x.png)
-https://x.com/trq212/status/2008610538763559356?s=20
+{% figure src="/writing/developers-are-dead-long-live-lead-developers/cleanshot-2026-01-19-at-17-18-00-2x.png" alt="Tweet de Thariq (@trq212) : construire les grosses fonctionnalités à partir d'une spec, Claude vous interviewe via AskUserQuestionTool, puis une nouvelle session l'exécute. Le prompt est montré." kind="capture" %}
+[x.com/trq212/status/2008610538763559356](https://x.com/trq212/status/2008610538763559356?s=20)
+{% /figure %}
 
 ## Prérequis
 
-Pour que ce système fonctionne, plusieurs critères doivent être remplis :
+Pour que ce système fonctionne, plusieurs critères doivent être remplis :
 
-- Le projet **doit contenir une bonne documentation à jour**, car vous devez fournir la bonne quantité de contexte à toutes les étapes. Cela peut être des références au code, de la documentation, etc. ;
-- Vous aurez probablement besoin de **Cursor rules ou Claude Skills** pour que l'agent récupère le bon contexte et les bons outils au bon moment ;
-- Vous devez **fournir une mémoire à long terme** (le contexte, toujours). Cela pourrait être un fichier `CHANGELOG.md` que les agents remplissent après chaque tâche ;
+- Le projet **doit contenir une bonne documentation à jour**, car vous devez fournir la bonne quantité de contexte à toutes les étapes. Cela peut être des références au code, de la documentation, etc. ;
+- Vous aurez probablement besoin de **Cursor rules ou Claude Skills** pour que l'agent récupère le bon contexte et les bons outils au bon moment ;
+- Vous devez **fournir une mémoire à long terme** (le contexte, toujours). Cela pourrait être un fichier `CHANGELOG.md` que les agents remplissent après chaque tâche ;
 - **Les specs doivent être stockées en tant que fichiers lisibles par l'humain**, car la révision des specs est probablement l'étape la plus importante de cette méthode.
 
 Plusieurs frameworks ont gagné en popularité récemment, tels que [Spec-kit]() ou [open-specs](), mais on peut implémenter ce flux de travail avec de simples fichiers markdown.
 
 {% callout title="Show me what you got" %}
-À venir : un petit billet pour vous montrer comment je m'y prends avec des fichiers markdown.
+À venir : un petit billet pour vous montrer comment je m'y prends avec des fichiers markdown.
 {% /callout %}
 
 ## Pourquoi ça fonctionne
@@ -183,12 +187,13 @@ Comme la plupart des développeurs, j'avais l'habitude d'échanger en langage na
 
 Vous demandez un truc, vous posez des questions, vous changez d'avis 10 fois... avec un humain, c'est déjà un flux un peu pénible, qui nécessite une consolidation finale. Avec un LLM, c'est la garantie qu'il se prenne les pieds dans le tapis, qu'il perde du contexte, oublie vos instructions donnés 10 prompts plus haut, et que vous allez perdre un temps monstrueux (et de la santé mentale).
 
-> Interacting with LLM coding tools is much like playing a slot machine, it grabs and chokeholds your gambling instincts. You’re rolling dice for the perfect result without much thought.
-> https://news.ycombinator.com/item?id=44149256
+{% quote source="news.ycombinator.com" href="https://news.ycombinator.com/item?id=44149256" %}
+Interacting with LLM coding tools is much like playing a slot machine, it grabs and chokeholds your gambling instincts. You’re rolling dice for the perfect result without much thought.
+{% /quote %}
 
 J'ai l'impression que cette approche fonctionne parce qu'**elle est ancrée dans les limitations intrinsèques des LLMs**.
 
-Les agents ne sont **pas des êtres omniscients qui peuvent lire dans vos pensées** (ce qui semble être la cause de beaucoup de frustration autour de moi), et ils **ne sont absolument pas à la hauteur des collègues humains à cet égard** ; certains de mes plus anciens collègues me connaissent par coeur: comment je travaille, ce que j'aime, ce qui est important pour moi.
+Les agents ne sont **pas des êtres omniscients qui peuvent lire dans vos pensées** (ce qui semble être la cause de beaucoup de frustration autour de moi), et ils **ne sont absolument pas à la hauteur des collègues humains à cet égard** ; certains de mes plus anciens collègues me connaissent par coeur: comment je travaille, ce que j'aime, ce qui est important pour moi.
 
 Vos collègues en savent aussi plus sur l'entreprise, ses objectifs, priorités — bref le contexte global — que les agents ne pourront jamais le savoir. 
 
@@ -210,7 +215,7 @@ Ce nouveau flow reste à définir, mais, pour revenir à mon analogie une derni�
 
 **Ce n'était pas une bonne idée d'accepter les PR de juniors sans relecture avant les LLMs, ce n'est toujours pas une bonne idée aujourd'hui.**
 
-D'un autre côté, en itérant extrêmement rapidement avec 1 agent, je peux rester ultra affuté sur la feature en cours : sans changement de contexte, dans l'état de flow, je fournis des retours pointu. En fait, je "code" mais sans toucher au clavier, et j'avance tout aussi vite sur le long terme qu'en parallélisant.
+D'un autre côté, en itérant extrêmement rapidement avec 1 agent, je peux rester ultra affuté sur la feature en cours : sans changement de contexte, dans l'état de flow, je fournis des retours pointu. En fait, je "code" mais sans toucher au clavier, et j'avance tout aussi vite sur le long terme qu'en parallélisant.
 
 **D'où mon pari sur une boucle d'itération extrêmement courte, pas sur l'automatisation complète.**
 
@@ -218,7 +223,7 @@ D'un autre côté, en itérant extrêmement rapidement avec 1 agent, je peux res
 
 Apprendre les compétences d'un lead developer sera difficile et inconfortable pour beaucoup. Nombre de développeurs n'ont pas choisi cette carrière pour gérer des gens, mais pour résoudre des puzzles, pour le challenge intellectuel.
 
-C'est compréhensible, et il y aura encore des jobs pour eux/elles : il y a encore pas mal de problèmes et défis que l'IA ne pourra pas résoudre de sitôt.
+C'est compréhensible, et il y aura encore des jobs pour eux/elles : il y a encore pas mal de problèmes et défis que l'IA ne pourra pas résoudre de sitôt.
 
 Mais pour une grande majorité d'entre nous, le quotidien est beaucoup plus banal. En tant que développeur web moi-même, je constate que 80% de mes tâches peuvent être réalisées par des LLMs (et le sont déjà).
 

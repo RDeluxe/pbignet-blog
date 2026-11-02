@@ -54,6 +54,7 @@ Of course, LLMs have some benefits compared to junior devs:
 - And, of course, they are extremely fast.
 
 > Think of AI like training a [smart intern](https://every.to/napkin-math/meet-your-new-finance-intern-gpt-4). To train someone junior well, you need to be prescriptive: How do you write an email? What tone do you use with clients? What does excellent work look like? What are the steps? What are the pitfalls? The more specific your guidelines, the more you set them up for success.
+
 *Even outside development, thinking about LLMs as interns or juniors is a [good framework](https://every.to/p/i-talked-to-more-than-100-companies-about-ai-here-s-what-s-actually-working)*
 
 **This agent / junior dev analogy has helped me wrap my head around what I could expect from a coding agent, and how I should "manage it".** 
@@ -68,8 +69,9 @@ Stating the obvious, but working with machines will never replace the benefits o
 
 So, you have a team of really motivated juniors at your disposal. How do you manage them?
 
-![](/writing/developers-are-dead-long-live-lead-developers/cleanshot-2026-01-21-at-10-09-21-1.png)
-https://x.com/jaimefjorge/status/2011381315929583747
+{% figure src="/writing/developers-are-dead-long-live-lead-developers/cleanshot-2026-01-21-at-10-09-21-1.png" alt="Tweet by Jaime Jorge: software development and software engineering are now two professions, and development is over. Developers compete against a bash loop; engineers orchestrate the loops." kind="capture" %}
+[x.com/jaimefjorge/status/2011381315929583747](https://x.com/jaimefjorge/status/2011381315929583747)
+{% /figure %}
 
 The word **orchestrator** is on a lot of lips. In this role, you don't dig much in the code anymore. You keep a "macro" vision of the project, its objectives, the list of tasks and issues you need to complete. You write tasks, you feed them to the system, and you watch as agents develop, review, and process all of them.
 
@@ -149,8 +151,9 @@ So, tomorrow, as a lead developer in a web agency / startup / scale-up, your wor
 
 Again, with a few exceptions, this workflow is exactly what you may do with human junior developers. **Except, this can take less than a minute instead of hours or days.**
 
-![](/writing/developers-are-dead-long-live-lead-developers/cleanshot-2026-01-19-at-17-18-00-2x.png)
-https://x.com/trq212/status/2008610538763559356?s=20
+{% figure src="/writing/developers-are-dead-long-live-lead-developers/cleanshot-2026-01-19-at-17-18-00-2x.png" alt="Tweet by Thariq (@trq212): build large features spec-first, have Claude interview you with AskUserQuestionTool, then run the spec in a new session. Includes the prompt used." kind="capture" %}
+[x.com/trq212/status/2008610538763559356](https://x.com/trq212/status/2008610538763559356?s=20)
+{% /figure %}
 
 ## Requirements
 
@@ -175,8 +178,9 @@ Like most developers, I used to go back and forth with LLMs when coding a featur
 
 You ask something, you ask questions, you change your mind 10 times... with a human colleague, that's already quite tiring, and you'll need to consolidate your vision at the end of the exchange, not code right away. With a LLM, that's the guarantee that it will fumble, lose context, forget your instructions 10 prompts before, and that you'll lose a lot of time and sanity.
 
-> Interacting with LLM coding tools is much like playing a slot machine, it grabs and chokeholds your gambling instincts. You’re rolling dice for the perfect result without much thought.
-> https://news.ycombinator.com/item?id=44149256
+{% quote source="news.ycombinator.com" href="https://news.ycombinator.com/item?id=44149256" %}
+Interacting with LLM coding tools is much like playing a slot machine, it grabs and chokeholds your gambling instincts. You’re rolling dice for the perfect result without much thought.
+{% /quote %}
 
 I feel like the spec-driven approach works because **it's rooted in the inner limitations of LLMs**.
 
@@ -184,7 +188,7 @@ Agents are **not omniscient beings that can read your mind** (which appears to b
 
 Humans also know more about the company, its goals, priorities — in short the overall context — than agents will ever be able to know. 
 
->Books, pictures, movies, etc. All those content are a mere simplification of reality, and even if you fed the LLMs hundreds of page of context, it still won't be enough.
+> Books, pictures, movies, etc. All those content are a mere simplification of reality, and even if you fed the LLMs hundreds of page of context, it still won't be enough.
 
 These shortcomings mean that, for agents to produce at their best, they need clear specifications of what you expect from them and the right context to base their reasoning on. **They need to be guided**, and we are back to the "new junior dev" analogy.
 
