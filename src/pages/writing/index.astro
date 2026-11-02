@@ -50,6 +50,7 @@ const posts = (await getCollection('writing'))
             readTime={post.data.readTime}
             pubDate={post.data.pubDate}
             href={`/writing/${post.id}`}
+            lang={post.data.lang}
           />
         ))}
       </Stack>

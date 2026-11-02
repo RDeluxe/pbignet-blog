@@ -39,6 +39,9 @@ const { numbered = false, dropCap = false } = Astro.props
     margin-inline: auto;
     padding-inline: var(--gutter);
     counter-reset: sub;
+    /* a bare URL is one unbreakable word: without this it pushes the page sideways on
+       narrow screens. Only breaks a word that would overflow, so text is unchanged. */
+    overflow-wrap: break-word;
   }
 
   /* ⚠️ ENFANT DIRECT, jamais descendant — et ce n'est pas une préférence d'écriture.

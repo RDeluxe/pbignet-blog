@@ -10,8 +10,11 @@ import { defineConfig } from 'astro/config'
 // le CSS tel qu'on l'écrit.
 const cdExport = process.env.CD_EXPORT === '1'
 
+// the public URL is deployment data: SITE_URL, else the old Ghost domain this site replaces
+const site = process.env.SITE_URL || 'https://blog.pierrickbignet.com'
+
 export default defineConfig({
-  site: 'https://exhale.blog',
+  site,
   ...(cdExport && {
     outDir: './dist-cd',
     // format 'file' : /writing → writing.html (pas writing/index.html) — le composer

@@ -1,4 +1,5 @@
 ---
+import { footer } from '../data/nav'
 import Wrap from './primitives/Wrap.astro'
 import Barcode from './print/Barcode.astro'
 import MonoLabel from './print/MonoLabel.astro'
@@ -18,21 +19,16 @@ import MonoLabel from './print/MonoLabel.astro'
         </div>
       </div>
 
-      <div class="foot-col">
-        <h4>Read</h4>
-        <a href="/writing">Writing</a>
-        <a href="/guides">Field Guides</a>
-        <a href="/projects">Projects</a>
-        <a href="/now">Now</a>
-      </div>
-
-      <div class="foot-col">
-        <h4>Around</h4>
-        <a href="/about">About</a>
-        <a href="/setup">Setup</a>
-        <a href="/photos">Photos</a>
-        <a href="/travel" title="Section en cours de construction">Travel ⌁</a>
-      </div>
+      {footer.map(col => (
+        <div class="foot-col">
+          <h4>{col.title}</h4>
+          {col.items.map(item => (
+            item.locked
+              ? <span class="lock" aria-disabled="true" title="Section en cours de construction">{item.label}</span>
+              : <a href={item.href}>{item.label}</a>
+          ))}
+        </div>
+      ))}
 
       <div class="foot-mark">
         <Barcode label="PB · 2026 · 45.76N 4.83E · ∞" align="right" />
@@ -85,7 +81,8 @@ import MonoLabel from './print/MonoLabel.astro'
     color: var(--ink-3);
     margin: 0 0 var(--space-s);
   }
-  .foot-col a {
+  .foot-col a,
+  .foot-col .lock {
     display: block;
     font-family: var(--mono);
     font-size: var(--fs-data);
@@ -94,6 +91,8 @@ import MonoLabel from './print/MonoLabel.astro'
     transition: color 0.2s;
   }
   .foot-col a:hover { color: var(--accent); }
+  /* a section not built yet: listed, not a link — same quiet ink as in MainNav */
+  .foot-col .lock { color: var(--ink-3); cursor: default; }
 
   /* Nom aligné sur celui du gold (`.foot-mark`), qui a remplacé les trois styles en ligne
    * de `01_Home` en résorbant `text-align:right` / `margin-left:auto` / `margin-top:16px`.

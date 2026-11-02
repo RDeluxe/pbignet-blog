@@ -15,15 +15,15 @@ export interface NavItem {
 /** les sections principales, dans l'ordre du gold */
 export const primary: NavItem[] = [
   { label: 'Writing', href: '/writing' },
-  { label: 'Projects', href: '/projects' },
-  { label: 'Now', href: '/now' },
-  { label: 'Setup', href: '/setup' },
-  { label: 'Photos', href: '/photos' },
+  { label: 'Projects', href: '/projects', locked: true },
+  { label: 'Now', href: '/now', locked: true },
+  { label: 'Setup', href: '/setup', locked: true },
+  { label: 'Photos', href: '/photos', locked: true },
 ]
 
 /** poussées à droite dans la nav principale, par-dessus le séparateur */
 export const secondary: NavItem[] = [
-  { label: 'About', href: '/about' },
+  { label: 'About', href: '/about', locked: true },
   { label: 'Travel ⌁', href: '/travel', locked: true },
 ]
 
@@ -34,5 +34,16 @@ export const secondary: NavItem[] = [
  */
 export const barItems: NavItem[] = [
   ...primary,
-  ...secondary.filter(i => !i.locked),
+  ...secondary,
+].filter(i => !i.locked)
+
+/** the footer's two columns; a locked entry shows as plain text */
+export const footer: { title: string, items: NavItem[] }[] = [
+  { title: 'Read', items: [
+    primary[0],
+    { label: 'Field Guides', href: '/guides', locked: true },
+    primary[1],
+    primary[2],
+  ] },
+  { title: 'Around', items: [secondary[0], primary[3], primary[4], secondary[1]] },
 ]
