@@ -50,7 +50,9 @@ const {
     /* même mesure que <Prose> : les gouttières s'ajoutent à la colonne de texte */
     max-width: calc(var(--measure-body) + 2 * var(--gutter));
     margin-inline: auto;
-    padding: clamp(30px, 4vw, 52px) var(--gutter) 0;
+    /* the bottom gives the drop cap air: Anton at 3.1em rises above its line and sat on
+       the byline, 0px apart (critique 2026-11-02, n° 7) */
+    padding: clamp(30px, 4vw, 52px) var(--gutter) var(--space-2xl);
   }
 
   .tags {

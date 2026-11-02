@@ -38,4 +38,13 @@ const { size = 'section', measure = 'default', spaced = false } = Astro.props
   .lede[data-measure='tight'] { max-width: var(--measure-lede-tight); }
 
   .lede[data-spaced='on'] { margin-top: var(--space-xl); }
+
+  /* a link in the lede's own text (the 404's way back): same treatment as in Prose. The
+     slot is the lede's text, so styling its inline runs is the lede's business. */
+  .lede :global(a) {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+  }
 </style>

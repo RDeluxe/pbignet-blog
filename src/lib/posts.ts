@@ -15,3 +15,16 @@ export async function getPosts(): Promise<{ post: Post, number: string }[]> {
     .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
   return posts.map((post, i) => ({ post, number: String(posts.length - i).padStart(3, '0') }))
 }
+
+/**
+ * Does the post open on a paragraph of its own text? The drop cap goes there and nowhere
+ * else: not on a callout, a quote, a heading or an image, and not on an editor's note set
+ * in italic, which a Roman capital would contradict (critique 2026-11-02, n° 8).
+ */
+export function opensOnText(body: string | undefined): boolean {
+  const first = (body ?? '').trim().split(/\n\s*\n/)[0]?.trim() ?? ''
+  if (!first || /^(?:\{%|[>#|]|!\[|[-*+] |\d+\. |```)/.test(first))
+    return false
+  // a paragraph in italic from end to end: *…* or _…_, not **bold**
+  return !/^([*_])(?!\1)[\s\S]*[^*_]\1[.!?…]?$/.test(first)
+}

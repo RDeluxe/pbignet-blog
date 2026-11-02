@@ -2,12 +2,14 @@
 import type { GetStaticPaths } from 'astro'
 import { getCollection, render } from 'astro:content'
 import ArticleBar from '../../components/article/ArticleBar.astro'
+import ArticleFoot from '../../components/article/ArticleFoot.astro'
 import ArticleHead from '../../components/article/ArticleHead.astro'
 import CoverSlot from '../../components/hero/CoverSlot.astro'
 import Prose from '../../components/primitives/Prose.astro'
 import SiteFooter from '../../components/SiteFooter.astro'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 import { formatMonth } from '../../lib/date'
+import { opensOnText } from '../../lib/posts'
 
 export const getStaticPaths: GetStaticPaths = async () => {
   // a draft's page exists in `pnpm dev` only: out of the build, so out of the sitemap
@@ -45,9 +47,11 @@ const stats = [
       dek={d.dek}
     />
 
-    <Prose numbered={d.numbered} dropCap>
+    <Prose numbered={d.numbered} dropCap={opensOnText(post.body)}>
       <Content />
     </Prose>
+
+    <ArticleFoot post={post} />
   </article>
 
   <SiteFooter />

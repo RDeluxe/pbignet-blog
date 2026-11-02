@@ -1,0 +1,121 @@
+---
+/**
+ * ArticleFoot — where a reading ends: the post's series, the next post, the way back.
+ *
+ * A post used to end on its last paragraph, then the site footer: no series link although
+ * pt.1 exists, no next read, no return (critique 2026-11-02, n° 20). Nothing new in the
+ * vocabulary: a mono label per block, the list's own row (`PostRow`) for the next post,
+ * the bar's back link wording.
+ */
+import type { Post } from '../../lib/posts'
+import { getPosts } from '../../lib/posts'
+import PostRow from '../PostRow.astro'
+import MonoLabel from '../print/MonoLabel.astro'
+
+interface Props {
+  post: Post
+}
+
+const { post } = Astro.props
+const all = await getPosts()
+const at = all.findIndex(p => p.post.id === post.id)
+const series = post.data.series
+  ? all.filter(p => p.post.data.series === post.data.series).reverse()
+  : []
+// the next read is the post below this one in the list; the oldest loops to the newest
+const next = all.length > 1 ? all[(at + 1) % all.length] : undefined
+---
+
+<footer class="foot">
+  {series.length > 1 && (
+    <section class="block">
+      <div class="label"><MonoLabel>Series · {post.data.series}</MonoLabel></div>
+      <ol class="series">
+        {series.map(({ post: p, number }) => (
+          <li lang={p.data.lang}>
+            <span class="num">{number}</span>
+            {p.id === post.id
+              ? <span class="here" aria-current="page">{p.data.title}</span>
+              : <a href={`/writing/${p.id}`}>{p.data.title}</a>}
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  {next && (
+    <section class="block">
+      <div class="label"><MonoLabel>Next</MonoLabel></div>
+      <PostRow
+        index={next.number}
+        tag={next.post.data.tag}
+        tagAccent={next.post.data.tag === 'Essay'}
+        title={next.post.data.title}
+        description={next.post.data.description}
+        readTime={next.post.data.readTime}
+        pubDate={next.post.data.pubDate}
+        href={`/writing/${next.post.id}`}
+        lang={next.post.data.lang}
+        titleAs="h2"
+      />
+    </section>
+  )}
+
+  <a class="back" href="/writing">← All writing</a>
+</footer>
+
+<style>
+  .foot {
+    /* the column of the head and the prose */
+    max-width: calc(var(--measure-body) + 2 * var(--gutter));
+    margin: var(--space-3xl) auto 0;
+    padding: var(--space-xl) var(--gutter) 0;
+    border-top: 2px solid var(--ink);
+  }
+
+  .block { margin-bottom: var(--space-2xl); }
+  .label { margin-bottom: var(--space-m); }
+
+  .series {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--sans);
+    font-size: var(--fs-body);
+    line-height: 1.35;
+  }
+  .series li {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: var(--rhythm-row);
+    align-items: baseline;
+    padding: var(--space-s) 0;
+    border-top: 1px solid var(--line);
+  }
+  .series li:last-child { border-bottom: 1px solid var(--line); }
+  .num {
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    color: var(--ink-3);
+  }
+  .series a {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .here {
+    color: var(--ink);
+    font-weight: var(--w-semibold);
+  }
+
+  .back {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    letter-spacing: 0.05em;
+    color: var(--ink-2);
+    transition: color var(--dur-fast);
+  }
+  .back:hover { color: var(--accent-text); }
+</style>
