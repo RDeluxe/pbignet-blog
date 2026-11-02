@@ -7,9 +7,17 @@ const { currentPath } = Astro.props as { currentPath?: string }
 
 <nav class="main" aria-label="Navigation principale">
   {items.map(item => (
-    <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
-      {item.label}
-    </a>
+    item.locked
+      ? (
+          <span class="lock" aria-disabled="true" title="Section en cours de construction">
+            {item.label}
+          </span>
+        )
+      : (
+          <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
+            {item.label}
+          </a>
+        )
   ))}
   <span class="sp"></span>
   {right.map(item => (
