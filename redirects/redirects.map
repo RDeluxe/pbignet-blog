@@ -4,8 +4,6 @@
 # posts: Ghost serves /<slug>/, the new site /writing/<slug>/
 /chantier-remunerations-premier-chapitre/ /writing/chantier-remunerations-premier-chapitre/;
 /chantier-remunerations-premier-chapitre /writing/chantier-remunerations-premier-chapitre/;
-/codebase-context-engineering-your-codebase-is-the-prompt/ /writing/codebase-context-engineering-your-codebase-is-the-prompt/;
-/codebase-context-engineering-your-codebase-is-the-prompt /writing/codebase-context-engineering-your-codebase-is-the-prompt/;
 /fr-developers-are-dead-long-live-lead-developers/ /writing/fr-developers-are-dead-long-live-lead-developers/;
 /fr-developers-are-dead-long-live-lead-developers /writing/fr-developers-are-dead-long-live-lead-developers/;
 /gamedesign-seed/ /writing/gamedesign-seed/;
@@ -27,6 +25,8 @@
 /feed /rss.xml;
 
 # redirects/manual.map
+/codebase-context-engineering-your-codebase-is-the-prompt/ /writing/;
+/codebase-context-engineering-your-codebase-is-the-prompt /writing/;
 /developers-are-dead-long-live-lead-developers/ /writing/developers-are-dead-long-live-lead-developers/;
 /developers-are-dead-long-live-lead-developers /writing/developers-are-dead-long-live-lead-developers/;
 
