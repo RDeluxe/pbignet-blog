@@ -12,6 +12,7 @@
   <button type="button" data-variant="passe" aria-pressed="false">B · Passe</button>
   <button type="button" data-variant="repere" aria-pressed="false">C · Repérage</button>
   <button type="button" data-variant="voile" aria-pressed="false">D · Voile</button>
+  <button type="button" data-variant="vague" aria-pressed="false">E · Vague</button>
   <label class="pp-rm"><input type="checkbox" id="pp-rm" /> reduced-motion</label>
 </div>
 
@@ -20,7 +21,7 @@ const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 const CELL = 3 // px per dither dot, like the cover recipes
 
 const fromUrl = new URLSearchParams(location.search).get('anim')
-let variant = fromUrl && ['trame', 'passe', 'repere', 'voile'].includes(fromUrl) ? fromUrl : 'trame'
+let variant = fromUrl && ['trame', 'passe', 'repere', 'voile', 'vague'].includes(fromUrl) ? fromUrl : 'trame'
 const forceReduced = document.getElementById('pp-rm') as HTMLInputElement
 const reduced = (): boolean => forceReduced.checked || matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -154,7 +155,81 @@ async function voile(from: HTMLElement, to: HTMLElement): Promise<void> {
   veil.remove()
 }
 
-const variants = { trame, passe, repere, voile } as Record<string, (a: HTMLElement, b: HTMLElement) => Promise<void>>
+/**
+ * E · vague (Pierrick, 05/11): one wave sweeps down from the title in ~1 s. Its front is a
+ * flat of the page's ink with a bevelled (diagonal) edge; its trail dissolves upward in
+ * ordered dither, and the new language already shows behind it while the front still runs:
+ * the old text below the front, the new one above. Nothing above the title is swept.
+ */
+async function vague(from: HTMLElement, to: HTMLElement): Promise<void> {
+  const W = Math.ceil(innerWidth / CELL)
+  const H = Math.ceil(innerHeight / CELL)
+  const title = from.querySelector('h1')?.getBoundingClientRect()
+  const cols = [from.querySelector('.head'), from.querySelector('.prose')].filter(Boolean).map(e => (e as HTMLElement).getBoundingClientRect())
+  const x0 = Math.floor(Math.min(...cols.map(r => r.left)) / CELL)
+  const x1 = Math.ceil(Math.max(...cols.map(r => r.right)) / CELL)
+  const top = Math.max(0, Math.floor((title?.top ?? 0) / CELL) - 4)
+  const solid = Math.round(H * 0.07) // the front's flat
+  const trail = Math.round(H * 0.3) // the dither trail behind it
+  const bevel = Math.round(H * 0.12) // the diagonal of the front edge, across the column
+
+  const make = (): [HTMLCanvasElement, CanvasRenderingContext2D] => {
+    const c = document.createElement('canvas')
+    c.width = W
+    c.height = H
+    return [c, c.getContext('2d')!]
+  }
+  const [cNew, gNew] = make()
+  const [cOld, gOld] = make()
+  const [cVeil, gVeil] = make()
+  const veil = document.createElement('div')
+  veil.className = 'proto-veil is-wave'
+  document.body.append(veil)
+
+  const frames = 16
+  const travel = H - top + solid + trail + bevel
+  for (let f = 0; f <= frames; f++) {
+    const line = top + travel * (f / frames) // the front, at the column's left edge
+    const dNew = gNew.createImageData(W, H)
+    const dOld = gOld.createImageData(W, H)
+    const dVeil = gVeil.createImageData(W, H)
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4 + 3
+        if (y < top) { // above the title: nothing to translate, the new version at once
+          dNew.data[i] = 255
+          continue
+        }
+        const k = Math.min(1, Math.max(0, (x - x0) / Math.max(1, x1 - x0)))
+        const d = line - k * bevel - y // > 0: the wave has passed
+        const passed = d >= 0
+        dNew.data[i] = passed ? 255 : 0
+        dOld.data[i] = passed ? 0 : 255
+        if (!passed || x < x0 || x >= x1)
+          continue
+        let cover = 1
+        if (d > solid) {
+          const v = 1 - (d - solid) / trail
+          const t = (BAYER4[(y % 4) * 4 + (x % 4)] + 0.5) / 16 + (Math.random() - 0.5) * 0.08 // the boil
+          cover = t < v ? 1 : 0
+        }
+        dVeil.data[i] = cover ? 255 : 0
+      }
+    }
+    gNew.putImageData(dNew, 0, 0)
+    gOld.putImageData(dOld, 0, 0)
+    gVeil.putImageData(dVeil, 0, 0)
+    for (const [el, c] of [[to, cNew], [from, cOld]] as const) {
+      setMask(el, `url(${c.toDataURL()})`, `${W * CELL}px ${H * CELL}px`, `0 ${-el.getBoundingClientRect().top}px`, 'no-repeat')
+      el.style.imageRendering = 'pixelated'
+    }
+    setMask(veil, `url(${cVeil.toDataURL()})`, `${W * CELL}px ${H * CELL}px`, '0 0', 'no-repeat')
+    await wait(1000 / frames)
+  }
+  veil.remove()
+}
+
+const variants = { trame, passe, repere, voile, vague } as Record<string, (a: HTMLElement, b: HTMLElement) => Promise<void>>
 
 /** the block at the top of the screen, as « nth h2 + share of its section », to land the reader at the same place */
 function anchorOf(ver: HTMLElement): { h: number, frac: number, dy: number } {
@@ -256,6 +331,7 @@ document.querySelectorAll<HTMLAnchorElement>('.lang-switch a[data-lang]').forEac
   .pp-rm { color: var(--ink-3); display: flex; gap: 4px; align-items: center; }
 
   /* D · voile: the flat of the page's ink */
+  :global(.proto-veil.is-wave) { inset: 0; clip-path: none; }
   :global(.proto-veil) {
     position: fixed;
     z-index: 55;
