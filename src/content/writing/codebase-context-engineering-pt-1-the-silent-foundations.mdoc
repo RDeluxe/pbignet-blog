@@ -1,0 +1,93 @@
+---
+title: Codebase context engineering pt.1 - The silent foundations
+description: "The premise, in one line: treat a coding agent like a junior dev you onboard several times an hour. Same shaky long-term memory, same need for guardrails — except you're now doing the onboarding…"
+pubDate: 2026-11-05
+tag: Essay
+readTime: 6
+lang: en
+tags:
+  - AI
+  - Dev
+---
+
+{% callout tag="Info" title="This is the how-to companion to [Your codebase is the prompt](/writing/codebase-context-engineering-your-codebase-is-the-prompt) — where I argue that your codebase, not your prompts, is what makes agents productive. That piece is the *why*; this series is the *how*. You don't have to read it first, but that's where the case lives." %}
+{% /callout %}
+
+The premise, in one line: **treat a coding agent like a junior dev you onboard several times an hour.** Same shaky long-term memory, same need for guardrails — except you're now doing the onboarding fifty times a day instead of once a quarter. Which turns the problem into one every team lead already knows: what makes a new hire productive *fast*, while keeping their output consistent enough that you can review it at a glance?
+
+From experience, five things move the needle:
+
+1. a logically **structured codebase** — files in the right place, named the right way, that feels natural to explore;
+2. **technology and frameworks** that fit the project, lower cognitive load, and are well documented;
+3. concise, complete, up-to-date **documentation**;
+4. clear **processes and rules**, with tooling that actually enforces them;
+5. a solid set of **examples** — real code that conveys your style better than any rule could.
+
+This series is about building each of these into the codebase itself, so you have to spell out as little as possible. This first part covers the two **silent foundations**: structure and technology. Silent, because you set them once and they shape every agent interaction afterwards — without you writing a single rule. Get them right and a good chunk of your "context engineering" is done for free.
+
+## Structure goes a long way
+
+I'll admit it: I never start by reading the `README.md` when I open an unfamiliar project. I go straight to the code — the folder layout, the naming scheme, the overall organisation. Is the frontend split by feature or by atomic design? Is it a monorepo? Is there shared code, and where does it live?
+
+**Reading a codebase's structure is like walking through a house: you can tell whether the previous owner took care of the place.** A crooked door here, a patch of mould there, and you immediately want to check the roof and the wiring — neglect tends to spread.
+
+The reverse is just as telling. Some codebases simply *feel right*: files and features are exactly where you'd reach for them. That signals the people before you had taste, and my trust in their work — down to the smallest method — climbs accordingly.
+
+A tasteful structure does the same job for your agents. It distills your taste into their output and **enables copy/paste-driven development**: asked for a new dashboard page, the agent finds the existing pages, the existing components, the existing API calls, and mirrors them. It removes choices — almost always a good thing, for agents and teammates alike. Determinism wins.
+
+It also **makes review faster**: a misplaced module, or a file that doesn't fit the pattern, jumps straight out at you.
+
+So **take your time tailoring the structure to the project.** Don't rush it, and don't hand the job to your agent — be active here. If you have a structure that's proven itself on a past project, reuse it. (Reuse is going to be a recurring theme.)
+
+In our boilerplate, the structure is documented for both the [backend](https://lonestone.github.io/lonestone-boilerplate/references/backend/) and the [frontend](https://lonestone.github.io/lonestone-boilerplate/references/frontend/). It began as a way to help developers move between projects; with agents it pays off twice, because a shared structure lets us write skills and rules that apply to *every* project built on the boilerplate, instead of one-off, per-project ones.
+
+{% figure src="/writing/codebase-context-engineering-pt-1-the-silent-foundations/cleanshot-2026-03-16-at-14-56-16.png" alt="NestJS enforces some structure already; we went further with examples and documentation. This is a documentation page — not a rule or a skill." kind="capture" %}
+NestJS enforces some structure already; we went further with examples and documentation. This is a documentation page — not a rule or a skill.
+{% /figure %}
+
+## The right stack does half the work
+
+The choice of language, framework and tooling can lift your agents' quality and speed even more than it lifts your human colleagues'. Three reasons stand out.
+
+### A stricter stack means fewer rules to write
+
+[Strongly typed languages play straight to an LLM's strengths](https://github.blog/ai-and-ml/llms/why-ai-is-pushing-developers-toward-typed-languages/): the type system catches mistakes the moment they're made and tightens the feedback loop. TypeScript is the obvious pick; Rust is another. The principle underneath: **the stricter your language and tooling, the fewer custom rules you have to write and maintain. That's context engineering bundled into the tech.**
+
+Your linter is part of the same bargain. It catches code smells faster and more consistently than you ever will in review — and it does so *deterministically*. A few lines of lint config replace pages of a `RULES.md` you'd otherwise have to write, keep current, and pay for in context on every run. We run TypeScript end-to-end and lean on a strict, batteries-included config (currently [Antfu's](https://github.com/antfu/eslint-config)) so we hand-write almost no style rules. The specific config matters far less than the stance: pick strict defaults and let them do the talking.
+
+{% callout tag="Tip" title="Your style rules still matter" %}
+You **will** read the code your agent produces — in review, or months later chasing a bug. Type and lint rules aren't bureaucracy; they're what keep that code legible when you need it most.
+{% /callout %}
+
+### A fast feedback loop keeps everyone in flow
+
+Speed has always mattered for the tools you run constantly — builders, linters, test runners. With agents it matters more, for two reasons.
+
+First, when you're working alongside an agent, a slow check is the difference between **staying in flow and opening a new browser tab** while you wait — all the more so because an agent can hand you a large chunk of code at once.
+
+Second, **agents run these tools far more often than you would.** Where your team might run the suite ten times a day, agents trigger it many times more, across many more pull requests and CI runs. Small per-run savings compound fast.
+
+{% figure src="/writing/codebase-context-engineering-pt-1-the-silent-foundations/cleanshot-2026-03-16-at-16-00-33.png" alt="Tweet by @thekitze: \"who gives a fuck about code formatting in 2026 lol\", quoting daily.dev: \"oxfmt is 30x faster than prettier. most devs will stick with prettier because we're tired of switching tools every 3 months for nothing\"." kind="capture" /%}
+> Contrary [to some](https://x.com/thekitze/status/2033315753470857220), I am convinced that picking the right tools is more important than ever.
+
+So treat speed as a feature when you pick your tools, not a bonus. Reaching for faster options — an [oxlint](https://oxc.rs/docs/guide/usage/linter.html)-class linter, [Vitest](https://vitest.dev) over a slower runner — isn't about chasing the bleeding edge; it directly protects your flow and your CI bill. (It's why we moved our NestJS backend onto SWC: faster startup, and Vitest instead of Jest.)
+
+### Popular, well-documented tools are easier for agents
+
+A framework with a large following is a real advantage — the model has simply seen far more of it. Reaching for the mainstream option over a niche one isn't the boldest choice, and it can cost you a little innovation, but it's a fair trade when you're optimising for predictable output.
+
+Popularity isn't the whole story, though. **A tool's documentation, its API, and its general ease of use matter just as much.** A concept that's hard for a human to hold in their head — React's `useEffect` is the classic example — tends to trip up an agent just the same. Favour tools with a simple mental model and good docs.
+
+{% callout tag="Info" title="What about doc-fetching MCPs?" %}
+I rarely wire up an MCP just to feed documentation. More and more libraries ship a "copy as Markdown" button, and I'm happy to let agents browse the docs themselves — a few more tokens, but one less moving part to maintain.
+{% /callout %}
+
+## Wiring it together is the hard part
+
+Picking good tools isn't enough — you have to make them cooperate, and that's where the real work usually hides. Sometimes it's an ESM-only dependency that has to live inside a CommonJS codebase (hello, NestJS). Sometimes it's subtler: getting a "magic" auth library to coexist with the level of control we wanted from our ORM took several iterations and more than one team discussion. The frontend is no kinder — React, forms, state, data fetching: making that many libraries play together is genuine work.
+
+So, once more: **don't rush.** Find the combination that fits your team and your projects — not just technically, but until the whole thing *clicks*. That upfront investment pays itself back almost immediately, and every agent you point at the result inherits it for free.
+
+---
+
+Structure and stack are the *silent* foundations: they carry most of the weight without you writing a single rule. But silent only goes so far. At some point you have to put the rest of your decisions into words — and make sure they're actually followed. That's the next piece.
