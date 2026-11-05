@@ -25,6 +25,8 @@
 /feed /rss.xml;
 
 # redirects/manual.map
+/codebase-context-engineering-your-codebase-is-the-prompt/ /writing/;
+/codebase-context-engineering-your-codebase-is-the-prompt /writing/;
 /developers-are-dead-long-live-lead-developers/ /writing/developers-are-dead-long-live-lead-developers/;
 /developers-are-dead-long-live-lead-developers /writing/developers-are-dead-long-live-lead-developers/;
 
