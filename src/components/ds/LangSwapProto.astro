@@ -11,6 +11,7 @@
   <button type="button" data-variant="trame" aria-pressed="true">A · Trame</button>
   <button type="button" data-variant="passe" aria-pressed="false">B · Passe</button>
   <button type="button" data-variant="repere" aria-pressed="false">C · Repérage</button>
+  <button type="button" data-variant="voile" aria-pressed="false">D · Voile</button>
   <label class="pp-rm"><input type="checkbox" id="pp-rm" /> reduced-motion</label>
 </div>
 
@@ -19,7 +20,7 @@ const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 const CELL = 3 // px per dither dot, like the cover recipes
 
 const fromUrl = new URLSearchParams(location.search).get('anim')
-let variant = fromUrl && ['trame', 'passe', 'repere'].includes(fromUrl) ? fromUrl : 'trame'
+let variant = fromUrl && ['trame', 'passe', 'repere', 'voile'].includes(fromUrl) ? fromUrl : 'trame'
 const forceReduced = document.getElementById('pp-rm') as HTMLInputElement
 const reduced = (): boolean => forceReduced.checked || matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -117,7 +118,43 @@ async function repere(from: HTMLElement, to: HTMLElement): Promise<void> {
   await wait(320)
 }
 
-const variants = { trame, passe, repere } as Record<string, (a: HTMLElement, b: HTMLElement) => Promise<void>>
+/**
+ * D · voile (Pierrick, 05/11): a flat of the page's ink sweeps down over the article, the
+ * text changes under it, then the flat dissolves in ordered dither (A's trame) to reveal the
+ * new language. ~0.75 s in all.
+ */
+async function voile(from: HTMLElement, to: HTMLElement): Promise<void> {
+  to.style.visibility = 'hidden'
+  const heads = [from.querySelector('.head'), from.querySelector('.prose')].filter(Boolean) as HTMLElement[]
+  const rects = heads.map(h => h.getBoundingClientRect())
+  const stage = from.getBoundingClientRect()
+  const left = Math.min(...rects.map(r => r.left))
+  const right = Math.max(...rects.map(r => r.right))
+  const top = Math.max(0, stage.top)
+  const bottom = Math.min(innerHeight, stage.bottom)
+  const veil = document.createElement('div')
+  veil.className = 'proto-veil'
+  Object.assign(veil.style, { left: `${left}px`, width: `${right - left}px`, top: `${top}px`, height: `${bottom - top}px` })
+  document.body.append(veil)
+  // the sweep, top to bottom, in steps like the boil
+  const sweep = 6
+  for (let f = 1; f <= sweep; f++) {
+    veil.style.clipPath = `inset(0 0 ${100 - (100 * f) / sweep}% 0)`
+    await wait(40)
+  }
+  // under the flat: the other language
+  from.style.visibility = 'hidden'
+  to.style.visibility = ''
+  await wait(60)
+  // the flat dissolves dot by dot
+  for (let l = 14; l >= 0; l -= 2) {
+    setMask(veil, tiles[l][0])
+    await wait(1000 / 18)
+  }
+  veil.remove()
+}
+
+const variants = { trame, passe, repere, voile } as Record<string, (a: HTMLElement, b: HTMLElement) => Promise<void>>
 
 /** the block at the top of the screen, as « nth h2 + share of its section », to land the reader at the same place */
 function anchorOf(ver: HTMLElement): { h: number, frac: number, dy: number } {
@@ -169,6 +206,7 @@ async function swap(lang: string): Promise<void> {
   from.classList.remove('is-leaving')
   from.style.top = ''
   from.style.visibility = ''
+  to.style.visibility = ''
   delete from.dataset.plates
   delete to.dataset.plates
   clearMask(from)
@@ -216,6 +254,15 @@ document.querySelectorAll<HTMLAnchorElement>('.lang-switch a[data-lang]').forEac
   }
   .proto-panel button[aria-pressed='true'] { border-color: var(--ink); color: var(--ink); background: var(--paper-2); }
   .pp-rm { color: var(--ink-3); display: flex; gap: 4px; align-items: center; }
+
+  /* D · voile: the flat of the page's ink */
+  :global(.proto-veil) {
+    position: fixed;
+    z-index: 55;
+    background: var(--accent);
+    clip-path: inset(0 0 100% 0);
+    pointer-events: none;
+  }
 
   /* both versions share one grid cell while they swap */
   :global(.lang-stage) { display: grid; }
