@@ -12,9 +12,9 @@ import Stack from '../components/primitives/Stack.astro'
 import SectionHead from '../components/SectionHead.astro'
 import SiteFooter from '../components/SiteFooter.astro'
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { getPosts } from '../lib/posts'
+import { getWorks } from '../lib/posts'
 
-const latest = (await getPosts()).slice(0, 5)
+const latest = (await getWorks()).slice(0, 5)
 ---
 
 <BaseLayout title="Not found — exhale" description="This page is not in the index." noindex>
@@ -30,7 +30,7 @@ const latest = (await getPosts()).slice(0, 5)
         the latest posts are below, and <a href="/writing">Writing</a> lists them all.
       </Lede>
       <Stack spaced>
-        {latest.map(({ post, number }) => (
+        {latest.map(({ versions, number }) => versions.map(post => (
           <PostRow
             index={number}
             tag={post.data.tag}
@@ -41,9 +41,10 @@ const latest = (await getPosts()).slice(0, 5)
             pubDate={post.data.pubDate}
             href={`/writing/${post.id}`}
             lang={post.data.lang}
+            paired={versions.length > 1}
             titleAs="h2"
           />
-        ))}
+        )))}
       </Stack>
     </Section>
   </main>

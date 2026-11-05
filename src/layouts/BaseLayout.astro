@@ -19,6 +19,8 @@ interface Props {
    * choix : il peut être keyé à l'image.
    */
   ink?: 'olive' | 'sepia'
+  /** the page in every language it exists in, itself included: `<link rel=alternate hreflang>` */
+  alternates?: { lang: 'en' | 'fr', href: string }[]
 }
 
 const {
@@ -27,6 +29,7 @@ const {
   description = 'The personal index of Pierrick Bignet — engineer, game art director, and photographer. Short essays, field notes, and dithered 35mm photography.',
   noindex = false,
   ink = 'olive',
+  alternates = [],
 } = Astro.props
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href
@@ -41,6 +44,21 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
+    {alternates.map(a => <link rel="alternate" hreflang={a.lang} href={new URL(a.href, Astro.site ?? Astro.url).href} />)}
+    {/* the reader's language, before the first paint: their choice, else the browser's
+        (fr* → fr), else English. Lists show it (base.css), the Masthead sets it. */}
+    <script is:inline>
+      (() => {
+        let l
+        try {
+          l = localStorage.getItem('lang')
+        }
+        catch {}
+        if (l !== 'en' && l !== 'fr')
+          l = (navigator.language || '').toLowerCase().startsWith('fr') ? 'fr' : 'en'
+        document.documentElement.dataset.lang = l
+      })()
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="alternate" type="application/rss+xml" title="exhale" href="/rss.xml" />

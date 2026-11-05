@@ -1,0 +1,87 @@
+---
+/**
+ * THROWAWAY prototype (i18n review, 2026-11-05) — see design/briefs/2026-11-05-i18n.md.
+ * A real bilingual post, « La quête de la seed » / « Looking for a seed », both versions in
+ * the page, and the content swap with three candidate animations (panel bottom right).
+ */
+import { getEntry, render } from 'astro:content'
+import ArticleHead from '../../components/article/ArticleHead.astro'
+import LangSwapProto from '../../components/ds/LangSwapProto.astro'
+import Masthead from '../../components/Masthead.astro'
+import Prose from '../../components/primitives/Prose.astro'
+import Section from '../../components/primitives/Section.astro'
+import SiteFooter from '../../components/SiteFooter.astro'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { formatMonth } from '../../lib/date'
+import { opensOnText } from '../../lib/posts'
+
+const versions = await Promise.all(
+  ['looking-for-a-seed-en', 'gamedesign-seed'].map(async (id) => {
+    const post = (await getEntry('writing', id))!
+    const { Content } = await render(post)
+    return { post, Content }
+  }),
+)
+const langs = versions.map(v => v.post.data.lang)
+---
+
+<BaseLayout title="i18n switch — prototype" ink="sepia" noindex>
+  <Section as="header" rhythm="none">
+    <Masthead currentPath="/writing" />
+  </Section>
+
+  <div class="lang-stage">
+    {versions.map(({ post, Content }, i) => {
+      const d = post.data
+      return (
+        <article class="ver" data-lang={d.lang} lang={d.lang} hidden={i > 0}>
+          <ArticleHead
+            tag={d.tag}
+            tags={d.tags}
+            stats={[
+              { key: 'Reading', value: `${d.readTime} MIN`, accent: true },
+              { key: 'Date', value: formatMonth(d.pubDate) },
+            ]}
+            title={d.title}
+          />
+          <nav class="lang-switch" aria-label="Language of this post">
+            <span class="ls-k">Text</span>
+            {langs.map(l => (
+              <a href={`#${l}`} data-lang={l} aria-current={l === d.lang ? 'true' : 'false'} hreflang={l}>{l.toUpperCase()}</a>
+            ))}
+          </nav>
+          <Prose dropCap={opensOnText(post.body)}>
+            <Content />
+          </Prose>
+        </article>
+      )
+    })}
+  </div>
+
+  <LangSwapProto />
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  /* prototype only: the switch sits under the head, on the text's measure */
+  .lang-switch {
+    max-width: calc(var(--measure-body) + 2 * var(--gutter));
+    margin: calc(-1 * var(--space-xl)) auto var(--space-xl);
+    padding-inline: var(--gutter);
+    display: flex;
+    gap: var(--space-s);
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-data);
+    text-transform: uppercase;
+  }
+  .ls-k { color: var(--ink-3); }
+  .lang-switch a {
+    color: var(--ink-3);
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+  }
+  .lang-switch a[aria-current='true'] { color: var(--accent-text); border-color: var(--accent); }
+  .lang-switch a:hover { color: var(--ink); }
+</style>

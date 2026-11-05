@@ -1,0 +1,534 @@
+---
+/**
+ * Prototype (i18n review, 2026-11-05): the per-post language switch and the candidate
+ * animations for the content swap. Pierrick picked E · vague; its panel stays as the tuning
+ * bench, defaults = the values shipped in article/LangSwitch.astro. /ds/ only, out of prod.
+ * Not a component of the system: do not import it elsewhere.
+ */
+---
+
+<div class="proto-panel" role="group" aria-label="Prototype controls">
+  <span class="pp-k">Animation</span>
+  <button type="button" data-variant="trame" aria-pressed="true">A · Trame</button>
+  <button type="button" data-variant="passe" aria-pressed="false">B · Passe</button>
+  <button type="button" data-variant="repere" aria-pressed="false">C · Repérage</button>
+  <button type="button" data-variant="voile" aria-pressed="false">D · Voile</button>
+  <button type="button" data-variant="vague" aria-pressed="false">E · Vague</button>
+  <label class="pp-rm"><input type="checkbox" id="pp-rm" /> reduced-motion</label>
+</div>
+
+<div class="wave-tweaks" role="group" aria-label="E · Vague — réglages">
+  <p class="wt-h">E · Vague — réglages</p>
+  <label>Durée totale <output data-out="dur"></output><input type="range" data-k="dur" min="300" max="3000" step="50" /></label>
+  <label>Hauteur du front (% écran) <output data-out="front"></output><input type="range" data-k="front" min="0" max="40" step="1" /></label>
+  <label>Angle du biseau (°) <output data-out="bevel"></output><input type="range" data-k="bevel" min="-45" max="45" step="1" /></label>
+  <label>Longueur de la traîne (% écran) <output data-out="trail"></output><input type="range" data-k="trail" min="0" max="100" step="1" /></label>
+  <label>Taille des points (px) <output data-out="cell"></output><input type="range" data-k="cell" min="1" max="12" step="1" /></label>
+  <label>Vitesse de la trame (paliers/s) <output data-out="boil"></output><input type="range" data-k="boil" min="0" max="60" step="1" /></label>
+  <label>Bruit de la trame <output data-out="jitter"></output><input type="range" data-k="jitter" min="0" max="0.5" step="0.01" /></label>
+  <fieldset>
+    <legend>Aplat</legend>
+    <label><input type="radio" name="wt-ink" value="accent" /> sépia</label>
+    <label><input type="radio" name="wt-ink" value="ink" /> noir</label>
+  </fieldset>
+  <div class="wt-row">
+    <button type="button" data-wt="replay">Rejouer</button>
+    <button type="button" data-wt="copy">Copier les réglages</button>
+    <button type="button" data-wt="reset">Défauts</button>
+  </div>
+  <textarea class="wt-json" readonly rows="4" aria-label="Réglages en JSON"></textarea>
+</div>
+
+<script>
+const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
+const CELL = 3 // px per dither dot, like the cover recipes
+
+const fromUrl = new URLSearchParams(location.search).get('anim')
+let variant = fromUrl && ['trame', 'passe', 'repere', 'voile', 'vague'].includes(fromUrl) ? fromUrl : 'trame'
+const forceReduced = document.getElementById('pp-rm') as HTMLInputElement
+const reduced = (): boolean => forceReduced.checked || matchMedia('(prefers-reduced-motion: reduce)').matches
+
+document.querySelectorAll('.proto-panel [data-variant]').forEach(o => o.setAttribute('aria-pressed', String((o as HTMLElement).dataset.variant === variant)))
+document.querySelectorAll<HTMLButtonElement>('.proto-panel [data-variant]').forEach((b) => {
+  b.addEventListener('click', () => {
+    variant = b.dataset.variant!
+    document.querySelectorAll('.proto-panel [data-variant]').forEach(o => o.setAttribute('aria-pressed', String(o === b)))
+  })
+})
+
+/** one 4×4 Bayer tile per level: dot on where bayer < level (or >= level when inverted) */
+function bayerTile(level: number, invert: boolean): string {
+  const c = document.createElement('canvas')
+  c.width = c.height = 4 * CELL
+  const g = c.getContext('2d')!
+  for (let i = 0; i < 16; i++) {
+    const on = invert ? BAYER4[i] >= level : BAYER4[i] < level
+    if (on)
+      g.fillRect((i % 4) * CELL, Math.floor(i / 4) * CELL, CELL, CELL)
+  }
+  return `url(${c.toDataURL()})`
+}
+const tiles = Array.from({ length: 17 }, (_, l) => [bayerTile(l, false), bayerTile(l, true)])
+
+const wait = (ms: number): Promise<void> => new Promise(r => setTimeout(r, ms))
+
+function setMask(el: HTMLElement, img: string, size = `${4 * CELL}px ${4 * CELL}px`, pos = '0 0', repeat = 'repeat'): void {
+  el.style.maskImage = img
+  el.style.webkitMaskImage = img
+  el.style.maskSize = size
+  el.style.webkitMaskSize = size
+  el.style.maskPosition = pos
+  el.style.webkitMaskPosition = pos
+  el.style.maskRepeat = repeat
+}
+function clearMask(el: HTMLElement): void {
+  for (const p of ['maskImage', 'webkitMaskImage', 'maskSize', 'webkitMaskSize', 'maskPosition', 'webkitMaskPosition', 'maskRepeat'] as const)
+    (el.style as unknown as Record<string, string>)[p] = ''
+}
+
+/** A · the whole text is reprinted dot by dot: an ordered-dither crossfade, 12 fps */
+async function trame(from: HTMLElement, to: HTMLElement): Promise<void> {
+  for (let l = 0; l <= 16; l += 2) {
+    setMask(to, tiles[l][0])
+    setMask(from, tiles[l][1])
+    await wait(1000 / 14)
+  }
+}
+
+/** B · the press passes: a band of boiling trame sweeps down the screen, new text behind it */
+async function passe(from: HTMLElement, to: HTMLElement): Promise<void> {
+  const W = Math.ceil(innerWidth / CELL)
+  const H = Math.ceil(innerHeight / CELL)
+  const band = Math.round(H * 0.28)
+  const cNew = document.createElement('canvas')
+  const cOld = document.createElement('canvas')
+  cNew.width = cOld.width = W
+  cNew.height = cOld.height = H
+  const gNew = cNew.getContext('2d')!
+  const gOld = cOld.getContext('2d')!
+  const frames = 12
+  for (let f = 0; f <= frames; f++) {
+    const line = -band + (H + 2 * band) * (f / frames)
+    const dNew = gNew.createImageData(W, H)
+    const dOld = gOld.createImageData(W, H)
+    for (let y = 0; y < H; y++) {
+      const v = Math.min(1, Math.max(0, (line - y) / band)) // 1 above the band: new text
+      for (let x = 0; x < W; x++) {
+        const t = (BAYER4[(y % 4) * 4 + (x % 4)] + 0.5) / 16 + (Math.random() - 0.5) * 0.12 // the boil
+        const on = t < v
+        const i = (y * W + x) * 4 + 3
+        dNew.data[i] = on ? 255 : 0
+        dOld.data[i] = on ? 0 : 255
+      }
+    }
+    gNew.putImageData(dNew, 0, 0)
+    gOld.putImageData(dOld, 0, 0)
+    for (const [el, c] of [[to, cNew], [from, cOld]] as const) {
+      const top = -el.getBoundingClientRect().top
+      setMask(el, `url(${c.toDataURL()})`, `${W * CELL}px ${H * CELL}px`, `0 ${top}px`, 'no-repeat')
+      el.style.imageRendering = 'pixelated'
+    }
+    await wait(1000 / 14)
+  }
+}
+
+/** C · riso misregistration: the plates drift apart and lift off, the new ones land in register */
+async function repere(from: HTMLElement, to: HTMLElement): Promise<void> {
+  from.dataset.plates = 'out'
+  to.dataset.plates = 'pre'
+  await wait(280)
+  from.style.visibility = 'hidden'
+  to.dataset.plates = 'in'
+  await wait(320)
+}
+
+/**
+ * D · voile (Pierrick, 05/11): a flat of the page's ink sweeps down over the article, the
+ * text changes under it, then the flat dissolves in ordered dither (A's trame) to reveal the
+ * new language. ~0.75 s in all.
+ */
+async function voile(from: HTMLElement, to: HTMLElement): Promise<void> {
+  to.style.visibility = 'hidden'
+  const heads = [from.querySelector('.head'), from.querySelector('.prose')].filter(Boolean) as HTMLElement[]
+  const rects = heads.map(h => h.getBoundingClientRect())
+  const stage = from.getBoundingClientRect()
+  const left = Math.min(...rects.map(r => r.left))
+  const right = Math.max(...rects.map(r => r.right))
+  const top = Math.max(0, stage.top)
+  const bottom = Math.min(innerHeight, stage.bottom)
+  const veil = document.createElement('div')
+  veil.className = 'proto-veil'
+  Object.assign(veil.style, { left: `${left}px`, width: `${right - left}px`, top: `${top}px`, height: `${bottom - top}px` })
+  document.body.append(veil)
+  // the sweep, top to bottom, in steps like the boil
+  const sweep = 6
+  for (let f = 1; f <= sweep; f++) {
+    veil.style.clipPath = `inset(0 0 ${100 - (100 * f) / sweep}% 0)`
+    await wait(40)
+  }
+  // under the flat: the other language
+  from.style.visibility = 'hidden'
+  to.style.visibility = ''
+  await wait(60)
+  // the flat dissolves dot by dot
+  for (let l = 14; l >= 0; l -= 2) {
+    setMask(veil, tiles[l][0])
+    await wait(1000 / 18)
+  }
+  veil.remove()
+}
+
+/**
+ * E · vague (Pierrick, 05/11): one wave sweeps down from the title. Its front is a flat of
+ * the page's ink with a bevelled edge; its trail dissolves upward in boiling ordered dither,
+ * and the new language already shows behind it while the front still runs: old text below
+ * the front, new above. Nothing above the title is swept. Every number lives in `WAVE`,
+ * tuned live in the panel and copied out as JSON for the real LangSwitch.
+ */
+const WAVE_DEFAULTS = {
+  dur: 750, // ms, the whole sweep
+  front: 4, // % of the viewport: the flat
+  bevel: 8, // degrees: the diagonal of the front edge across the column
+  trail: 69, // % of the viewport: the dither trail behind the front
+  cell: 2, // px per dither dot
+  boil: 10, // trame steps per second
+  jitter: 0.08, // noise added to the Bayer threshold: the boil's grain
+  ink: 'accent' as 'accent' | 'ink',
+}
+type Wave = typeof WAVE_DEFAULTS
+const WAVE: Wave = { ...WAVE_DEFAULTS }
+try {
+  Object.assign(WAVE, JSON.parse(localStorage.getItem('proto-vague') ?? '{}'))
+}
+catch {}
+
+async function vague(from: HTMLElement, to: HTMLElement): Promise<void> {
+  const S = { ...WAVE }
+  const cell = Math.max(1, S.cell)
+  const vw = innerWidth
+  const vh = innerHeight
+  const W = Math.ceil(vw / cell)
+  const H = Math.ceil(vh / cell)
+  const title = from.querySelector('h1')?.getBoundingClientRect()
+  const cols = [from.querySelector('.head'), from.querySelector('.prose')].filter(Boolean).map(e => (e as HTMLElement).getBoundingClientRect())
+  const left = Math.min(...cols.map(r => r.left))
+  const right = Math.max(...cols.map(r => r.right))
+  const top = Math.max(0, (title?.top ?? 0) - 12)
+  const solid = (vh * S.front) / 100
+  const trail = (vh * S.trail) / 100
+  const bevel = Math.tan((S.bevel * Math.PI) / 180) * (right - left) // px the right end trails the left
+  const lead = Math.max(0, -bevel)
+  const lag = Math.max(0, bevel)
+  const travel = vh - top + solid + trail + lag + lead
+
+  const canvas = document.createElement('canvas')
+  canvas.className = 'proto-wave'
+  canvas.width = W
+  canvas.height = H
+  document.body.append(canvas)
+  const g = canvas.getContext('2d')!
+  const rgb = getComputedStyle(document.documentElement).getPropertyValue(S.ink === 'ink' ? '--ink' : '--accent').trim()
+  const probe = document.createElement('canvas').getContext('2d')!
+  probe.fillStyle = rgb
+  probe.fillRect(0, 0, 1, 1)
+  const [r, gg, b] = probe.getImageData(0, 0, 1, 1).data
+
+  let noise = new Float32Array(W * H)
+  let seed = -1
+  const reseed = (): void => {
+    noise = new Float32Array(W * H).map(() => (Math.random() - 0.5) * S.jitter)
+  }
+
+  const clip = (el: HTMLElement, line: number, keep: 'above' | 'below'): void => {
+    const o = el.getBoundingClientRect()
+    const X = (x: number): string => `${x - o.left}px`
+    const Y = (y: number): string => `${y - o.top}px`
+    const edge = [`${X(right + 1e4)} ${Y(line - bevel)}`, `${X(right)} ${Y(line - bevel)}`, `${X(left)} ${Y(line)}`, `${X(left - 1e4)} ${Y(line)}`]
+    const far = keep === 'above' ? -1e5 : 1e5
+    el.style.clipPath = `polygon(${X(left - 1e4)} ${Y(far)}, ${X(right + 1e4)} ${Y(far)}, ${edge.join(', ')})`
+  }
+
+  const t0 = performance.now()
+  await new Promise<void>((done) => {
+    const frame = (now: number): void => {
+      const p = Math.min(1, (now - t0) / Math.max(1, S.dur))
+      const line = top - lead + travel * p // the wave's edge at the column's left, in px
+      clip(to, line, 'above')
+      clip(from, line, 'below')
+      const step = S.boil > 0 ? Math.floor(((now - t0) / 1000) * S.boil) : 0
+      if (step !== seed) {
+        seed = step
+        reseed()
+      }
+      const img = g.createImageData(W, H)
+      const x0 = Math.floor(left / cell)
+      const x1 = Math.ceil(right / cell)
+      for (let y = Math.max(0, Math.floor(top / cell)); y < H; y++) {
+        const py = (y + 0.5) * cell
+        for (let x = Math.max(0, x0); x < Math.min(W, x1); x++) {
+          const k = ((x + 0.5) * cell - left) / Math.max(1, right - left)
+          const d = line - k * bevel - py // > 0: the wave has passed this dot
+          if (d < 0 || d > solid + trail)
+            continue
+          if (d > solid) {
+            const v = 1 - (d - solid) / Math.max(1, trail)
+            const t = (BAYER4[(y % 4) * 4 + (x % 4)] + 0.5) / 16 + noise[y * W + x]
+            if (t >= v)
+              continue
+          }
+          const i = (y * W + x) * 4
+          img.data[i] = r
+          img.data[i + 1] = gg
+          img.data[i + 2] = b
+          img.data[i + 3] = 255
+        }
+      }
+      g.putImageData(img, 0, 0)
+      if (p < 1)
+        requestAnimationFrame(frame)
+      else
+        done()
+    }
+    requestAnimationFrame(frame)
+  })
+  canvas.remove()
+  to.style.clipPath = ''
+  from.style.clipPath = ''
+}
+
+/* the panel: live settings, replay, copy as JSON */
+{
+  const panel = document.querySelector<HTMLElement>('.wave-tweaks')!
+  const json = panel.querySelector<HTMLTextAreaElement>('.wt-json')!
+  const sync = (): void => {
+    for (const input of panel.querySelectorAll<HTMLInputElement>('input[data-k]')) {
+      const k = input.dataset.k as keyof Wave
+      input.value = String(WAVE[k])
+      panel.querySelector(`[data-out="${k}"]`)!.textContent = String(WAVE[k])
+    }
+    for (const radio of panel.querySelectorAll<HTMLInputElement>('input[name=wt-ink]'))
+      radio.checked = radio.value === WAVE.ink
+    json.value = JSON.stringify(WAVE, null, 2)
+    try {
+      localStorage.setItem('proto-vague', JSON.stringify(WAVE))
+    }
+    catch {}
+  }
+  panel.addEventListener('input', (e) => {
+    const input = e.target as HTMLInputElement
+    if (input.dataset.k)
+      (WAVE as Record<string, unknown>)[input.dataset.k] = Number(input.value)
+    else if (input.name === 'wt-ink')
+      WAVE.ink = input.value as Wave['ink']
+    sync()
+  })
+  panel.addEventListener('click', async (e) => {
+    const act = (e.target as HTMLElement).closest<HTMLElement>('[data-wt]')?.dataset.wt
+    if (act === 'reset') {
+      Object.assign(WAVE, WAVE_DEFAULTS)
+      sync()
+    }
+    if (act === 'replay') {
+      variant = 'vague'
+      document.querySelectorAll('.proto-panel [data-variant]').forEach(o => o.setAttribute('aria-pressed', String((o as HTMLElement).dataset.variant === 'vague')))
+      const other = document.querySelector<HTMLElement>('.lang-stage > .ver[hidden]')?.dataset.lang
+      if (other)
+        swap(other)
+    }
+    if (act === 'copy') {
+      json.select()
+      try {
+        await navigator.clipboard.writeText(json.value)
+      }
+      catch {
+        document.execCommand('copy') // http on the tailnet: no async clipboard
+      }
+      const btn = e.target as HTMLElement
+      btn.textContent = 'Copié ✓'
+      setTimeout(() => (btn.textContent = 'Copier les réglages'), 1200)
+    }
+  })
+  sync()
+}
+
+const variants = { trame, passe, repere, voile, vague } as Record<string, (a: HTMLElement, b: HTMLElement) => Promise<void>>
+
+/** the block at the top of the screen, as « nth h2 + share of its section », to land the reader at the same place */
+function anchorOf(ver: HTMLElement): { h: number, frac: number, dy: number } {
+  const blocks = [...ver.querySelectorAll<HTMLElement>('.prose > *')]
+  const first = blocks.find(b => b.getBoundingClientRect().bottom > 80)
+  if (!first)
+    return { h: -1, frac: 0, dy: 0 }
+  const i = blocks.indexOf(first)
+  const heads = blocks.map((b, k) => (b.tagName === 'H2' ? k : -1)).filter(k => k >= 0)
+  const h = heads.filter(k => k <= i).length - 1
+  const start = h >= 0 ? heads[h] : 0
+  const end = heads[h + 1] ?? blocks.length
+  return { h, frac: (i - start) / Math.max(1, end - start), dy: first.getBoundingClientRect().top }
+}
+function blockAt(ver: HTMLElement, a: { h: number, frac: number }): HTMLElement | undefined {
+  const blocks = [...ver.querySelectorAll<HTMLElement>('.prose > *')]
+  const heads = blocks.map((b, k) => (b.tagName === 'H2' ? k : -1)).filter(k => k >= 0)
+  const start = a.h >= 0 ? heads[a.h] ?? 0 : 0
+  const end = heads[a.h + 1] ?? blocks.length
+  return blocks[start + Math.round(a.frac * (end - start))]
+}
+
+let busy = false
+async function swap(lang: string): Promise<void> {
+  const stage = document.querySelector<HTMLElement>('.lang-stage')!
+  const from = stage.querySelector<HTMLElement>('.ver:not([hidden])')!
+  const to = stage.querySelector<HTMLElement>(`.ver[data-lang="${lang}"]`)!
+  if (busy || from === to)
+    return
+  busy = true
+  document.querySelectorAll('.lang-switch [data-lang]').forEach(b => b.setAttribute('aria-current', String((b as HTMLElement).dataset.lang === lang)))
+
+  const atTop = scrollY < 40
+  const a = anchorOf(from)
+  const oldAnchor = blockAt(from, a)
+  to.hidden = false
+  const newAnchor = blockAt(to, a)
+  // keep the reader on the same passage: the new text's anchor lands where the old one was
+  if (!atTop && oldAnchor && newAnchor) {
+    from.style.top = `${newAnchor.offsetTop - oldAnchor.offsetTop}px`
+    scrollTo({ top: scrollY + newAnchor.getBoundingClientRect().top - a.dy, behavior: 'instant' })
+  }
+  from.classList.add('is-leaving')
+
+  if (!reduced())
+    await variants[variant](from, to)
+
+  from.hidden = true
+  from.classList.remove('is-leaving')
+  from.style.top = ''
+  from.style.visibility = ''
+  to.style.visibility = ''
+  delete from.dataset.plates
+  delete to.dataset.plates
+  clearMask(from)
+  clearMask(to)
+  document.documentElement.dataset.postLang = lang
+  busy = false
+}
+
+document.querySelectorAll<HTMLAnchorElement>('.lang-switch a[data-lang]').forEach((link) => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault() // the real thing: a plain link to the other version, enhanced by this swap
+    swap(link.dataset.lang!)
+  })
+})
+</script>
+
+<style>
+  .proto-panel {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    z-index: 60;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-s);
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    letter-spacing: var(--tr-data);
+    text-transform: uppercase;
+  }
+  .pp-k { color: var(--ink-3); }
+  .proto-panel button {
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .proto-panel button[aria-pressed='true'] { border-color: var(--ink); color: var(--ink); background: var(--paper-2); }
+  .pp-rm { color: var(--ink-3); display: flex; gap: 4px; align-items: center; }
+
+  /* D · voile: the flat of the page's ink */
+  /* E · vague: the ink, drawn at one pixel per dot and blown up crisp */
+  :global(.proto-wave) {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 55;
+    pointer-events: none;
+    image-rendering: pixelated;
+  }
+  .wave-tweaks {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 2147483000;
+    width: 300px;
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+    display: grid;
+    gap: 10px;
+    padding: var(--space-s);
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    color: var(--ink-2);
+  }
+  .wt-h { margin: 0; color: var(--ink); text-transform: uppercase; letter-spacing: var(--tr-data); }
+  .wave-tweaks label { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; }
+  .wave-tweaks input[type='range'] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+  .wave-tweaks output { color: var(--ink); }
+  .wave-tweaks fieldset { border: 1px solid var(--line); padding: 4px 8px; display: flex; gap: 12px; }
+  .wave-tweaks fieldset label { display: flex; gap: 4px; align-items: center; }
+  .wt-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .wt-row button {
+    font: inherit;
+    padding: 6px 10px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .wt-row button:hover { background: var(--paper-2); }
+  .wt-json { width: 100%; font: inherit; font-size: 11px; background: var(--paper-2); border: 1px solid var(--line); color: var(--ink); resize: vertical; }
+  :global(.proto-veil) {
+    position: fixed;
+    z-index: 55;
+    background: var(--accent);
+    clip-path: inset(0 0 100% 0);
+    pointer-events: none;
+  }
+
+  /* both versions share one grid cell while they swap */
+  :global(.lang-stage) { display: grid; }
+  :global(.lang-stage > .ver) { grid-area: 1 / 1; position: relative; }
+  :global(.lang-stage > .ver.is-leaving) { pointer-events: none; }
+
+  /* C · repérage: two plates, ink + page ink, out of register then back */
+  :global(.ver[data-plates]) { transition: color 0.3s steps(5), text-shadow 0.3s steps(5), opacity 0.3s steps(5); }
+  :global(.ver[data-plates='out']) {
+    color: transparent;
+    text-shadow: -5px 1px 0 var(--accent), 5px -1px 0 rgb(24 23 15 / 0.55);
+    opacity: 0;
+  }
+  :global(.ver[data-plates='pre']) {
+    transition: none;
+    color: transparent;
+    text-shadow: 6px -1px 0 var(--accent), -6px 1px 0 rgb(24 23 15 / 0.55);
+    opacity: 0;
+  }
+  :global(.ver[data-plates='out'] *),
+  :global(.ver[data-plates='pre'] *) { color: transparent !important; }
+  :global(.ver[data-plates='out'] img),
+  :global(.ver[data-plates='pre'] img) { opacity: 0; }
+  :global(.ver[data-plates='in']) {
+    opacity: 1;
+    text-shadow: 0 0 0 var(--accent), 0 0 0 rgb(24 23 15 / 0.55);
+  }
+</style>

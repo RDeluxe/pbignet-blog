@@ -94,3 +94,13 @@ button:focus-visible {
     color: inherit;
   }
 }
+
+/* ---- language of the reader (html[data-lang], set before the first paint by BaseLayout)
+ * A translated pair puts both its rows in a list: only the reader's language shows, and
+ * English without a choice (no JS). A post in one language marks it only when it is not
+ * the reader's. Cf. lib/posts.ts, getWorks.
+ */
+html:not([data-lang='fr']) [data-pair-lang='fr'],
+html[data-lang='fr'] [data-pair-lang='en'] { display: none; }
+html:not([data-lang='fr']) [data-lang-mark='en'],
+html[data-lang='fr'] [data-lang-mark='fr'] { display: none; }
