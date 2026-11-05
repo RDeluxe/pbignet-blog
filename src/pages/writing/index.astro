@@ -17,9 +17,9 @@ import Stack from '../../components/primitives/Stack.astro'
 import SectionHead from '../../components/SectionHead.astro'
 import SiteFooter from '../../components/SiteFooter.astro'
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import { getPosts } from '../../lib/posts'
+import { getWorks } from '../../lib/posts'
 
-const posts = await getPosts()
+const posts = await getWorks()
 ---
 
 <BaseLayout
@@ -37,7 +37,7 @@ const posts = await getPosts()
         Essays and unfiled notes, in English and French: building software, leading teams, designing games.
       </Lede>
       <Stack spaced>
-        {posts.map(({ post, number }) => (
+        {posts.map(({ versions, number }) => versions.map(post => (
           <PostRow
             index={number}
             tag={post.data.tag}
@@ -48,9 +48,10 @@ const posts = await getPosts()
             pubDate={post.data.pubDate}
             href={`/writing/${post.id}`}
             lang={post.data.lang}
+            paired={versions.length > 1}
             titleAs="h2"
           />
-        ))}
+        )))}
       </Stack>
     </Section>
   </main>

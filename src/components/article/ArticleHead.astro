@@ -43,6 +43,8 @@ const {
   <h1 class="art-title">{title}</h1>
   {dek && <p class="art-dek">{dek}</p>}
   <p class="art-byline">Filed by <b>{byline}</b> · {bylineRole}</p>
+  {/* under the title: the post's language switch, when it has a translation */}
+  <slot />
 </header>
 
 <style>

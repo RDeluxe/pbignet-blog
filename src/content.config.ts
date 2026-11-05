@@ -65,6 +65,8 @@ const writing = defineCollection({
     series: z.string().optional(),
     /** the post's URL on the old Ghost blog, kept for future redirects */
     link: z.string().url().optional(),
+    /** the same post in the other language: its slug. Written on both sides by the import. */
+    translation: z.string().optional(),
 
     /* ---- champs de page d'article (optionnels : l'index n'en a pas besoin) ---- */
     /** chapeau sous le titre. À défaut, `description` est réutilisée. */

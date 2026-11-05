@@ -11,11 +11,11 @@ import Stack from '../components/primitives/Stack.astro'
 import SectionHead from '../components/SectionHead.astro'
 import SiteFooter from '../components/SiteFooter.astro'
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { getPosts } from '../lib/posts'
+import { getWorks } from '../lib/posts'
 
 // the light launch (2026-11-02): only Writing is built, so the home drops the sections
 // that link to pages not built yet. Field Note, Field Guides and Setup return with them.
-const posts = (await getPosts()).slice(0, 4)
+const posts = (await getWorks()).slice(0, 4)
 
 const photos = [
   { src: '/photos/street-dither.png', alt: 'Tokyo backstreet', caption: 'Tokyo · sakura', number: '№012', ratio: 'lead' as const },
@@ -42,7 +42,7 @@ const photos = [
         Essays and unfiled notes, in English and French: building software, leading teams, designing games.
       </Lede>
       <Stack spaced>
-        {posts.map(({ post, number }) => (
+        {posts.map(({ versions, number }) => versions.map(post => (
           <PostRow
             index={number}
             tag={post.data.tag}
@@ -53,8 +53,9 @@ const photos = [
             pubDate={post.data.pubDate}
             href={`/writing/${post.id}`}
             lang={post.data.lang}
+            paired={versions.length > 1}
           />
-        ))}
+        )))}
       </Stack>
     </Section>
 

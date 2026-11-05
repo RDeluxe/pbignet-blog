@@ -5,12 +5,16 @@
  * under the sheet's 2px ink rule, with the way around the site on the left, one mono ident
  * line of real data, and the Anton mark at the far right.
  *
+ * The ident line ends on the reader's language, `EN · FR` (i18n, 2026-11-05): it picks
+ * which version of a translated post the lists show. Kept in localStorage, set on <html>
+ * before the first paint by BaseLayout; the chrome itself stays in English.
+ *
  * Only built sections show: a section still to come is hidden, not announced (no « soon »,
  * no dead link, no reserved slot). It comes back by flipping its flag in `data/nav.ts`.
  */
 import { navItems } from '../data/nav'
 import { formatMonth } from '../lib/date'
-import { getPosts } from '../lib/posts'
+import { getWorks } from '../lib/posts'
 
 interface Props {
   /** the page's own section, marked as current */
@@ -18,8 +22,8 @@ interface Props {
 }
 
 const { currentPath } = Astro.props
-const [latest] = await getPosts()
-const ident = ['P. Bignet', 'Lyon 45.76N 4.83E', latest && `Filed ${formatMonth(latest.post.data.pubDate)}`]
+const [latest] = await getWorks()
+const ident = ['P. Bignet', 'Lyon 45.76N 4.83E', latest && `Filed ${formatMonth(latest.versions[0].data.pubDate)}`]
   .filter(Boolean)
   .join(' · ')
 ---
@@ -30,9 +34,30 @@ const ident = ['P. Bignet', 'Lyon 45.76N 4.83E', latest && `Filed ${formatMonth(
       <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>{item.label}</a>
     ))}
   </nav>
-  <p class="ident">{ident}</p>
+  <p class="ident">
+    {ident}
+    <span class="langs" role="group" aria-label="Language of the posts">
+      <button type="button" data-set-lang="en" lang="en" aria-pressed="false">EN</button>
+      <span aria-hidden="true">·</span>
+      <button type="button" data-set-lang="fr" lang="fr" aria-pressed="false">FR</button>
+    </span>
+  </p>
   <a class="brand" href="/" aria-label="exhale, home">exhale</a>
 </div>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.langs [data-set-lang]')
+  const mark = (): void => buttons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.setLang === (document.documentElement.dataset.lang ?? 'en'))))
+  mark()
+  buttons.forEach(b => b.addEventListener('click', () => {
+    document.documentElement.dataset.lang = b.dataset.setLang
+    try {
+      localStorage.setItem('lang', b.dataset.setLang!)
+    }
+    catch {}
+    mark()
+  }))
+</script>
 
 <style>
   .mast {
@@ -81,6 +106,35 @@ const ident = ['P. Bignet', 'Lyon 45.76N 4.83E', latest && `Filed ${formatMonth(
     letter-spacing: var(--tr-tag);
     text-transform: uppercase;
     color: var(--ink-3);
+  }
+
+  .langs {
+    display: inline-flex;
+    gap: var(--space-xs);
+    margin-left: var(--space-s);
+  }
+  .langs button {
+    position: relative;
+    padding: 0 0 2px;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    background: none;
+    font: inherit;
+    letter-spacing: inherit;
+    color: var(--ink-3);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  /* ~44px hit area, like the nav */
+  .langs button::after {
+    content: '';
+    position: absolute;
+    inset: -13px -6px;
+  }
+  .langs button:hover,
+  .langs button[aria-pressed='true'] {
+    color: var(--accent-text);
+    border-color: var(--accent);
   }
 
   .brand {
