@@ -1,0 +1,12 @@
+# Redirects nobody can derive from the content, copied as is into redirects.map by
+# `pnpm redirects`. Same format: `/old /new;`
+#
+# Not migrated yet (Pierrick has not decided). Add ONE of these lines:
+#  - migrated later (note moved to 24.13.1, post imported): nothing to add, the generator
+#    picks it up from its `link`;
+#  - kept off the new site: uncomment the line to send readers to the writing index.
+# /codebase-context-engineering-your-codebase-is-the-prompt/ /writing/;
+
+# Migrated from Ghost, but its note has no `link`, so the generator cannot see its old URL.
+/developers-are-dead-long-live-lead-developers/ /writing/developers-are-dead-long-live-lead-developers/;
+/developers-are-dead-long-live-lead-developers /writing/developers-are-dead-long-live-lead-developers/;

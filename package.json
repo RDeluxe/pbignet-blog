@@ -13,10 +13,13 @@
     "preview": "astro preview",
     "astro": "astro",
     "lint": "eslint .",
-    "post:import": "node scripts/vault-to-post.ts"
+    "post:import": "node scripts/vault-to-post.ts",
+    "redirects": "node scripts/gen-redirects.ts",
+    "redirects:check": "bash scripts/check-redirects.sh"
   },
   "dependencies": {
     "@astrojs/markdoc": "^1.0.6",
+    "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
     "@astrojs/svelte": "^8.1.2",
     "@fontsource-variable/archivo": "^5.2.8",
