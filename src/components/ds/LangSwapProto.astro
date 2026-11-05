@@ -16,6 +16,28 @@
   <label class="pp-rm"><input type="checkbox" id="pp-rm" /> reduced-motion</label>
 </div>
 
+<div class="wave-tweaks" role="group" aria-label="E · Vague — réglages">
+  <p class="wt-h">E · Vague — réglages</p>
+  <label>Durée totale <output data-out="dur"></output><input type="range" data-k="dur" min="300" max="3000" step="50" /></label>
+  <label>Hauteur du front (% écran) <output data-out="front"></output><input type="range" data-k="front" min="0" max="40" step="1" /></label>
+  <label>Angle du biseau (°) <output data-out="bevel"></output><input type="range" data-k="bevel" min="-45" max="45" step="1" /></label>
+  <label>Longueur de la traîne (% écran) <output data-out="trail"></output><input type="range" data-k="trail" min="0" max="100" step="1" /></label>
+  <label>Taille des points (px) <output data-out="cell"></output><input type="range" data-k="cell" min="1" max="12" step="1" /></label>
+  <label>Vitesse de la trame (paliers/s) <output data-out="boil"></output><input type="range" data-k="boil" min="0" max="60" step="1" /></label>
+  <label>Bruit de la trame <output data-out="jitter"></output><input type="range" data-k="jitter" min="0" max="0.5" step="0.01" /></label>
+  <fieldset>
+    <legend>Aplat</legend>
+    <label><input type="radio" name="wt-ink" value="accent" /> sépia</label>
+    <label><input type="radio" name="wt-ink" value="ink" /> noir</label>
+  </fieldset>
+  <div class="wt-row">
+    <button type="button" data-wt="replay">Rejouer</button>
+    <button type="button" data-wt="copy">Copier les réglages</button>
+    <button type="button" data-wt="reset">Défauts</button>
+  </div>
+  <textarea class="wt-json" readonly rows="4" aria-label="Réglages en JSON"></textarea>
+</div>
+
 <script>
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 const CELL = 3 // px per dither dot, like the cover recipes
@@ -156,77 +178,176 @@ async function voile(from: HTMLElement, to: HTMLElement): Promise<void> {
 }
 
 /**
- * E · vague (Pierrick, 05/11): one wave sweeps down from the title in ~1 s. Its front is a
- * flat of the page's ink with a bevelled (diagonal) edge; its trail dissolves upward in
- * ordered dither, and the new language already shows behind it while the front still runs:
- * the old text below the front, the new one above. Nothing above the title is swept.
+ * E · vague (Pierrick, 05/11): one wave sweeps down from the title. Its front is a flat of
+ * the page's ink with a bevelled edge; its trail dissolves upward in boiling ordered dither,
+ * and the new language already shows behind it while the front still runs: old text below
+ * the front, new above. Nothing above the title is swept. Every number lives in `WAVE`,
+ * tuned live in the panel and copied out as JSON for the real LangSwitch.
  */
+const WAVE_DEFAULTS = {
+  dur: 1000, // ms, the whole sweep
+  front: 7, // % of the viewport: the flat
+  bevel: 8, // degrees: the diagonal of the front edge across the column
+  trail: 30, // % of the viewport: the dither trail behind the front
+  cell: 3, // px per dither dot
+  boil: 14, // trame steps per second
+  jitter: 0.08, // noise added to the Bayer threshold: the boil's grain
+  ink: 'accent' as 'accent' | 'ink',
+}
+type Wave = typeof WAVE_DEFAULTS
+const WAVE: Wave = { ...WAVE_DEFAULTS }
+try {
+  Object.assign(WAVE, JSON.parse(localStorage.getItem('proto-vague') ?? '{}'))
+}
+catch {}
+
 async function vague(from: HTMLElement, to: HTMLElement): Promise<void> {
-  const W = Math.ceil(innerWidth / CELL)
-  const H = Math.ceil(innerHeight / CELL)
+  const S = { ...WAVE }
+  const cell = Math.max(1, S.cell)
+  const vw = innerWidth
+  const vh = innerHeight
+  const W = Math.ceil(vw / cell)
+  const H = Math.ceil(vh / cell)
   const title = from.querySelector('h1')?.getBoundingClientRect()
   const cols = [from.querySelector('.head'), from.querySelector('.prose')].filter(Boolean).map(e => (e as HTMLElement).getBoundingClientRect())
-  const x0 = Math.floor(Math.min(...cols.map(r => r.left)) / CELL)
-  const x1 = Math.ceil(Math.max(...cols.map(r => r.right)) / CELL)
-  const top = Math.max(0, Math.floor((title?.top ?? 0) / CELL) - 4)
-  const solid = Math.round(H * 0.07) // the front's flat
-  const trail = Math.round(H * 0.3) // the dither trail behind it
-  const bevel = Math.round(H * 0.12) // the diagonal of the front edge, across the column
+  const left = Math.min(...cols.map(r => r.left))
+  const right = Math.max(...cols.map(r => r.right))
+  const top = Math.max(0, (title?.top ?? 0) - 12)
+  const solid = (vh * S.front) / 100
+  const trail = (vh * S.trail) / 100
+  const bevel = Math.tan((S.bevel * Math.PI) / 180) * (right - left) // px the right end trails the left
+  const lead = Math.max(0, -bevel)
+  const lag = Math.max(0, bevel)
+  const travel = vh - top + solid + trail + lag + lead
 
-  const make = (): [HTMLCanvasElement, CanvasRenderingContext2D] => {
-    const c = document.createElement('canvas')
-    c.width = W
-    c.height = H
-    return [c, c.getContext('2d')!]
+  const canvas = document.createElement('canvas')
+  canvas.className = 'proto-wave'
+  canvas.width = W
+  canvas.height = H
+  document.body.append(canvas)
+  const g = canvas.getContext('2d')!
+  const rgb = getComputedStyle(document.documentElement).getPropertyValue(S.ink === 'ink' ? '--ink' : '--accent').trim()
+  const probe = document.createElement('canvas').getContext('2d')!
+  probe.fillStyle = rgb
+  probe.fillRect(0, 0, 1, 1)
+  const [r, gg, b] = probe.getImageData(0, 0, 1, 1).data
+
+  let noise = new Float32Array(W * H)
+  let seed = -1
+  const reseed = (): void => {
+    noise = new Float32Array(W * H).map(() => (Math.random() - 0.5) * S.jitter)
   }
-  const [cNew, gNew] = make()
-  const [cOld, gOld] = make()
-  const [cVeil, gVeil] = make()
-  const veil = document.createElement('div')
-  veil.className = 'proto-veil is-wave'
-  document.body.append(veil)
 
-  const frames = 16
-  const travel = H - top + solid + trail + bevel
-  for (let f = 0; f <= frames; f++) {
-    const line = top + travel * (f / frames) // the front, at the column's left edge
-    const dNew = gNew.createImageData(W, H)
-    const dOld = gOld.createImageData(W, H)
-    const dVeil = gVeil.createImageData(W, H)
-    for (let y = 0; y < H; y++) {
-      for (let x = 0; x < W; x++) {
-        const i = (y * W + x) * 4 + 3
-        if (y < top) { // above the title: nothing to translate, the new version at once
-          dNew.data[i] = 255
-          continue
-        }
-        const k = Math.min(1, Math.max(0, (x - x0) / Math.max(1, x1 - x0)))
-        const d = line - k * bevel - y // > 0: the wave has passed
-        const passed = d >= 0
-        dNew.data[i] = passed ? 255 : 0
-        dOld.data[i] = passed ? 0 : 255
-        if (!passed || x < x0 || x >= x1)
-          continue
-        let cover = 1
-        if (d > solid) {
-          const v = 1 - (d - solid) / trail
-          const t = (BAYER4[(y % 4) * 4 + (x % 4)] + 0.5) / 16 + (Math.random() - 0.5) * 0.08 // the boil
-          cover = t < v ? 1 : 0
-        }
-        dVeil.data[i] = cover ? 255 : 0
+  const clip = (el: HTMLElement, line: number, keep: 'above' | 'below'): void => {
+    const o = el.getBoundingClientRect()
+    const X = (x: number): string => `${x - o.left}px`
+    const Y = (y: number): string => `${y - o.top}px`
+    const edge = [`${X(right + 1e4)} ${Y(line - bevel)}`, `${X(right)} ${Y(line - bevel)}`, `${X(left)} ${Y(line)}`, `${X(left - 1e4)} ${Y(line)}`]
+    const far = keep === 'above' ? -1e5 : 1e5
+    el.style.clipPath = `polygon(${X(left - 1e4)} ${Y(far)}, ${X(right + 1e4)} ${Y(far)}, ${edge.join(', ')})`
+  }
+
+  const t0 = performance.now()
+  await new Promise<void>((done) => {
+    const frame = (now: number): void => {
+      const p = Math.min(1, (now - t0) / Math.max(1, S.dur))
+      const line = top - lead + travel * p // the wave's edge at the column's left, in px
+      clip(to, line, 'above')
+      clip(from, line, 'below')
+      const step = S.boil > 0 ? Math.floor(((now - t0) / 1000) * S.boil) : 0
+      if (step !== seed) {
+        seed = step
+        reseed()
       }
+      const img = g.createImageData(W, H)
+      const x0 = Math.floor(left / cell)
+      const x1 = Math.ceil(right / cell)
+      for (let y = Math.max(0, Math.floor(top / cell)); y < H; y++) {
+        const py = (y + 0.5) * cell
+        for (let x = Math.max(0, x0); x < Math.min(W, x1); x++) {
+          const k = ((x + 0.5) * cell - left) / Math.max(1, right - left)
+          const d = line - k * bevel - py // > 0: the wave has passed this dot
+          if (d < 0 || d > solid + trail)
+            continue
+          if (d > solid) {
+            const v = 1 - (d - solid) / Math.max(1, trail)
+            const t = (BAYER4[(y % 4) * 4 + (x % 4)] + 0.5) / 16 + noise[y * W + x]
+            if (t >= v)
+              continue
+          }
+          const i = (y * W + x) * 4
+          img.data[i] = r
+          img.data[i + 1] = gg
+          img.data[i + 2] = b
+          img.data[i + 3] = 255
+        }
+      }
+      g.putImageData(img, 0, 0)
+      if (p < 1)
+        requestAnimationFrame(frame)
+      else
+        done()
     }
-    gNew.putImageData(dNew, 0, 0)
-    gOld.putImageData(dOld, 0, 0)
-    gVeil.putImageData(dVeil, 0, 0)
-    for (const [el, c] of [[to, cNew], [from, cOld]] as const) {
-      setMask(el, `url(${c.toDataURL()})`, `${W * CELL}px ${H * CELL}px`, `0 ${-el.getBoundingClientRect().top}px`, 'no-repeat')
-      el.style.imageRendering = 'pixelated'
+    requestAnimationFrame(frame)
+  })
+  canvas.remove()
+  to.style.clipPath = ''
+  from.style.clipPath = ''
+}
+
+/* the panel: live settings, replay, copy as JSON */
+{
+  const panel = document.querySelector<HTMLElement>('.wave-tweaks')!
+  const json = panel.querySelector<HTMLTextAreaElement>('.wt-json')!
+  const sync = (): void => {
+    for (const input of panel.querySelectorAll<HTMLInputElement>('input[data-k]')) {
+      const k = input.dataset.k as keyof Wave
+      input.value = String(WAVE[k])
+      panel.querySelector(`[data-out="${k}"]`)!.textContent = String(WAVE[k])
     }
-    setMask(veil, `url(${cVeil.toDataURL()})`, `${W * CELL}px ${H * CELL}px`, '0 0', 'no-repeat')
-    await wait(1000 / frames)
+    for (const radio of panel.querySelectorAll<HTMLInputElement>('input[name=wt-ink]'))
+      radio.checked = radio.value === WAVE.ink
+    json.value = JSON.stringify(WAVE, null, 2)
+    try {
+      localStorage.setItem('proto-vague', JSON.stringify(WAVE))
+    }
+    catch {}
   }
-  veil.remove()
+  panel.addEventListener('input', (e) => {
+    const input = e.target as HTMLInputElement
+    if (input.dataset.k)
+      (WAVE as Record<string, unknown>)[input.dataset.k] = Number(input.value)
+    else if (input.name === 'wt-ink')
+      WAVE.ink = input.value as Wave['ink']
+    sync()
+  })
+  panel.addEventListener('click', async (e) => {
+    const act = (e.target as HTMLElement).closest<HTMLElement>('[data-wt]')?.dataset.wt
+    if (act === 'reset') {
+      Object.assign(WAVE, WAVE_DEFAULTS)
+      sync()
+    }
+    if (act === 'replay') {
+      variant = 'vague'
+      document.querySelectorAll('.proto-panel [data-variant]').forEach(o => o.setAttribute('aria-pressed', String((o as HTMLElement).dataset.variant === 'vague')))
+      const other = document.querySelector<HTMLElement>('.lang-stage > .ver[hidden]')?.dataset.lang
+      if (other)
+        swap(other)
+    }
+    if (act === 'copy') {
+      json.select()
+      try {
+        await navigator.clipboard.writeText(json.value)
+      }
+      catch {
+        document.execCommand('copy') // http on the tailnet: no async clipboard
+      }
+      const btn = e.target as HTMLElement
+      btn.textContent = 'Copié ✓'
+      setTimeout(() => (btn.textContent = 'Copier les réglages'), 1200)
+    }
+  })
+  sync()
 }
 
 const variants = { trame, passe, repere, voile, vague } as Record<string, (a: HTMLElement, b: HTMLElement) => Promise<void>>
@@ -331,7 +452,50 @@ document.querySelectorAll<HTMLAnchorElement>('.lang-switch a[data-lang]').forEac
   .pp-rm { color: var(--ink-3); display: flex; gap: 4px; align-items: center; }
 
   /* D · voile: the flat of the page's ink */
-  :global(.proto-veil.is-wave) { inset: 0; clip-path: none; }
+  /* E · vague: the ink, drawn at one pixel per dot and blown up crisp */
+  :global(.proto-wave) {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 55;
+    pointer-events: none;
+    image-rendering: pixelated;
+  }
+  .wave-tweaks {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 2147483000;
+    width: 300px;
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+    display: grid;
+    gap: 10px;
+    padding: var(--space-s);
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    font-family: var(--mono);
+    font-size: var(--fs-tag);
+    color: var(--ink-2);
+  }
+  .wt-h { margin: 0; color: var(--ink); text-transform: uppercase; letter-spacing: var(--tr-data); }
+  .wave-tweaks label { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; }
+  .wave-tweaks input[type='range'] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+  .wave-tweaks output { color: var(--ink); }
+  .wave-tweaks fieldset { border: 1px solid var(--line); padding: 4px 8px; display: flex; gap: 12px; }
+  .wave-tweaks fieldset label { display: flex; gap: 4px; align-items: center; }
+  .wt-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .wt-row button {
+    font: inherit;
+    padding: 6px 10px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .wt-row button:hover { background: var(--paper-2); }
+  .wt-json { width: 100%; font: inherit; font-size: 11px; background: var(--paper-2); border: 1px solid var(--line); color: var(--ink); resize: vertical; }
   :global(.proto-veil) {
     position: fixed;
     z-index: 55;
