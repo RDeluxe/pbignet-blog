@@ -1,8 +1,9 @@
 ---
 /**
- * THROWAWAY prototype (i18n review, 2026-11-05): the per-post language switch and three
- * candidate animations for the content swap. Lives under /ds/ only; deleted once Pierrick
- * has picked. Not a component of the system: do not import it elsewhere.
+ * Prototype (i18n review, 2026-11-05): the per-post language switch and the candidate
+ * animations for the content swap. Pierrick picked E · vague; its panel stays as the tuning
+ * bench, defaults = the values shipped in article/LangSwitch.astro. /ds/ only, out of prod.
+ * Not a component of the system: do not import it elsewhere.
  */
 ---
 
@@ -185,12 +186,12 @@ async function voile(from: HTMLElement, to: HTMLElement): Promise<void> {
  * tuned live in the panel and copied out as JSON for the real LangSwitch.
  */
 const WAVE_DEFAULTS = {
-  dur: 1000, // ms, the whole sweep
+  dur: 650, // ms, the whole sweep
   front: 7, // % of the viewport: the flat
   bevel: 8, // degrees: the diagonal of the front edge across the column
-  trail: 30, // % of the viewport: the dither trail behind the front
-  cell: 3, // px per dither dot
-  boil: 14, // trame steps per second
+  trail: 40, // % of the viewport: the dither trail behind the front
+  cell: 2, // px per dither dot
+  boil: 10, // trame steps per second
   jitter: 0.08, // noise added to the Bayer threshold: the boil's grain
   ink: 'accent' as 'accent' | 'ink',
 }
