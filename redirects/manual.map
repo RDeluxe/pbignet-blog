@@ -11,3 +11,7 @@
 # Migrated from Ghost, but its note has no `link`, so the generator cannot see its old URL.
 /developers-are-dead-long-live-lead-developers/ /writing/developers-are-dead-long-live-lead-developers/;
 /developers-are-dead-long-live-lead-developers /writing/developers-are-dead-long-live-lead-developers/;
+
+# The site chrome is in English already: /en/ is the home. (Pierrick, 2026-11-09)
+/en/ /;
+/en /;
