@@ -19,6 +19,14 @@ map="${2:-$repo/redirects/redirects.map}"
 # shellcheck disable=SC2206
 curl_args=(--silent --output /dev/null --max-time 20 ${CURL_ARGS:-})
 
+# A site behind a login (the staging, behind TinyAuth) answers 401/403 everywhere: that
+# says "protected", not "broken". Stop in one line instead of failing every redirect.
+probe="$(curl "${curl_args[@]}" --write-out '%{http_code}' "$base/")"
+if [[ "$probe" == 401 || "$probe" == 403 ]]; then
+  echo "check-redirects: $base answers $probe, it is protected. Pass a login with CURL_ARGS, or let Héphaïstos run the check from inside the container." >&2
+  exit 2
+fi
+
 total=0
 failed=0
 while read -r from to; do
