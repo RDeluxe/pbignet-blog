@@ -1,0 +1,269 @@
+---
+/**
+ * LangSwitch — the language of THIS post's text, under its title (i18n, 2026-11-05: option 1,
+ * nothing in the reading bar). Only a post with a translation has one.
+ *
+ * It is a pair of plain links: without JS, the other version is a page like any other. With
+ * JS, it fetches that page and swaps the <article> in place, updates the URL, and keeps the
+ * reader on the same passage (same h2, same share of its section: both versions have the
+ * same headings). It never touches the reader's global language (Masthead).
+ *
+ * The swap plays « la vague » (Pierrick, 2026-11-05, tuned in the /ds/i18n-switch prototype):
+ * one wave sweeps down from the title. Its front is a flat of the page's ink with a bevelled
+ * edge; its trail dissolves upward in boiling ordered dither, and the new language already
+ * shows behind it while the front still runs. Reduced motion: an instant swap.
+ */
+import type { Lang } from '../../lib/posts'
+
+interface Props {
+  /** the versions of the post, this one included */
+  versions: { lang: Lang, href: string }[]
+  current: Lang
+}
+
+const { versions, current } = Astro.props
+---
+
+<nav class="lang-switch" aria-label="Language of this post">
+  <span class="k">Text</span>
+  {versions.map((v, i) => (
+    <>
+      {i > 0 && <span class="sep" aria-hidden="true">/</span>}
+      <a href={v.href} hreflang={v.lang} lang={v.lang} aria-current={v.lang === current ? 'page' : undefined}>{v.lang.toUpperCase()}</a>
+    </>
+  ))}
+</nav>
+
+<script>
+  interface Anchor { h: number, frac: number, dy: number }
+
+  const blocksOf = (article: Element): HTMLElement[] => [...article.querySelectorAll<HTMLElement>('.prose > *')]
+  const headsOf = (blocks: HTMLElement[]): number[] => blocks.map((b, k) => (b.tagName === 'H2' ? k : -1)).filter(k => k >= 0)
+
+  /** the block at the top of the screen, as « nth h2 + share of its section » */
+  function anchorOf(article: Element): Anchor | undefined {
+    const blocks = blocksOf(article)
+    const first = blocks.find(b => b.getBoundingClientRect().bottom > 80)
+    if (!first || scrollY < 40)
+      return undefined
+    const i = blocks.indexOf(first)
+    const heads = headsOf(blocks)
+    const h = heads.filter(k => k <= i).length - 1
+    const start = h >= 0 ? heads[h] : 0
+    const end = heads[h + 1] ?? blocks.length
+    return { h, frac: (i - start) / Math.max(1, end - start), dy: first.getBoundingClientRect().top }
+  }
+  function blockAt(article: Element, a: Anchor): HTMLElement | undefined {
+    const blocks = blocksOf(article)
+    const heads = headsOf(blocks)
+    const start = a.h >= 0 ? heads[a.h] ?? 0 : 0
+    const end = heads[a.h + 1] ?? blocks.length
+    return blocks[start + Math.round(a.frac * (end - start))]
+  }
+
+  /** la vague, as Pierrick tuned it (05/11) */
+  const WAVE = {
+    dur: 750, // ms, the whole sweep
+    front: 4, // % of the viewport: the flat
+    bevel: 8, // degrees: the diagonal of the front edge across the column
+    trail: 69, // % of the viewport: the dither trail behind the front
+    cell: 2, // px per dither dot
+    boil: 10, // trame steps per second
+    jitter: 0.08, // noise on the Bayer threshold: the boil's grain
+  }
+  const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
+
+  /** `from` is pinned where it was on screen, `to` is in the flow: the wave cuts between them */
+  async function play(from: HTMLElement, to: HTMLElement): Promise<void> {
+    const { dur, cell, boil, jitter } = WAVE
+    const vw = innerWidth
+    const vh = innerHeight
+    const W = Math.ceil(vw / cell)
+    const H = Math.ceil(vh / cell)
+    const cols = [to.querySelector('.head'), to.querySelector('.prose')].filter(Boolean).map(e => (e as HTMLElement).getBoundingClientRect())
+    if (!cols.length)
+      return
+    const left = Math.min(...cols.map(r => r.left))
+    const right = Math.max(...cols.map(r => r.right))
+    const title = from.querySelector('h1')?.getBoundingClientRect()
+    const top = Math.max(0, (title?.top ?? 0) - 12) // nothing above the title is swept
+    const solid = (vh * WAVE.front) / 100
+    const trail = (vh * WAVE.trail) / 100
+    const bevel = Math.tan((WAVE.bevel * Math.PI) / 180) * (right - left)
+    const travel = vh - top + solid + trail + bevel
+
+    const canvas = document.createElement('canvas')
+    canvas.width = W
+    canvas.height = H
+    canvas.setAttribute('aria-hidden', 'true')
+    Object.assign(canvas.style, { position: 'fixed', inset: '0', width: '100vw', height: '100vh', zIndex: '55', pointerEvents: 'none', imageRendering: 'pixelated' })
+    document.body.append(canvas)
+    const g = canvas.getContext('2d')!
+    g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
+    g.fillRect(0, 0, 1, 1)
+    const [r, gr, b] = g.getImageData(0, 0, 1, 1).data
+
+    const clip = (el: HTMLElement, line: number, far: number): void => {
+      const o = el.getBoundingClientRect()
+      const X = (x: number): string => `${x - o.left}px`
+      const Y = (y: number): string => `${y - o.top}px`
+      el.style.clipPath = `polygon(${X(left - 1e4)} ${Y(far)}, ${X(right + 1e4)} ${Y(far)}, ${X(right + 1e4)} ${Y(line - bevel)}, ${X(right)} ${Y(line - bevel)}, ${X(left)} ${Y(line)}, ${X(left - 1e4)} ${Y(line)})`
+    }
+
+    let noise = new Float32Array(0)
+    let seed = -1
+    const x0 = Math.max(0, Math.floor(left / cell))
+    const x1 = Math.min(W, Math.ceil(right / cell))
+    const t0 = performance.now()
+    const frame = (now: number): boolean => {
+      const p = Math.min(1, (now - t0) / dur)
+      const line = top + travel * p // the wave's edge at the column's left
+      clip(to, line, -1e5)
+      clip(from, line, 1e5)
+      const step = Math.floor(((now - t0) / 1000) * boil)
+      if (step !== seed) {
+        seed = step
+        noise = new Float32Array(W * H).map(() => (Math.random() - 0.5) * jitter)
+      }
+      const img = g.createImageData(W, H)
+      for (let y = Math.floor(top / cell); y < H; y++) {
+        const py = (y + 0.5) * cell
+        for (let x = x0; x < x1; x++) {
+          const d = line - (((x + 0.5) * cell - left) / (right - left)) * bevel - py // > 0: passed
+          if (d < 0 || d > solid + trail)
+            continue
+          if (d > solid && (BAYER4[(y % 4) * 4 + (x % 4)] + 0.5) / 16 + noise[y * W + x] >= 1 - (d - solid) / trail)
+            continue
+          const i = (y * W + x) * 4
+          img.data[i] = r
+          img.data[i + 1] = gr
+          img.data[i + 2] = b
+          img.data[i + 3] = 255
+        }
+      }
+      g.putImageData(img, 0, 0)
+      return p < 1
+    }
+    frame(t0) // cut before the first paint: no frame shows both texts
+    await new Promise<void>((done) => {
+      const tick = (now: number): void => {
+        if (frame(now))
+          requestAnimationFrame(tick)
+        else
+          done()
+      }
+      requestAnimationFrame(tick)
+    })
+    canvas.remove()
+    to.style.clipPath = ''
+  }
+
+  let busy = false
+  let shown = location.pathname
+  async function swap(url: string, push: boolean): Promise<void> {
+    const from = document.querySelector<HTMLElement>('article')
+    if (busy || !from)
+      return
+    busy = true
+    try {
+      const res = await fetch(url)
+      if (!res.ok)
+        throw new Error(String(res.status))
+      const doc = new DOMParser().parseFromString(await res.text(), 'text/html')
+      const to = doc.querySelector<HTMLElement>('article')
+      // a cover runs scripts of its own: a plain navigation is safer
+      if (!to || to.querySelector('canvas') || from.querySelector('canvas')) {
+        location.href = url
+        return
+      }
+      const a = anchorOf(from)
+      const still = matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (still) {
+        from.replaceWith(to)
+      }
+      else {
+        // the old text stays pinned on screen under the wave; the new one takes its place
+        const rect = from.getBoundingClientRect()
+        Object.assign(from.style, { position: 'fixed', top: `${rect.top}px`, left: `${rect.left}px`, width: `${rect.width}px`, margin: '0', pointerEvents: 'none' })
+        from.inert = true
+        from.setAttribute('aria-hidden', 'true')
+        from.after(to)
+      }
+      document.title = doc.title
+      document.querySelector('link[rel=canonical]')?.setAttribute('href', doc.querySelector('link[rel=canonical]')?.getAttribute('href') ?? url)
+      const barTitle = document.querySelector<HTMLElement>('.tb-title')
+      const newBarTitle = doc.querySelector<HTMLElement>('.tb-title')
+      if (barTitle && newBarTitle) {
+        barTitle.textContent = newBarTitle.textContent
+        barTitle.lang = newBarTitle.lang
+      }
+      if (push)
+        history.pushState(null, '', url)
+      shown = new URL(url).pathname
+      const target = a && blockAt(to, a)
+      if (a && target)
+        scrollTo({ top: scrollY + target.getBoundingClientRect().top - a.dy, behavior: 'instant' })
+      if (!still) {
+        try {
+          await play(from, to)
+        }
+        finally {
+          from.remove()
+        }
+      }
+    }
+    catch {
+      location.href = url
+    }
+    finally {
+      busy = false
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = (e.target as Element).closest<HTMLAnchorElement>('.lang-switch a[hreflang]')
+    if (!link || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)
+      return
+    e.preventDefault()
+    if (link.getAttribute('aria-current') !== 'page')
+      swap(link.href, true)
+  })
+  // back and forward between the two versions; a hash change within the page is not one
+  addEventListener('popstate', () => {
+    if (location.pathname !== shown)
+      swap(location.href, false)
+  })
+</script>
+
+<style>
+  .lang-switch {
+    display: flex;
+    gap: var(--space-xs);
+    align-items: baseline;
+    margin-top: var(--space-m);
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-data);
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .k { margin-right: var(--space-xs); }
+  .lang-switch a {
+    position: relative;
+    color: var(--ink-3);
+    padding-bottom: 2px;
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  /* ~44px hit area without moving anything */
+  .lang-switch a::after {
+    content: '';
+    position: absolute;
+    inset: -13px -6px;
+  }
+  .lang-switch a:hover { color: var(--ink); }
+  .lang-switch a[aria-current='page'] {
+    color: var(--accent-text);
+    border-color: var(--accent);
+  }
+</style>

@@ -11,17 +11,20 @@ interface Props {
   readTime: number
   pubDate: Date
   href: string
-  /** language of the post: a non-English one says so under its date, so that a
-   *  translation is told apart from its original */
+  /** language of the post: a post in one language only says so under its date when it
+   *  is not the reader's (base.css hides the mark that matches `html[data-lang]`) */
   lang?: 'en' | 'fr'
+  /** one version of a translated pair: the list carries both rows, and only the reader's
+   *  language shows (base.css, `[data-pair-lang]`) */
+  paired?: boolean
   /** the title's level in the page's outline: h2 under the page's h1, h3 under a section head */
   titleAs?: 'h2' | 'h3'
 }
 
-const { index, tag, tagAccent = false, title, description, readTime, pubDate, href, lang = 'en', titleAs: Title = 'h3' } = Astro.props
+const { index, tag, tagAccent = false, title, description, readTime, pubDate, href, lang = 'en', paired = false, titleAs: Title = 'h3' } = Astro.props
 ---
 
-<a class="post" href={href} hreflang={lang}>
+<a class="post" href={href} hreflang={lang} data-pair-lang={paired ? lang : undefined}>
   <span class="idx">{index}</span>
   <div class="body" lang={lang}>
     <span class="ptag"><Tag accent={tagAccent}>{tag}</Tag></span>
@@ -31,7 +34,7 @@ const { index, tag, tagAccent = false, title, description, readTime, pubDate, hr
   <span class="pmeta">
     <span>{readTime} MIN</span>
     <span>{formatMonth(pubDate)}</span>
-    {lang !== 'en' && <span>{lang.toUpperCase()}</span>}
+    {!paired && <span data-lang-mark={lang}>{lang.toUpperCase()}</span>}
   </span>
 </a>
 
@@ -50,6 +53,10 @@ const { index, tag, tagAccent = false, title, description, readTime, pubDate, hr
     transition: transform 0.25s ease;
   }
   .post:last-of-type { border-bottom: 1px solid var(--line); }
+  /* a list ending on a pair: either of its two rows may be the one shown, and close it */
+  .post[data-pair-lang]:nth-last-of-type(2):has(+ .post[data-pair-lang]:last-of-type) {
+    border-bottom: 1px solid var(--line);
+  }
   .post:hover { transform: translateX(14px); }
 
   .idx {

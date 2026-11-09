@@ -19,7 +19,11 @@
  *   reading time;
  * - slug: the Ghost slug when the note has a `link` (old URLs keep their path), else the
  *   title, slugified;
- * - Obsidian callouts become `{% callout %}`; the « imported from the blog » callout goes;
+ * - translation: the note's `translation: "[[Other note]]"`, or the other note's pointing
+ *   back, gives `translation: <other slug>` on both sides of the pair;
+ * - Obsidian callouts become `{% callout %}`; the « imported from the blog » callout goes,
+ *   and so do Ghost's flag callouts (« Looking for the english version? ») in a post that
+ *   has a translation: the post's language switch replaces them;
  * - a post migrated from Ghost loses the feature image the import put at the top of its
  *   body (only callouts before it): it will get a cover of its own;
  * - `![[file]]` and remote images are copied into `public/writing/<slug>/`; an image a
@@ -243,7 +247,7 @@ function ghostCard(lines: string[]): { title: string, body: string[] } | undefin
 }
 
 /** `> [!type] title` blocks → `{% callout %}`. Plain blockquotes stay blockquotes. */
-function convertCallouts(text: string): string {
+function convertCallouts(text: string, dropFlags = false): string {
   const lines = text.split('\n')
   const out: string[] = []
   for (let i = 0; i < lines.length; i++) {
@@ -263,6 +267,8 @@ function convertCallouts(text: string): string {
       continue
     // a Ghost card: an untitled note opening on 💡 (or on a flag, for the language switch)
     if (!title && content.length && GHOST_MARK.test(content[0])) {
+      if (dropFlags && /^\s*\p{Regional_Indicator}{2}/u.test(content[0]))
+        continue
       const isTip = content[0].trimStart().startsWith('💡')
       content[0] = content[0].replace(GHOST_MARK, '')
       if (isTip) {
@@ -576,6 +582,19 @@ const GHOST_DATES: Record<string, string> = {
   'looking-for-a-seed-en': '2024-01-22', // 2024-01-22T20:53:52Z, the day after the French one
 }
 
+/** the other note of a translated pair: its own `translation` wikilink, or the one pointing back */
+function translationOf(note: Note, siblings: Note[]): Note | undefined {
+  const target = (n: Note): string | undefined => {
+    const m = typeof n.meta.translation === 'string' ? n.meta.translation.match(/\[\[([^\]|#]+)/) : undefined
+    return m?.[1].trim()
+  }
+  const name = (n: Note): string => basename(n.path, extname(n.path))
+  const own = target(note)
+  return own
+    ? siblings.find(n => name(n) === own)
+    : siblings.find(n => target(n) === name(note))
+}
+
 async function convert(note: Note, siblings: Note[]): Promise<string> {
   const bySlug = new Set(siblings.map(n => n.slug))
   const byTitle = new Map(siblings.map(n => [basename(n.path, extname(n.path)), n.slug]))
@@ -593,7 +612,10 @@ async function convert(note: Note, siblings: Note[]): Promise<string> {
   }
 
   const link = typeof note.meta.link === 'string' && note.meta.link ? note.meta.link : undefined
-  let body = dropGhostCover(outsideCode(note.body, text => fixItalic(fixBold(convertCallouts(unquoteImages(text))))), Boolean(link && ghostSlug(link)))
+  const translation = translationOf(note, siblings)
+  if (typeof note.meta.translation === 'string' && !translation)
+    throw new Error(`${basename(note.path)}: translation ${note.meta.translation} is not a note of the folder`)
+  let body = dropGhostCover(outsideCode(note.body, text => fixItalic(fixBold(convertCallouts(unquoteImages(text), Boolean(translation))))), Boolean(link && ghostSlug(link)))
   const hasH1 = /^# /m.test(body.replace(/^```[\s\S]*?\n```.*$/gm, ''))
   body = outsideCode(body, text => mendQuotes(dropTipMarks(mendHeadings(rewriteLinks(demoteHeadings(text, hasH1), bySlug, byTitle)))))
   body = await localizeImages(body, note, siblings)
@@ -614,6 +636,7 @@ async function convert(note: Note, siblings: Note[]): Promise<string> {
     tags: asList(note.meta.tags).map(t => TAG_LABELS[t] ?? t),
     ...(series && { series }),
     ...(link && { link }),
+    ...(translation && { translation: translation.slug }),
   }
 
   const file = join(CONTENT_DIR, `${note.slug}.mdoc`)
