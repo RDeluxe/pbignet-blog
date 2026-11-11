@@ -36,10 +36,9 @@ const pairs = translatedPairs()
 // le CSS tel qu'on l'écrit.
 const cdExport = process.env.CD_EXPORT === '1'
 
-// BUILD_TARGET=staging (set by scripts/deploy-staging.sh) keeps the `/ds/*` design system
-// previews; the default build is production and leaves them out. Dev and the CD export
-// keep them.
-const keepDs = process.env.BUILD_TARGET === 'staging' || cdExport
+// The `/ds/*` design system previews: the production build leaves them out. Dev and the
+// CD export keep them.
+const keepDs = cdExport
 
 /** @type {import('astro').AstroIntegration} */
 const dropDsPages = {

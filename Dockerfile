@@ -1,5 +1,5 @@
 # Image de production du blog : le build Astro, puis nginx qui sert dist/.
-# Le build est celui de la prod (pas de BUILD_TARGET : sans /ds/, avec la balise Umami).
+# Le build est celui de la prod : sans /ds/, avec la balise Umami.
 
 FROM node:22-alpine AS build
 ARG SITE_URL=https://blog.pierrickbignet.com

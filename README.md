@@ -48,23 +48,6 @@ Deux variables d'environnement, lues depuis le shell ou le `.env` du repo (gitig
 | `SITE_URL` | L'URL publique du site : liens canoniques, Open Graph, sitemap. | `https://blog.pierrickbignet.com` |
 | `VAULT_ARTICLES_DIR` | Le dossier des articles publiés dans le vault Obsidian, pour `pnpm post:import` sans argument. | aucun |
 
-## Déployer en staging
-
-```sh
-scripts/deploy-staging.sh
-```
-
-Le script installe les dépendances (`--frozen-lockfile`), construit le site avec
-`SITE_URL=https://staging-blog.pierrickbignet.com` et `BUILD_TARGET=staging`, puis copie
-`dist/` par `rsync -a --delete` dans `~/ContainersData/blog-staging/dist/`, le dossier que le
-nginx de staging sert (derrière TinyAuth). Les fichiers sortent en 644 et les dossiers en
-755 : nginx les lit en uid 101. Il est relançable ; il refuse une cible qui n'existe pas.
-`STAGING_SITE_URL` et `STAGING_DIST_DIR` changent l'URL et la cible.
-
-`BUILD_TARGET=staging` garde les pages `/ds/` (les previews du design system). Le build par
-défaut, `pnpm build`, est celui de la prod : il les retire. `pnpm dev` et `pnpm build:cd` les
-gardent.
-
 ## Déployer en prod
 
 Un push sur `main` suffit. La CI (`.github/workflows/release.yml`) construit l'image
@@ -73,7 +56,9 @@ en `latest` et `sha-<court>`, puis appelle le webhook Dockhand, qui redéploie l
 `blog-prod` (`deploy/docker-compose.yaml`, variables dans `deploy/.env.example`). L'appel du
 webhook est sauté tant que les secrets `DOCKHAND_WEBHOOK_URL` et `DOCKHAND_WEBHOOK_SECRET`
 ne sont pas posés. La conf nginx est `deploy/nginx/default.conf`, les 301 de l'ancien Ghost
-viennent de `redirects/redirects.map`. `scripts/deploy-prod.sh` reste jusqu'à la bascule.
+viennent de `redirects/redirects.map`. `pnpm redirects:check [url]` les vérifie sur la prod
+ou sur un conteneur de test. Le build de prod ne garde pas les pages `/ds/` (previews du
+design system) ; `pnpm dev` et `pnpm build:cd` les gardent.
 
 ## Publier une note du vault
 
