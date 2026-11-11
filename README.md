@@ -1,43 +1,46 @@
-# Astro Starter Kit: Minimal
+# exhale
 
-```sh
-pnpm create astro@latest -- --template minimal
-```
+Le blog de Pierrick Bignet, en ligne sur <https://blog.pierrickbignet.com> depuis le 09/11,
+où il a remplacé Ghost. Un site Astro statique : les articles sont des fichiers Markdoc du
+repo, le build sort du HTML dans `dist/`, nginx le sert.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## La stack
 
-## 🚀 Project Structure
+- **Astro 6** : le site statique, les pages, les Content Collections (`writing` et `guides`, dans `src/content.config.ts`).
+- **Svelte 5** : branché (`@astrojs/svelte`) pour les composants qui auraient besoin de JS côté navigateur ; aucun `.svelte` pour l'instant.
+- **Markdoc** : le format des articles (`.md` / `.mdoc`), avec des balises maison comme `{% callout %}` (`markdoc.config.mjs`).
+- **CSS pur, scopé par composant** : pas de framework utilitaire. Les valeurs (couleurs, types, espaces) vivent dans des tokens, des custom properties.
+- **Fontsource** : Anton, Space Mono, Archivo et Newsreader, servies par le site lui-même.
 
-Inside of your Astro project, you'll see the following folders and files:
+## Où sont les choses
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+| Chemin | Contenu |
+| :-- | :-- |
+| `src/content/writing/` | Les articles (`<slug>.mdoc`). `src/content/guides/` : les guides. |
+| `src/pages/`, `src/layouts/` | Les routes et les gabarits de page. |
+| `src/components/` | Les composants Astro (`primitives/`, `article/`, `hero/`, `print/`, `ds/`). |
+| `src/styles/tokens/` | Les tokens : `colors.css`, `type.css`, `space.css`. `base.css` est le reset. |
+| `src/lib/` | Les helpers : dates, lecture des articles, couleur du hero. |
+| `public/` | Les fichiers servis tels quels : photos dithérées (à ne jamais recompresser), images des articles dans `public/writing/<slug>/`. |
+| `redirects/` | Les redirections 301 depuis les anciennes URL de Ghost. |
+| `scripts/` | Les scripts de déploiement, d'import et de redirections. |
+| `design/` | La doctrine et les protocoles de design (voir plus bas). |
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Les commandes
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Toutes se lancent depuis la racine du repo, après `pnpm install` (Node ≥ 22.12).
 
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-| `pnpm post:import [note.md…]` | Publie des notes du vault (voir plus bas)  |
+| Commande | Ce qu'elle fait |
+| :-- | :-- |
+| `pnpm dev` | Le serveur de dev, sur `localhost:4321`. Ce port est celui de Pierrick, qui teste dessus : ne jamais le couper. Un agent lance son propre serveur sur un autre port. |
+| `pnpm build` | Le build de prod, dans `dist/`, sans les pages `/ds/` (previews du design system). |
+| `pnpm build:cd` | Le même build avec les pages `/ds/` (`CD_EXPORT=1`), pour l'atelier d'idéation. |
+| `pnpm build:od` | `build:cd`, puis copie dans le dossier d'Open Design (`OD_PROJECT_DIR`), voir `design/PROTOCOL.md`. |
+| `pnpm preview` | Sert le dernier build. |
+| `pnpm lint` | ESLint sur tout le repo. |
+| `pnpm post:import` | Publie des notes du vault Obsidian (voir plus bas). |
+| `pnpm redirects` | Régénère la liste des redirections (voir plus bas). `--check` vérifie qu'elle est à jour sans écrire. |
+| `pnpm redirects:check` | Vérifie les redirections sur un site qui tourne (voir plus bas). |
 
 ## Configuration
 
@@ -48,22 +51,36 @@ Deux variables d'environnement, lues depuis le shell ou le `.env` du repo (gitig
 | `SITE_URL` | L'URL publique du site : liens canoniques, Open Graph, sitemap. | `https://blog.pierrickbignet.com` |
 | `VAULT_ARTICLES_DIR` | Le dossier des articles publiés dans le vault Obsidian, pour `pnpm post:import` sans argument. | aucun |
 
-## Déployer en staging
+## Déployer
 
-```sh
-scripts/deploy-staging.sh
-```
+**Staging.** `scripts/deploy-staging.sh` installe les dépendances (`--frozen-lockfile`),
+construit le site avec `SITE_URL=https://staging-blog.pierrickbignet.com` et
+`BUILD_TARGET=staging`, puis copie `dist/` par `rsync -a --delete` dans
+`~/ContainersData/blog-staging/dist/`, le dossier que le nginx de staging sert (derrière
+TinyAuth). Les fichiers sortent en 644 et les dossiers en 755 : nginx les lit en uid 101. Il
+est relançable ; il refuse une cible qui n'existe pas. `STAGING_SITE_URL` et
+`STAGING_DIST_DIR` changent l'URL et la cible.
 
-Le script installe les dépendances (`--frozen-lockfile`), construit le site avec
-`SITE_URL=https://staging-blog.pierrickbignet.com` et `BUILD_TARGET=staging`, puis copie
-`dist/` par `rsync -a --delete` dans `~/ContainersData/blog-staging/dist/`, le dossier que le
-nginx de staging sert (derrière TinyAuth). Les fichiers sortent en 644 et les dossiers en
-755 : nginx les lit en uid 101. Il est relançable ; il refuse une cible qui n'existe pas.
-`STAGING_SITE_URL` et `STAGING_DIST_DIR` changent l'URL et la cible.
+`BUILD_TARGET=staging` garde les pages `/ds/`. Le build par défaut, `pnpm build`, est celui
+de la prod : il les retire.
 
-`BUILD_TARGET=staging` garde les pages `/ds/` (les previews du design system). Le build par
-défaut, `pnpm build`, est celui de la prod : il les retire. `pnpm dev` et `pnpm build:cd` les
-gardent.
+**Prod.** `scripts/deploy-prod.sh`, lancé par Pierrick. Il ne tourne que depuis un `main`
+propre (ce qui est servi est ce qui est mergé), fait le build de prod avec `SITE_URL`, puis
+copie `dist/` par `rsync -a --delete --delay-updates` dans `~/ContainersData/blog/dist/`.
+`PROD_SITE_URL` et `PROD_DIST_DIR` changent l'URL et la cible.
+
+**Les anciennes URL de Ghost.** Un article migré garde son `link` Ghost dans son frontmatter.
+`pnpm redirects` (`scripts/gen-redirects.ts`) en tire `redirects/redirects.map`, une liste
+de lignes `/ancien /nouveau;` : les articles (`/<slug>/` vers `/writing/<slug>/`), `/rss/`,
+`/feed/`, `/sitemap.xml`, les images de Ghost retrouvées dans `public/writing/`, et les
+lignes à la main de `redirects/manual.map`. Ce fichier est généré : on édite `manual.map`,
+jamais `redirects.map`. Les images de Ghost sans équivalent vont dans `missing-images.txt`.
+La liste ne sert à rien tant qu'elle n'est pas dans nginx : le serveur en garde une copie,
+dans un `map $uri $redirect_target { … include …/redirects.map; }`, à recopier après chaque
+régénération. `scripts/check-redirects.sh <url>` (ou `pnpm redirects:check <url>`) vérifie
+sur un site qui tourne que chaque ancienne URL répond 301 vers la bonne cible, et que la
+cible répond 200. Derrière TinyAuth (staging), il s'arrête sur un 401 ou 403 : passer un
+login par `CURL_ARGS`.
 
 ## Publier une note du vault
 
@@ -84,7 +101,7 @@ Ce que la note fournit, dans son frontmatter :
 - `posted_on` : la date. Sans elle, un article migré prend celle de la table `GHOST_DATES`
   du script (la date de publication sur Ghost), puis une traduction prend la date de la note
   qu'elle cite en wikilink (son original) ; sinon le script s'arrête.
-- `tags`, `serie`, `link` (l'URL de l'ancien blog Ghost, gardée pour de futures redirections).
+- `tags`, `serie`, `link` (l'URL de l'ancien blog Ghost, gardée pour les redirections).
 - facultatifs : `title` (sinon le nom du fichier, sans « FR - » ni « (EN) »), `description`
   (sinon le premier paragraphe), `lang` (sinon « FR - » / « (EN) », sinon les mots du texte).
 
@@ -93,6 +110,10 @@ chemin), sinon le titre. Les callouts `> [!note]` deviennent `{% callout %}`, le
 « importé depuis le blog » disparaît, les wikilinks et les liens vers l'ancien blog pointent
 vers l'article migré s'il est dans le même dossier du vault.
 
-## 👀 Want to learn more?
+## Les documents de design
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- [`CLAUDE.md`](CLAUDE.md) : les règles de travail du repo. À lire en premier.
+- [`PRODUCT.md`](PRODUCT.md) : le produit, ses lecteurs, le ton, les anti-patterns.
+- [`design/PIPELINE.md`](design/PIPELINE.md) : la doctrine code (tokens, primitives, composants). À lire avant d'écrire un composant.
+- [`design/PROTOCOL.md`](design/PROTOCOL.md) : le protocole d'idéation avec Open Design, le code étant la source de vérité.
+- [`design/doctrine/0_NORTHSTAR.html`](design/doctrine/0_NORTHSTAR.html) : la doctrine design. À lire avant toute décision visuelle.
