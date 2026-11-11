@@ -1,0 +1,14 @@
+.git
+.worktrees
+.github
+.claude
+.impeccable
+.screenshots
+.vscode
+node_modules
+dist
+dist-cd
+.astro
+design
+deploy/docker-compose.yaml
+.env*

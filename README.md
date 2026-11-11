@@ -65,6 +65,16 @@ nginx de staging sert (derrière TinyAuth). Les fichiers sortent en 644 et les d
 défaut, `pnpm build`, est celui de la prod : il les retire. `pnpm dev` et `pnpm build:cd` les
 gardent.
 
+## Déployer en prod
+
+Un push sur `main` suffit. La CI (`.github/workflows/release.yml`) construit l'image
+(`Dockerfile` : build Astro de prod, puis nginx), la pousse sur `ghcr.io/rdeluxe/pbignet-blog`
+en `latest` et `sha-<court>`, puis appelle le webhook Dockhand, qui redéploie la stack
+`blog-prod` (`deploy/docker-compose.yaml`, variables dans `deploy/.env.example`). L'appel du
+webhook est sauté tant que les secrets `DOCKHAND_WEBHOOK_URL` et `DOCKHAND_WEBHOOK_SECRET`
+ne sont pas posés. La conf nginx est `deploy/nginx/default.conf`, les 301 de l'ancien Ghost
+viennent de `redirects/redirects.map`. `scripts/deploy-prod.sh` reste jusqu'à la bascule.
+
 ## Publier une note du vault
 
 `scripts/vault-to-post.ts` convertit une note Obsidian en article de la collection `writing`.
