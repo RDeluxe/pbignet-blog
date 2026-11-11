@@ -1,4 +1,5 @@
 ---
+import process from 'node:process'
 import RegMarks from '../components/print/RegMarks.astro'
 import '../styles/index.css'
 import '@fontsource/anton/400.css'
@@ -32,6 +33,12 @@ const {
   alternates = [],
 } = Astro.props
 
+// Umami (stats.pierrickbignet.com): the production build only. Not dev, not the staging
+// build (BUILD_TARGET=staging), not the CD export (CD_EXPORT=1). No cookie, no banner.
+const umami = import.meta.env.PROD
+  && process.env.BUILD_TARGET !== 'staging'
+  && process.env.CD_EXPORT !== '1'
+
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href
 ---
 
@@ -63,6 +70,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href
     <link rel="icon" href="/favicon.ico" />
     <link rel="alternate" type="application/rss+xml" title="exhale" href="/rss.xml" />
     <title>{title}</title>
+    {umami && <script is:inline defer src="https://stats.pierrickbignet.com/lib.js" data-website-id="cfc6adbb-279b-42d1-a75e-8d6aca910631" data-domains="blog.pierrickbignet.com"></script>}
 
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website" />
