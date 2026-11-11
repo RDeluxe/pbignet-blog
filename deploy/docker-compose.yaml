@@ -1,0 +1,32 @@
+# Le blog de production, déployé par Dockhand (stack `blog-prod`, dépôt RDeluxe/pbignet-blog).
+# Chaque ${…} vient de l'environnement de la stack dans Dockhand : deploy/.env.example les liste.
+# Une variable obligatoire s'écrit ${NOM:?…} : absente, le déploiement s'arrête et la nomme.
+
+services:
+  blog:
+    image: ${IMAGE_REPO:-ghcr.io/rdeluxe/pbignet-blog}:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    user: '101:101'
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:uid=101,gid=101
+      - /run:uid=101,gid=101
+      - /tmp:uid=101,gid=101
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 64m
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:?TRAEFIK_NETWORK is required}
+      - traefik.http.services.blog.loadbalancer.server.port=8080
+      - traefik.http.routers.blog.rule=Host(`${PUBLIC_HOST:?PUBLIC_HOST is required}`)
+      - traefik.http.routers.blog.entrypoints=websecure
+      - traefik.http.routers.blog.tls.certresolver=letsencrypt
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK}

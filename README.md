@@ -53,21 +53,14 @@ Deux variables d'environnement, lues depuis le shell ou le `.env` du repo (gitig
 
 ## Déployer
 
-**Staging.** `scripts/deploy-staging.sh` installe les dépendances (`--frozen-lockfile`),
-construit le site avec `SITE_URL=https://staging-blog.pierrickbignet.com` et
-`BUILD_TARGET=staging`, puis copie `dist/` par `rsync -a --delete` dans
-`~/ContainersData/blog-staging/dist/`, le dossier que le nginx de staging sert (derrière
-TinyAuth). Les fichiers sortent en 644 et les dossiers en 755 : nginx les lit en uid 101. Il
-est relançable ; il refuse une cible qui n'existe pas. `STAGING_SITE_URL` et
-`STAGING_DIST_DIR` changent l'URL et la cible.
-
-`BUILD_TARGET=staging` garde les pages `/ds/`. Le build par défaut, `pnpm build`, est celui
-de la prod : il les retire.
-
-**Prod.** `scripts/deploy-prod.sh`, lancé par Pierrick. Il ne tourne que depuis un `main`
-propre (ce qui est servi est ce qui est mergé), fait le build de prod avec `SITE_URL`, puis
-copie `dist/` par `rsync -a --delete --delay-updates` dans `~/ContainersData/blog/dist/`.
-`PROD_SITE_URL` et `PROD_DIST_DIR` changent l'URL et la cible.
+**Prod.** Un push sur `main` suffit. La CI (`.github/workflows/release.yml`) construit l'image
+(`Dockerfile` : build Astro de prod, puis nginx), la pousse sur `ghcr.io/rdeluxe/pbignet-blog`
+en `latest` et `sha-<court>`, puis appelle le webhook Dockhand, qui redéploie la stack
+`blog-prod` (`deploy/docker-compose.yaml`, variables dans `deploy/.env.example`). L'appel du
+webhook est sauté tant que les secrets `DOCKHAND_WEBHOOK_URL` et `DOCKHAND_WEBHOOK_SECRET`
+ne sont pas posés. La conf nginx est `deploy/nginx/default.conf`. Le build de prod ne garde
+pas les pages `/ds/` (previews du design system) ; `pnpm dev` et `pnpm build:cd` les gardent.
+Il n'y a plus de staging.
 
 **Les anciennes URL de Ghost.** Un article migré garde son `link` Ghost dans son frontmatter.
 `pnpm redirects` (`scripts/gen-redirects.ts`) en tire `redirects/redirects.map`, une liste
@@ -75,12 +68,12 @@ de lignes `/ancien /nouveau;` : les articles (`/<slug>/` vers `/writing/<slug>/`
 `/feed/`, `/sitemap.xml`, les images de Ghost retrouvées dans `public/writing/`, et les
 lignes à la main de `redirects/manual.map`. Ce fichier est généré : on édite `manual.map`,
 jamais `redirects.map`. Les images de Ghost sans équivalent vont dans `missing-images.txt`.
-La liste ne sert à rien tant qu'elle n'est pas dans nginx : le serveur en garde une copie,
-dans un `map $uri $redirect_target { … include …/redirects.map; }`, à recopier après chaque
-régénération. `scripts/check-redirects.sh <url>` (ou `pnpm redirects:check <url>`) vérifie
-sur un site qui tourne que chaque ancienne URL répond 301 vers la bonne cible, et que la
-cible répond 200. Derrière TinyAuth (staging), il s'arrête sur un 401 ou 403 : passer un
-login par `CURL_ARGS`.
+L'image Docker embarque la liste : un `main` régénéré la redéploie. Les images de l'ancien
+Ghost listées dans `ghost-images.txt` sont dans `public/content/images/`, servies au même
+chemin. `scripts/check-redirects.sh [url]` (ou `pnpm redirects:check [url]`) vérifie sur un
+site qui tourne, la prod par défaut ou un conteneur de test, que chaque ancienne URL répond
+301 vers la bonne cible, et que la cible répond 200. Derrière un login, il s'arrête sur un
+401 ou 403 : passer un login par `CURL_ARGS`.
 
 ## Publier une note du vault
 

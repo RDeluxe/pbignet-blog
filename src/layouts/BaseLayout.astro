@@ -33,10 +33,9 @@ const {
   alternates = [],
 } = Astro.props
 
-// Umami (stats.pierrickbignet.com): the production build only. Not dev, not the staging
-// build (BUILD_TARGET=staging), not the CD export (CD_EXPORT=1). No cookie, no banner.
+// Umami (stats.pierrickbignet.com): the production build only. Not dev, not the CD export
+// (CD_EXPORT=1). No cookie, no banner.
 const umami = import.meta.env.PROD
-  && process.env.BUILD_TARGET !== 'staging'
   && process.env.CD_EXPORT !== '1'
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href
