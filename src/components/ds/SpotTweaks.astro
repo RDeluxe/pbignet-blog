@@ -225,15 +225,15 @@
   function load(): TweakState {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw)
-        return { ...DEFAULTS }
-      const s: TweakState = { ...DEFAULTS, ...JSON.parse(raw) }
-      if (REDUCED)
+      const s: TweakState = { ...DEFAULTS, ...(raw ? JSON.parse(raw) : {}) }
+      // never share the masks object with DEFAULTS: editMasks() mutates it in place
+      s.masks = structuredClone(s.masks)
+      if (raw && REDUCED)
         s.shimmer = 0
       return s
     }
     catch {
-      return { ...DEFAULTS }
+      return { ...DEFAULTS, masks: structuredClone(DEFAULTS.masks) }
     }
   }
   function save(s: TweakState) {
