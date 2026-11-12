@@ -20,6 +20,16 @@
 /** Couleur acceptée : `'#c8321e'`, `'20,22,15'`, `[20, 22, 15]` ou `'var(--ink)'`. */
 export type SpotColor = string | readonly [number, number, number]
 
+/** Polygone de zone, en coordonnées NORMALISÉES sur l'image naturelle (0..1). */
+export interface SpotMask {
+  /** `in` : la sélection est restreinte à l'union des `in` · `out` : elle s'en retire */
+  mode: 'in' | 'out'
+  pts: [number, number][]
+}
+
+/** Ce que devient une cellule « éteinte » du dither (voir `SpotHeroOptions.ground`). */
+export type SpotGround = 'flat' | 'photo' | 'transparent'
+
 export interface SpotHeroOptions {
   /** taille d'une cellule de trame, en px écran. Plus grand = trame plus grosse. */
   cell: number
@@ -53,6 +63,38 @@ export interface SpotHeroOptions {
    * cette zone (c'est la photo brute qu'on voit).
    */
   keepSharp: boolean
+  /**
+   * Sélection par ANGLE de teinte (opt-in). `match` est une projection, pas une teinte :
+   * un jaune saturé score plus haut qu'un rouge délavé. En `hueMode`, on compare l'angle
+   * entre la chroma du pixel et celle de `keepColor`, et `hueLo`/`hueSpan` sont ignorés.
+   */
+  hueMode: boolean
+  /** demi-angle (°) entièrement gardé */
+  hueTol: number
+  /** degrés de bord doux au-delà de `hueTol` */
+  hueSoft: number
+  /** longueur de chroma mini (0..255) : sous ce seuil, le pixel est trop gris pour avoir une teinte */
+  satMin: number
+  /** bord doux de ce seuil */
+  satSoft: number
+  /**
+   * Zones dessinées (opt-in). Coordonnées normalisées sur l'image naturelle : elles
+   * survivent au recadrage, au `cell` et au point focal. S'il existe au moins un `in`,
+   * tout le reste est hors sélection ; les `out` se soustraient. Appliquées avant
+   * `invert` et `keepSharp`. Rasterisées une fois par build.
+   */
+  masks: SpotMask[] | null
+  /**
+   * Fond des cellules éteintes (opt-in). `flat` = la couleur `paper` · `photo` = le pixel
+   * d'origine (désaturé par `groundSat`, éclairci par `groundLift`, mixé vers `paper` par
+   * `groundMix`) · `transparent` = alpha 0 : le fond de la section transparaît, et l'`img`
+   * est masquée (sauf en keepSharp, qui a besoin d'elle).
+   */
+  ground: SpotGround
+  /** 0 = photo pure → 1 = `paper` (ground `photo`) */
+  groundMix: number
+  groundSat: number
+  groundLift: number
   /** point focal du recadrage, 0..1. Ne déforme jamais : ne fait que panner. */
   focalX: number
   focalY: number
@@ -77,6 +119,16 @@ const DEFAULTS: SpotHeroOptions = {
   satBoost: 0.35,
   invert: false,
   keepSharp: false,
+  hueMode: false,
+  hueTol: 20,
+  hueSoft: 12,
+  satMin: 40,
+  satSoft: 20,
+  masks: null,
+  ground: 'flat',
+  groundMix: 0,
+  groundSat: 1,
+  groundLift: 0,
   focalX: 0.5,
   focalY: 0.5,
 }
@@ -104,6 +156,9 @@ function clamp(v: number, a: number, b: number): number {
 
 /** smoothstep — le bord adouci de la sélection de teinte. */
 function smooth(e0: number, e1: number, x: number): number {
+  // bord de largeur nulle (hueSoft ou satSoft à 0) : un seuil net, pas un NaN
+  if (e1 === e0)
+    return x >= e1 ? 1 : 0
   const t = clamp((x - e0) / (e1 - e0), 0, 1)
   return t * t * (3 - 2 * t)
 }
@@ -178,6 +233,10 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
   let builtCell = 0
   let builtFocalX = 0.5
   let builtFocalY = 0.5
+  // masque rasterisé (1 octet par cellule) et cover-fit qui l'a placé
+  let mask: Uint8Array | null = null
+  let fit: { dx: number, dy: number, dw: number, dh: number } | null = null
+  let imgHidden = false
   let raf = 0
   let last = 0
   let tick = 0
@@ -249,6 +308,9 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
       return
     }
 
+    fit = { dx, dy, dw, dh }
+    buildMask()
+
     canvas!.width = lw
     canvas!.height = lh
     canvas!.style.display = 'block'
@@ -256,6 +318,54 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
     builtCell = P.cell
     builtFocalX = P.focalX
     builtFocalY = P.focalY
+  }
+
+  /**
+   * Rasterise les polygones dans une grille `lw×lh` (canal R → 1 octet par cellule).
+   * Point image (0..1) → grille : on passe par le cover-fit de `build()`.
+   */
+  function buildMask(): void {
+    mask = null
+    const ms = P.masks
+    if (!ms || !ms.length || !fit)
+      return
+    const off = document.createElement('canvas')
+    off.width = lw
+    off.height = lh
+    const o = off.getContext('2d')
+    if (!o)
+      return
+    const hasIn = ms.some(m => m.mode === 'in')
+    o.fillStyle = hasIn ? '#000' : '#fff'
+    o.fillRect(0, 0, lw, lh)
+    for (const m of ms) {
+      if (!m.pts || m.pts.length < 3)
+        continue
+      o.fillStyle = m.mode === 'in' ? '#fff' : '#000'
+      o.beginPath()
+      m.pts.forEach(([px, py], j) => {
+        const gx = fit!.dx + px * fit!.dw
+        const gy = fit!.dy + py * fit!.dh
+        if (j)
+          o.lineTo(gx, gy)
+        else o.moveTo(gx, gy)
+      })
+      o.closePath()
+      o.fill()
+    }
+    const d = o.getImageData(0, 0, lw, lh).data
+    mask = new Uint8Array(lw * lh)
+    for (let k = 0; k < mask.length; k++)
+      mask[k] = d[k * 4]
+  }
+
+  /** l'`img` ne doit pas transparaître sous un fond `transparent` — sauf en keepSharp */
+  function syncImgVisibility(): void {
+    const hide = P.ground === 'transparent' && !P.keepSharp
+    if (hide === imgHidden)
+      return
+    img!.style.visibility = hide ? 'hidden' : ''
+    imgHidden = hide
   }
 
   function render(): void {
@@ -271,6 +381,13 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
     const paper = toRgb(P.paper, container)
     const boil = reduced ? 0 : P.boil
     const hueHi = P.hueLo + P.hueSpan
+    const cosHi = Math.cos(P.hueTol * Math.PI / 180)
+    const cosLo = Math.cos((P.hueTol + P.hueSoft) * Math.PI / 180)
+    const satHi = P.satMin + P.satSoft
+    const gPhoto = P.ground === 'photo'
+    const gClear = P.ground === 'transparent'
+    const gl = P.groundLift * 255
+    syncImgVisibility()
 
     for (let y = 0; y < lh; y++) {
       for (let x = 0; x < lw; x++) {
@@ -289,12 +406,41 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
         let R = on ? ink[0] : paper[0]
         let G = on ? ink[1] : paper[1]
         let B = on ? ink[2] : paper[2]
+        let A = 255
+        if (!on) {
+          if (gPhoto) {
+            // pixel d'origine, désaturé par groundSat, éclairci par groundLift, mixé vers paper
+            const pr = clamp(lum + (r - lum) * P.groundSat + gl, 0, 255)
+            const pg = clamp(lum + (g - lum) * P.groundSat + gl, 0, 255)
+            const pb = clamp(lum + (b - lum) * P.groundSat + gl, 0, 255)
+            R = pr + (paper[0] - pr) * P.groundMix
+            G = pg + (paper[1] - pg) * P.groundMix
+            B = pb + (paper[2] - pb) * P.groundMix
+          }
+          else if (gClear) {
+            A = 0
+          }
+        }
 
         // couleur sélective : on garde les pixels dont la teinte correspond, bord adouci.
         // En invert, le masque se retourne : la teinte keyée part dans le duotone,
         // tout le reste garde sa couleur.
-        const match = (r - lum) * dir[0] + (g - lum) * dir[1] + (b - lum) * dir[2]
-        let w = smooth(P.hueLo, hueHi, match)
+        const dr = r - lum
+        const dg = g - lum
+        const db = b - lum
+        const match = dr * dir[0] + dg * dir[1] + db * dir[2]
+        let w: number
+        if (P.hueMode) {
+          // cosinus de l'angle entre la chroma du pixel et celle de keepColor ; la
+          // saturation est une porte à part
+          const len = Math.hypot(dr, dg, db)
+          w = len < 1 ? 0 : smooth(cosLo, cosHi, match / len) * smooth(P.satMin, satHi, len)
+        }
+        else {
+          w = smooth(P.hueLo, hueHi, match)
+        }
+        if (mask)
+          w *= mask[y * lw + x] / 255
         if (P.invert)
           w = 1 - w
 
@@ -304,7 +450,7 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
           d[i] = R
           d[i + 1] = G
           d[i + 2] = B
-          d[i + 3] = Math.round((1 - w) * 255)
+          d[i + 3] = gClear && !on ? 0 : Math.round((1 - w) * 255)
           continue
         }
 
@@ -312,15 +458,24 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
           const kr = clamp(r + (r - lum) * P.satBoost, 0, 255)
           const kg = clamp(g + (g - lum) * P.satBoost, 0, 255)
           const kb = clamp(b + (b - lum) * P.satBoost, 0, 255)
-          R += (kr - R) * w
-          G += (kg - G) * w
-          B += (kb - B) * w
+          if (gClear && !on) {
+            // fond transparent : la couleur gardée se pose seule, son opacité est w
+            R = kr
+            G = kg
+            B = kb
+            A = Math.round(w * 255)
+          }
+          else {
+            R += (kr - R) * w
+            G += (kg - G) * w
+            B += (kb - B) * w
+          }
         }
 
         d[i] = R
         d[i + 1] = G
         d[i + 2] = B
-        d[i + 3] = 255
+        d[i + 3] = A
       }
     }
     ctx.putImageData(out, 0, 0)
@@ -434,6 +589,8 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
       topoMaskDirty = true
       if (geometryChanged)
         build()
+      else if ('masks' in next)
+        buildMask()
       draw()
       if (animated() && visible)
         start()
@@ -444,6 +601,8 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
       alive = false
       stop()
       io.disconnect()
+      if (imgHidden)
+        img.style.visibility = ''
       img.removeEventListener('load', onLoad)
       window.removeEventListener('resize', onResize)
     },

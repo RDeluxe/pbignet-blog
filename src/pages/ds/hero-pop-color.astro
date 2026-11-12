@@ -80,6 +80,50 @@ import BaseLayout from '../../layouts/BaseLayout.astro'
     }}
   />
 
+  <!-- recipe 3 : les options opt-in (mode teinte, fond photo, zones) — repris de l'outil de
+       trame du carrousel. Le bordeaux est isolé par l'ANGLE de teinte, puis restreint à deux
+       polygones `in` : le reste de la photo retombe dans le fond dithéré. -->
+  <HeroPopColor
+    photo={{
+      src: '/photos/source/trame-zones-web.jpg',
+      alt: 'Combi bordeaux dans une rue, seule couleur d’une scène dithérée',
+    }}
+    title="Combi"
+    place="Hue + zones"
+    method="MODE TEINTE · FOND PHOTO · ZONES `IN` · ⓒ P. BIGNET"
+    titleY="56%"
+    cue={false}
+    spot={{
+      keepColor: '#81222c',
+      ink: [24, 23, 15],
+      paper: [211, 204, 182],
+      cell: 2,
+      contrast: 1.5,
+      brightness: 0.08,
+      satBoost: 0.35,
+      hueMode: true,
+      hueTol: 28,
+      hueSoft: 12,
+      satMin: 58,
+      satSoft: 20,
+      ground: 'photo',
+      groundMix: 0.4,
+      groundSat: 1.15,
+      groundLift: 0.04,
+      masks: [
+        { mode: 'in', pts: [[0.264, 0.117], [0.736, 0.119], [0.706, 0.64], [0.516, 0.622], [0.457, 0.537], [0.272, 0.518]] },
+        { mode: 'in', pts: [[0.594, 0.632], [0.597, 0.708], [0.608, 0.734], [0.633, 0.732], [0.636, 0.752], [0.665, 0.791], [0.674, 0.781], [0.668, 0.638]] },
+      ],
+    }}
+  />
+
+  <Section>
+    <MonoLabel tone="quiet">
+      Recipe 03 — hueMode (angle 28° + 12°, saturation ≥ 58) · ground photo (mix 0.4) · deux
+      zones `in`. Le panneau T pilote la première cover : y charger « zones demo » pour dessiner.
+    </MonoLabel>
+  </Section>
+
   {/* le panneau de réglages (touche T) pilote la PREMIÈRE cover de la page —
       porté de l'atelier OD le 2026-08-05, il sort la recipe en syntaxe de props */}
   <SpotTweaks />
