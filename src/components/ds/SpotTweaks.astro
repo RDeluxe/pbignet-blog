@@ -863,7 +863,7 @@
   })
 
   addEventListener('keydown', (e) => {
-    if (drawMode === 'off' || (e.target as HTMLElement).matches('input, textarea, select, [contenteditable]'))
+    if (drawMode === 'off' || (e.target as HTMLElement).matches('input, textarea, select, button, [contenteditable]'))
       return
     if (e.key === 'Enter') {
       e.preventDefault()
@@ -904,6 +904,7 @@
   function reset() {
     Object.assign(state, DEFAULTS, { masks: structuredClone(DEFAULTS.masks) })
     masksDirty = true
+    setDrawMode('off')
     save(state)
     apply(state)
   }
@@ -1352,7 +1353,6 @@
     color: var(--paper);
   }
 
-  /* bouton de rappel — la seule trace visible du panneau quand il est replié */
   .tw-ov {
     position: absolute;
     inset: 0;
@@ -1401,6 +1401,7 @@
     padding: 0 4px;
   }
 
+  /* bouton de rappel — la seule trace visible du panneau quand il est replié */
   .tw-restore {
     position: fixed;
     top: 64px;
