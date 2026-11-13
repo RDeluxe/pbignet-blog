@@ -24,7 +24,7 @@
  * Garder un ground sombre (~78,82,74) ou basculer `titleInk`. **Mesurer, ne pas juger à
  * l'œil** — la méthode est dans PIPELINE §4.6b.
  */
-import type { SpotColor } from '../../lib/spot-hero'
+import type { SpotColor, SpotGround, SpotMask } from '../../lib/spot-hero'
 
 export interface SpotRecipe {
   /** la couleur à conserver — sa teinte décide de ce qui reste en couleur */
@@ -45,6 +45,20 @@ export interface SpotRecipe {
   invert?: boolean
   /** la zone gardée en couleur reste à la résolution native de la photo (pas de trame) */
   keepSharp?: boolean
+  /** sélection par ANGLE de teinte plutôt que par projection ; remplace `hueLo`/`hueSpan` */
+  hueMode?: boolean
+  /** demi-angle (°) gardé · bord doux (°) · chroma mini (0..255) · bord doux de ce seuil */
+  hueTol?: number
+  hueSoft?: number
+  satMin?: number
+  satSoft?: number
+  /** zones dessinées (polygones normalisés sur l'image) : `in` restreint, `out` retire */
+  masks?: SpotMask[]
+  /** fond des cellules éteintes : couleur `paper` (défaut), photo d'origine, ou transparent */
+  ground?: SpotGround
+  groundMix?: number
+  groundSat?: number
+  groundLift?: number
 }
 
 interface Props {
