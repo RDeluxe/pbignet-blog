@@ -307,7 +307,7 @@
     const heightChanged = hero.style.getPropertyValue('--phHeight') !== h
     for (const el of [hero, fade].filter((e): e is HTMLElement => e !== null)) {
       el.style.setProperty('--phHeight', h)
-      el.style.setProperty('--phGround', ink.join(', '))
+      el.style.setProperty('--phGround', paper.join(', '))
       el.style.setProperty('--phTitleX', `${s.titleX}%`)
       el.style.setProperty('--phTitleYBase', `${s.titleY}%`)
     }
