@@ -177,6 +177,7 @@ for (const post of await getCollection('writing')) {
 
   const hero = document.querySelector<HTMLElement & { spotHero?: SpotHeroHandle }>('.post-hero')
   const heroImg = hero?.querySelector<HTMLImageElement>('img.dsrc') ?? null
+  const ZONE_HINT = 'In / Out shape the colour selection · Photo keeps the zone as the sharp photo · Dither gives it its own screen. Pick a type, then click to add points · Enter or click the first point closes · Backspace undoes a point · Esc cancels'
   const fade = hero?.nextElementSibling instanceof HTMLElement && hero.nextElementSibling.classList.contains('hero-fade')
     ? hero.nextElementSibling
     : null
@@ -757,7 +758,7 @@ for (const post of await getCollection('writing')) {
         const hint = document.createElement('p')
         hint.className = 'tw-hint'
         hint.id = 'k-zonehint'
-        hint.textContent = 'In / Out shape the colour selection · Photo keeps the zone as the sharp photo · Dither gives it its own screen. Click to add points · Enter or click the first point closes · Backspace undoes a point · Esc cancels'
+        hint.textContent = ZONE_HINT
         row.appendChild(hint)
         const list = document.createElement('div')
         list.className = 'tw-zones'
@@ -792,6 +793,8 @@ for (const post of await getCollection('writing')) {
   const overlay = document.getElementById('tw-ov') as unknown as SVGSVGElement | null
   let drawMode: DrawMode = 'off'
   let cursor: [number, number] | null = null
+  /** index of the zone hovered in the panel list, highlighted on the photo */
+  let hoverZone: number | null = null
 
   if (overlay && hero)
     hero.appendChild(overlay)
@@ -852,19 +855,36 @@ for (const post of await getCollection('writing')) {
   }
   const ZONE_LABEL: Record<SpotMask['mode'], string> = { in: 'In', out: 'Out', photo: 'Photo', dither: 'Dither' }
 
+  function setHoverZone(i: number | null) {
+    hoverZone = i
+    drawOverlay()
+  }
+
+  /* while drawing, the cover shows the source photo without its screen, framed like the engine */
+  function showRawPhoto(raw: boolean) {
+    for (const c of hero?.querySelectorAll<HTMLCanvasElement>('canvas.dither-canvas, canvas.topo-on') ?? [])
+      c.style.visibility = raw ? 'hidden' : ''
+    if (heroImg)
+      heroImg.style.objectPosition = raw ? `${state.focalX}% ${state.focalY}%` : ''
+  }
+
   function drawOverlay() {
     if (!overlay)
       return
     overlay.replaceChildren()
     overlay.dataset.draw = drawMode
+    showRawPhoto(drawMode !== 'off')
     const f = coverFit()
-    if (!f || drawMode === 'off')
+    if (!f || (drawMode === 'off' && hoverZone === null))
       return
     overlay.setAttribute('viewBox', `0 0 ${f.cw} ${f.ch}`)
-    for (const m of currentMasks(state)) {
+    currentMasks(state).forEach((m, i) => {
+      if (drawMode === 'off' && i !== hoverZone)
+        return
       const pts = m.pts.map(p => toFrame(f, p).join(',')).join(' ')
-      overlay.appendChild(svgEl('polygon', { points: pts, ...ZONE_STYLE[m.mode] }))
-    }
+      const hot = i === hoverZone ? { 'fill': 'rgba(255, 255, 255, 0.35)', 'stroke-width': '4' } : {}
+      overlay.appendChild(svgEl('polygon', { points: pts, ...ZONE_STYLE[m.mode], ...hot }))
+    })
     if (draft.length) {
       const pts = [...draft, ...(cursor ? [cursor] : [])].map(p => toFrame(f, p).join(','))
       overlay.appendChild(svgEl('polyline', { 'points': pts.join(' '), 'fill': 'none', 'stroke': '#fff', 'stroke-width': '2' }))
@@ -878,6 +898,11 @@ for (const post of await getCollection('writing')) {
   function paintZones(s: TweakState) {
     document.getElementById('k-zonemode')?.querySelectorAll('button').forEach(b =>
       b.setAttribute('aria-pressed', b.dataset.val === drawMode ? 'true' : 'false'))
+    const hint = document.getElementById('k-zonehint')
+    if (hint) {
+      hint.textContent = drawMode === 'off' ? ZONE_HINT : `Nouvelle zone (${ZONE_LABEL[drawMode]}) : clique pour poser les points`
+      hint.dataset.drawing = drawMode === 'off' ? 'off' : 'on'
+    }
     const list = document.getElementById('k-zonelist')
     if (!list)
       return
@@ -886,13 +911,18 @@ for (const post of await getCollection('writing')) {
     ms.forEach((m, i) => {
       const item = document.createElement('div')
       item.className = 'tw-zone'
+      item.addEventListener('pointerenter', () => setHoverZone(i))
+      item.addEventListener('pointerleave', () => setHoverZone(null))
       const name = document.createElement('span')
-      name.textContent = `${ZONE_LABEL[m.mode]} · ${m.pts.length} pts`
+      name.textContent = `Zone ${i + 1} · ${ZONE_LABEL[m.mode]}`
       const del = document.createElement('button')
       del.type = 'button'
       del.textContent = '×'
       del.setAttribute('aria-label', `Delete zone ${i + 1}`)
-      del.addEventListener('click', () => editMasks(ms.filter((_, j) => j !== i)))
+      del.addEventListener('click', () => {
+        hoverZone = null
+        editMasks(ms.filter((_, j) => j !== i))
+      })
       item.append(name, del)
       list.appendChild(item)
       if (m.mode === 'dither')
@@ -990,6 +1020,9 @@ for (const post of await getCollection('writing')) {
     if (!f || drawMode === 'off')
       return
     e.preventDefault()
+    /* the type button keeps focus otherwise, and Enter would press it instead of closing */
+    if (document.activeElement instanceof HTMLElement)
+      document.activeElement.blur()
     const r = overlay.getBoundingClientRect()
     const x = (e.clientX - r.left) * (f.cw / r.width)
     const y = (e.clientY - r.top) * (f.ch / r.height)
@@ -1051,6 +1084,28 @@ for (const post of await getCollection('writing')) {
   }
   document.getElementById('tw-close')?.addEventListener('click', () => setPanelVisible(false))
   restore.addEventListener('click', () => setPanelVisible(true))
+
+  /* the panel moves, dragged by its header */
+  const head = panel.querySelector<HTMLElement>('.tw-head')!
+  let grab: { dx: number, dy: number } | null = null
+  head.addEventListener('pointerdown', (e) => {
+    if ((e.target as HTMLElement).closest('button'))
+      return
+    const r = panel.getBoundingClientRect()
+    grab = { dx: e.clientX - r.left, dy: e.clientY - r.top }
+    head.setPointerCapture(e.pointerId)
+    e.preventDefault()
+  })
+  head.addEventListener('pointermove', (e) => {
+    if (!grab)
+      return
+    const x = Math.min(Math.max(0, e.clientX - grab.dx), innerWidth - 40)
+    const y = Math.min(Math.max(0, e.clientY - grab.dy), innerHeight - 40)
+    Object.assign(panel.style, { left: `${x}px`, top: `${y}px`, right: 'auto', width: `${panel.offsetWidth}px` })
+  })
+  head.addEventListener('pointerup', () => {
+    grab = null
+  })
 
   function reset() {
     Object.assign(state, DEFAULTS, { masks: structuredClone(DEFAULTS.masks) })
@@ -1153,6 +1208,8 @@ for (const post of await getCollection('writing')) {
     top: 0;
     background: var(--paper);
     z-index: 1;
+    cursor: move;
+    touch-action: none;
   }
   .tw-head .ttl {
     font-family: var(--mono);
