@@ -5,10 +5,24 @@ import { defineCollection, z } from 'astro:content'
  * La recipe de cover, keyée à l'image (cf. HeroPopColor et PIPELINE §4.6b).
  * Tout est optionnel : les défauts du moteur viennent du banc research.
  */
+const rgb = z.tuple([z.number(), z.number(), z.number()])
+
+/** une zone : `in`/`out` façonnent la sélection, `photo`/`dither` portent leur traitement */
+const spotMask = z.object({
+  mode: z.enum(['in', 'out', 'photo', 'dither']),
+  pts: z.array(z.tuple([z.number(), z.number()])).min(3),
+  /* zones `dither` seulement : leur trame. À défaut, celle de la recipe. */
+  ink: rgb.optional(),
+  paper: rgb.optional(),
+  contrast: z.number().optional(),
+  brightness: z.number().optional(),
+  cell: z.number().optional(),
+})
+
 const spotRecipe = z.object({
   keepColor: z.string().optional(),
-  ink: z.tuple([z.number(), z.number(), z.number()]).optional(),
-  paper: z.tuple([z.number(), z.number(), z.number()]).optional(),
+  ink: rgb.optional(),
+  paper: rgb.optional(),
   cell: z.number().optional(),
   contrast: z.number().optional(),
   brightness: z.number().optional(),
@@ -20,6 +34,21 @@ const spotRecipe = z.object({
   invert: z.boolean().optional(),
   /** la zone gardée en couleur reste à la résolution native de la photo (pas de trame) */
   keepSharp: z.boolean().optional(),
+  fps: z.number().optional(),
+  /** sélection par angle de teinte (remplace hueLo/hueSpan) */
+  hueMode: z.boolean().optional(),
+  hueTol: z.number().optional(),
+  hueSoft: z.number().optional(),
+  satMin: z.number().optional(),
+  satSoft: z.number().optional(),
+  /** zones dessinées, polygones normalisés sur l'image (cf. SpotMask) */
+  masks: z.array(spotMask).optional(),
+  /** `false` : aucune couleur ne poppe, tout est tramé sauf les zones `photo` */
+  pop: z.boolean().optional(),
+  ground: z.enum(['flat', 'photo', 'transparent']).optional(),
+  groundMix: z.number().optional(),
+  groundSat: z.number().optional(),
+  groundLift: z.number().optional(),
 })
 
 /**

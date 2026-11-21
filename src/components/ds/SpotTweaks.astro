@@ -17,12 +17,43 @@
  * s'en retire), ils sortent dans la Recipe en coordonnées normalisées sur l'image.
  * Repris de l'outil de trame du carrousel (artefact vault 2026-11-12, `tweaks.html`).
  *
+ * Une zone peut aussi porter son propre traitement : `photo` (la photo nette, sans filtre)
+ * ou `dither` (sa propre trame : encre, papier, contraste, luminosité, taille de point).
+ * Le mode `None` coupe la couleur sélective partout (`pop: false`).
+ *
  * L'état persiste dans localStorage — mais les DÉFAUTS sont la recipe montée par la
- * page : un chargement frais montre toujours ce que le fichier décrit.
+ * page : un chargement frais montre toujours ce que le fichier décrit. Les covers des
+ * articles s'ajoutent aux sources : les choisir charge leur recipe, zones comprises.
+ * Chaque modification s'écrit aussi dans un brouillon par photo : rechoisir la photo
+ * reprend son brouillon plutôt que le fichier ; Reset le jette.
  */
+import { getCollection } from 'astro:content'
+
+/* une cover par photo : les traductions partagent la leur */
+const covers = new Map<string, { label: string, src: string, recipe: Record<string, unknown> }>()
+for (const post of await getCollection('writing')) {
+  const c = post.data.cover
+  if (c?.kind !== 'pop-color' || covers.has(c.src))
+    continue
+  covers.set(c.src, {
+    label: post.id.replace(/^fr-/, '').split('-').slice(0, 3).join(' '),
+    src: c.src,
+    recipe: {
+      ...c.spot,
+      focalX: c.focal?.x,
+      focalY: c.focal?.y,
+      title: c.word ?? post.data.title,
+      titleX: c.titleX,
+      titleY: c.titleY,
+      titleYMobile: c.titleYMobile,
+      titleInk: c.titleInk,
+      height: c.height,
+    },
+  })
+}
 ---
 
-<aside class="tw-panel tw-hidden" id="tw-panel" aria-label="Tweak panel">
+<aside class="tw-panel tw-hidden" id="tw-panel" aria-label="Tweak panel" data-covers={JSON.stringify([...covers.values()])}>
   <header class="tw-head">
     <span class="ttl">Tweaks</span>
     <button class="tw-x" id="tw-close" type="button" aria-label="Hide panel" title="Hide (T)">×</button>
@@ -39,12 +70,19 @@
 
   <footer class="tw-foot">
     <span><kbd>T</kbd><kbd>R</kbd></span>
+    <button id="tw-phone" type="button" aria-pressed="false" title="La cover à 390 px de large, comme sur un téléphone">Aperçu mobile</button>
     <button id="tw-reset" type="button">Reset</button>
     <button id="tw-copy" class="tw-copy" type="button">Copy recipe</button>
   </footer>
 </aside>
 
 <svg class="tw-ov" id="tw-ov" aria-hidden="true"></svg>
+
+<!-- l'aperçu mobile : cette même page dans un cadre de 390 px, ses breakpoints réels -->
+<div class="tw-phone" id="tw-phone-frame" hidden>
+  <span class="tw-phone-cap">390 px</span>
+  <iframe id="tw-phone-view" title="Aperçu mobile de la cover"></iframe>
+</div>
 
 <button class="tw-restore tw-show" id="tw-restore" type="button" aria-label="Show tweaks panel" title="Tweaks (T)">T</button>
 
@@ -56,7 +94,8 @@
   type Duo = [string, string]
 
   interface TweakState {
-    mode: 'pop' | 'invert'
+    /** `none` = aucune couleur ne poppe (`pop: false`) */
+    mode: 'pop' | 'invert' | 'none'
     keep: 'dither' | 'sharp'
     keepColor: string
     threshold: number
@@ -73,7 +112,7 @@
     groundSat: number
     groundLift: number
     /** zones par photo, clé = nom du fichier : elles n'ont de sens que sur leur image */
-    masks: Record<string, SpotMask[]>
+    masks: Record<string, EdZone[]>
     cell: number
     contrast: number
     brightness: number
@@ -84,6 +123,8 @@
     title: string
     titleX: number
     titleY: number
+    /** placement du titre en étroit (≤700px) */
+    titleYMobile: number
     titleInk: 'light' | 'dark'
   }
 
@@ -106,7 +147,10 @@
      jamais s'appliquer — c'est lui qui faisait paraître le mode invert « à l'envers » */
   const STORAGE_KEY = 'tweaks-ds-hero-pop-color.v3'
 
-  type DrawMode = 'off' | 'in' | 'out'
+  /** a zone in the editor: `off` keeps it in the list but out of the render and the recipe */
+  type EdZone = SpotMask & { off?: boolean }
+  /** idle, drawing a new zone, or moving the points of zone `i` */
+  type Tool = { kind: 'idle' } | { kind: 'draw' } | { kind: 'edit', i: number }
 
   const HUES = ['#c8321e', '#d2691e', '#d9a521', '#3f8f3a', '#1f8a7a', '#2f6fd0', '#7a5ae0', '#c0398f']
   const GROUNDS: Duo[] = [
@@ -119,14 +163,37 @@
 
   /* Les sources EN COULEUR du repo. Jamais les PNG déjà dithérés : la sélection se fait
      par teinte — une source monochrome ne fait rien popper. */
-  const PRESETS = [
+  /* un `dither` neuf part d'une trame contrastée, à régler ensuite dans la liste des zones */
+  const ZONE_DUOS: Duo[] = [
+    ['#0c0c0a', '#d8d2bc'], /* os      */
+    ['#0a0a0a', '#f0ece0'], /* craie   */
+    ['#1c160c', '#c9a45a'], /* laiton  */
+    ...GROUNDS,
+  ]
+
+  interface Preset { label: string, src: string, recipe?: CoverRecipe }
+  /** la recipe d'une cover d'article, telle que l'assemble le frontmatter du composant */
+  type CoverRecipe = Partial<SpotHeroOptions> & {
+    ink?: Rgb
+    paper?: Rgb
+    title?: string
+    titleX?: string
+    titleY?: string
+    titleYMobile?: string
+    titleInk?: 'light' | 'dark'
+    height?: string
+  }
+
+  const PRESETS: Preset[] = [
     { label: 'bridge red', src: '/photos/source/bridge-red-web.jpg' },
     { label: 'castle blue', src: '/photos/source/castle-blue-web.jpg' },
     { label: 'zones demo', src: '/photos/source/trame-zones-web.jpg' },
+    ...JSON.parse(document.getElementById('tw-panel')?.dataset.covers ?? '[]') as Preset[],
   ]
 
   const hero = document.querySelector<HTMLElement & { spotHero?: SpotHeroHandle }>('.post-hero')
   const heroImg = hero?.querySelector<HTMLImageElement>('img.dsrc') ?? null
+  const ZONE_HELP = '« + Nouvelle zone », puis clique sur la photo pour poser ses points. Dans la liste : la case active ou désactive une zone, le menu choisit son type (In / Out règlent la couleur, Photo garde la photo nette, Dither lui donne sa trame), Éditer : glisse un point pour le déplacer, clique sur un bord pour ajouter un point, double-clique sur un point pour le retirer ; × supprime la zone.'
   const fade = hero?.nextElementSibling instanceof HTMLElement && hero.nextElementSibling.classList.contains('hero-fade')
     ? hero.nextElementSibling
     : null
@@ -139,11 +206,29 @@
   /* Les défauts SONT la recipe montée par la page : lue sur data-recipe, pas dupliquée. */
   const initialName = heroImg?.src.split('/').pop() ?? ''
 
+  function toHex(c: Rgb): string {
+    return `#${c.map(v => v.toString(16).padStart(2, '0')).join('')}`
+  }
+
+  /** `'18%'` → 18 ; absent ou illisible → `fallback` */
+  function pct(v: string | undefined, fallback: number): number {
+    const n = Number.parseFloat(v ?? '')
+    return Number.isFinite(n) ? n : fallback
+  }
+
   function defaultsFromMount(): TweakState {
-    const r: Partial<SpotHeroOptions> & { ink?: Rgb, paper?: Rgb } = JSON.parse(hero?.dataset.recipe ?? '{}')
-    const toHex = (c: Rgb) => `#${c.map(v => v.toString(16).padStart(2, '0')).join('')}`
+    const r: CoverRecipe = JSON.parse(hero?.dataset.recipe ?? '{}')
+    return stateFromRecipe(r, initialName, {
+      title: hero?.querySelector('.ph-word')?.textContent?.trim() ?? 'Title',
+      titleX: 4,
+      titleY: 11,
+      titleInk: hero?.dataset.titleInk === 'dark' ? 'dark' : 'light',
+    })
+  }
+
+  function stateFromRecipe(r: CoverRecipe, name: string, type: Pick<TweakState, 'title' | 'titleX' | 'titleY' | 'titleInk'>): TweakState {
     return {
-      mode: r.invert ? 'invert' : 'pop',
+      mode: r.pop === false ? 'none' : r.invert ? 'invert' : 'pop',
       keep: r.keepSharp ? 'sharp' : 'dither',
       keepColor: typeof r.keepColor === 'string' ? r.keepColor : '#c8321e',
       threshold: r.hueLo ?? 34,
@@ -158,19 +243,20 @@
       groundMix: r.groundMix ?? 0,
       groundSat: r.groundSat ?? 1,
       groundLift: r.groundLift ?? 0,
-      masks: r.masks?.length ? { [initialName]: r.masks } : {},
+      masks: r.masks?.length ? { [name]: structuredClone(r.masks) } : {},
       ground: [toHex(r.ink ?? [20, 22, 15]), toHex(r.paper ?? [74, 78, 62])],
       cell: r.cell ?? 3,
       contrast: r.contrast ?? 1.3,
       brightness: r.brightness ?? -0.02,
       shimmer: REDUCED ? 0 : (r.boil ?? 0.05),
-      coverH: 100,
+      coverH: pct(r.height, 100),
       focalX: Math.round((r.focalX ?? 0.5) * 100),
       focalY: Math.round((r.focalY ?? 0.5) * 100),
-      title: hero?.querySelector('.ph-word')?.textContent?.trim() ?? 'Title',
-      titleX: 4,
-      titleY: 11,
-      titleInk: hero?.dataset.titleInk === 'dark' ? 'dark' : 'light',
+      title: r.title ?? type.title,
+      titleX: pct(r.titleX, type.titleX),
+      titleY: pct(r.titleY, type.titleY),
+      titleYMobile: pct(r.titleYMobile, pct(r.titleY, type.titleY)),
+      titleInk: r.titleInk ?? type.titleInk,
     }
   }
 
@@ -181,7 +267,7 @@
     { k: 'image', type: 'image', label: 'Photo' },
 
     { sec: 'Selective colour' },
-    { k: 'mode', type: 'seg', label: 'Mode', options: [['pop', 'Pop'], ['invert', 'Invert']] },
+    { k: 'mode', type: 'seg', label: 'Mode', options: [['pop', 'Pop'], ['invert', 'Invert'], ['none', 'None']] },
     { k: 'keep', type: 'seg', label: 'Kept zone', options: [['dither', 'Dithered'], ['sharp', 'Sharp']] },
     { k: 'keepColor', type: 'swatch', label: 'Keep colour', options: HUES },
     { k: 'hueMode', type: 'toggle', label: 'Hue mode (angle)' },
@@ -214,6 +300,7 @@
     { k: 'title', type: 'text', label: 'Title' },
     { k: 'titleX', type: 'range', label: 'Title X', min: 0, max: 70, step: 1, unit: '%' },
     { k: 'titleY', type: 'range', label: 'Title Y', min: 2, max: 62, step: 1, unit: '%' },
+    { k: 'titleYMobile', type: 'range', label: 'Title Y mobile', min: 2, max: 90, step: 1, unit: '%' },
     { k: 'titleInk', type: 'seg', label: 'Title ink', options: [['light', 'Light'], ['dark', 'Dark']] },
   ]
 
@@ -225,7 +312,9 @@
   function load(): TweakState {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      const s: TweakState = { ...DEFAULTS, ...(raw ? JSON.parse(raw) : {}) }
+      const parsed: Partial<TweakState> = raw ? JSON.parse(raw) : {}
+      // a state saved before the mobile knob places the mobile title like the desktop one
+      const s: TweakState = { ...DEFAULTS, ...parsed, titleYMobile: parsed.titleYMobile ?? parsed.titleY ?? DEFAULTS.titleYMobile }
       // never share the masks object with DEFAULTS: editMasks() mutates it in place
       s.masks = structuredClone(s.masks)
       if (raw && REDUCED)
@@ -241,6 +330,33 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(s))
     }
     catch {}
+  }
+
+  /* un brouillon par photo, écrit à chaque modification : rechoisir la cover le reprend,
+     même après un rechargement de la page ; Reset le jette et revient au fichier */
+  const DRAFTS_KEY = 'tweaks-ds-hero-pop-color.drafts.v1'
+  function drafts(): Record<string, TweakState> {
+    try {
+      return JSON.parse(localStorage.getItem(DRAFTS_KEY) ?? '{}')
+    }
+    catch {
+      return {}
+    }
+  }
+  function writeDrafts(d: Record<string, TweakState>) {
+    try {
+      localStorage.setItem(DRAFTS_KEY, JSON.stringify(d))
+    }
+    catch {}
+  }
+  /** the current photo's draft keeps only its own zones */
+  function saveDraft(s: TweakState) {
+    writeDrafts({ ...drafts(), [loadedName]: { ...s, masks: { [loadedName]: s.masks[loadedName] ?? [] } } })
+  }
+  function dropDraft() {
+    const d = drafts()
+    delete d[loadedName]
+    writeDrafts(d)
   }
 
   function drawHeroTopo(ink: Rgb) {
@@ -261,9 +377,21 @@
      (édition de zone, changement de photo) */
   let masksDirty = true
   let draft: [number, number][] = []
+  let tool: Tool = { kind: 'idle' }
+  /** the point of the edited zone being dragged */
+  let drag: number | null = null
+  /** in edit mode, the edge under the pointer (from point k to k + 1), where a click inserts a point */
+  let hoverSeg: number | null = null
+  /** the last point pressed in edit mode, to catch a double click (the overlay redraws under the pointer, so dblclick never fires) */
+  let lastPress: { k: number, t: number } | null = null
 
-  function currentMasks(s: TweakState): SpotMask[] {
+  function currentMasks(s: TweakState): EdZone[] {
     return s.masks[loadedName] ?? []
+  }
+
+  /** the zones the engine and the recipe see: active ones, without the editor flag */
+  function liveMasks(s: TweakState): SpotMask[] {
+    return currentMasks(s).filter(m => !m.off).map(({ off: _off, ...m }) => m)
   }
 
   function apply(s: TweakState) {
@@ -284,6 +412,7 @@
       hueSpan: s.softness,
       satBoost: s.pop,
       invert: s.mode === 'invert',
+      pop: s.mode !== 'none',
       keepSharp: s.keep === 'sharp',
       hueMode: s.hueMode,
       hueTol: s.hueTol,
@@ -294,7 +423,7 @@
       groundMix: s.groundMix,
       groundSat: s.groundSat,
       groundLift: s.groundLift,
-      ...(masksDirty ? { masks: currentMasks(s) } : {}),
+      ...(masksDirty ? { masks: liveMasks(s) } : {}),
       focalX: s.focalX / 100,
       focalY: s.focalY / 100,
     })
@@ -310,6 +439,7 @@
       el.style.setProperty('--phGround', paper.join(', '))
       el.style.setProperty('--phTitleX', `${s.titleX}%`)
       el.style.setProperty('--phTitleYBase', `${s.titleY}%`)
+      el.style.setProperty('--phTitleYMobile', `${s.titleYMobile}%`)
     }
     /* la hauteur change clientHeight sans émettre de resize ; le moteur écoute resize */
     if (heightChanged)
@@ -328,6 +458,19 @@
   /* ---- la sortie : la recipe aux noms des props du composant ---- */
   function num(v: number): string {
     return Number.isInteger(v) ? String(v) : String(Number.parseFloat(v.toFixed(3)))
+  }
+
+  function maskSnippet(m: SpotMask): string {
+    const screen = m.mode === 'dither'
+      ? [
+          ...(Array.isArray(m.ink) ? [`ink: [${m.ink.join(', ')}]`] : []),
+          ...(Array.isArray(m.paper) ? [`paper: [${m.paper.join(', ')}]`] : []),
+          ...(m.contrast != null ? [`contrast: ${num(m.contrast)}`] : []),
+          ...(m.brightness != null ? [`brightness: ${num(m.brightness)}`] : []),
+          ...(m.cell != null ? [`cell: ${num(m.cell)}`] : []),
+        ].map(f => `, ${f}`).join('')
+      : ''
+    return `    { mode: '${m.mode}'${screen}, pts: [${m.pts.map(p => `[${num(p[0])}, ${num(p[1])}]`).join(', ')}] },`
   }
 
   function recipeSnippet(s: TweakState): string {
@@ -353,16 +496,16 @@
         : [`  hueLo: ${num(s.threshold)},`, `  hueSpan: ${num(s.softness)},`]),
       `  satBoost: ${num(s.pop)},`,
       ...(s.mode === 'invert' ? ['  invert: true,'] : []),
+      ...(s.mode === 'none' ? ['  pop: false,'] : []),
       ...(s.keep === 'sharp' ? ['  keepSharp: true,'] : []),
       ...(s.groundKind !== 'flat' ? [`  ground: '${s.groundKind}',`] : []),
       ...(s.groundKind === 'photo'
         ? [`  groundMix: ${num(s.groundMix)},`, `  groundSat: ${num(s.groundSat)},`, `  groundLift: ${num(s.groundLift)},`]
         : []),
-      ...(currentMasks(s).length
+      ...(liveMasks(s).length
         ? [
             '  masks: [',
-            ...currentMasks(s).map(m =>
-              `    { mode: '${m.mode}', pts: [${m.pts.map(p => `[${num(p[0])}, ${num(p[1])}]`).join(', ')}] },`),
+            ...liveMasks(s).map(maskSnippet),
             '  ],',
           ]
         : []),
@@ -370,11 +513,11 @@
       `title="${s.title}"`,
       ...(s.titleX !== 4 ? [`titleX="${s.titleX}%"`] : []),
       `titleY="${s.titleY}%"`,
+      `titleYMobile="${s.titleYMobile}%"`,
       `titleInk="${s.titleInk}"`,
       `height="${s.coverH}vh"`,
       `focal={{ x: ${num(s.focalX / 100)}, y: ${num(s.focalY / 100)} }}`,
       '',
-      '// titleYMobile : override ≤700px à vérifier sur le vrai breakpoint,',
       '// contraste du titre ≥3:1 MESURÉ (PIPELINE §4.6b).',
     ].join('\n')
   }
@@ -434,6 +577,7 @@
   function commit<K extends keyof TweakState>(key: K, value: TweakState[K]) {
     state[key] = value
     save(state)
+    saveDraft(state)
     apply(state)
   }
 
@@ -486,6 +630,7 @@
     draft = []
     paintPresets()
     status()
+    syncPhone()
   }
 
   function loadFile(file: File | null | undefined) {
@@ -500,10 +645,28 @@
     fr.readAsDataURL(file)
   }
 
-  function loadPreset(p: { label: string, src: string }) {
+  function loadPreset(p: Preset) {
     loadedPreset = p.src
     loadedName = p.src.split('/').pop() ?? p.src
+    const saved = drafts()[loadedName]
+    if (saved) {
+      // a draft of this photo wins over its file: the work in progress comes back
+      // (a draft older than the mobile knob takes the file's mobile placement, else its desktop one)
+      const fileMobile = p.recipe ? stateFromRecipe(p.recipe, loadedName, state).titleYMobile : undefined
+      Object.assign(state, saved, {
+        titleYMobile: saved.titleYMobile ?? fileMobile ?? saved.titleY,
+        masks: { ...state.masks, [loadedName]: saved.masks[loadedName] ?? [] },
+      })
+      save(state)
+    }
+    else if (p.recipe) {
+      // an article cover brings its whole recipe, zones included
+      Object.assign(state, stateFromRecipe(p.recipe, loadedName, state), { shimmer: REDUCED ? 0 : (p.recipe.boil ?? 0.05) })
+      save(state)
+    }
     setImage(p.src, loadedName)
+    if (saved || p.recipe)
+      apply(state)
   }
 
   function paintPresets() {
@@ -651,24 +814,22 @@
         row.appendChild(t)
       }
       else if (knob.type === 'zones') {
+        const help = document.createElement('p')
+        help.className = 'tw-hint'
+        help.textContent = ZONE_HELP
+        row.appendChild(help)
         const seg = document.createElement('div')
         seg.className = 'tw-seg'
-        seg.id = 'k-zonemode'
-        seg.setAttribute('role', 'radiogroup')
-        seg.setAttribute('aria-label', knob.label)
-        for (const [val, label] of [['off', 'Off'], ['in', 'Draw in'], ['out', 'Draw out']] as const) {
-          const b = document.createElement('button')
-          b.type = 'button'
-          b.dataset.val = val
-          b.textContent = label
-          b.addEventListener('click', () => setDrawMode(val))
-          seg.appendChild(b)
-        }
+        const add = document.createElement('button')
+        add.type = 'button'
+        add.id = 'k-zonenew'
+        add.textContent = '+ Nouvelle zone'
+        add.addEventListener('click', () => setTool(tool.kind === 'draw' ? { kind: 'idle' } : { kind: 'draw' }))
+        seg.appendChild(add)
         row.appendChild(seg)
         const hint = document.createElement('p')
         hint.className = 'tw-hint'
         hint.id = 'k-zonehint'
-        hint.textContent = 'Click to add points · Enter or click the first point closes · Backspace undoes a point · Esc cancels'
         row.appendChild(hint)
         const list = document.createElement('div')
         list.className = 'tw-zones'
@@ -701,8 +862,9 @@
      attend) ; l'overlay les projette en px du hero avec le même cover-fit que le moteur. */
   const SVGNS = 'http://www.w3.org/2000/svg'
   const overlay = document.getElementById('tw-ov') as unknown as SVGSVGElement | null
-  let drawMode: DrawMode = 'off'
   let cursor: [number, number] | null = null
+  /** index of the zone hovered in the panel list, highlighted on the photo */
+  let hoverZone: number | null = null
 
   if (overlay && hero)
     hero.appendChild(overlay)
@@ -754,20 +916,58 @@
     return el
   }
 
+  /* l'overlay ne montre que le contour : le remplissage reste léger pour voir le rendu */
+  const ZONE_STYLE: Record<SpotMask['mode'], Record<string, string>> = {
+    in: { 'fill': 'rgba(196, 106, 62, 0.28)', 'stroke': '#c46a3e', 'stroke-width': '2' },
+    out: { 'fill': 'rgba(255, 255, 255, 0.18)', 'stroke': '#fff', 'stroke-width': '2', 'stroke-dasharray': '6 4' },
+    photo: { 'fill': 'none', 'stroke': '#7fd3ff', 'stroke-width': '2' },
+    dither: { 'fill': 'none', 'stroke': '#ffd75e', 'stroke-width': '2', 'stroke-dasharray': '2 3' },
+  }
+  const ZONE_LABEL: Record<SpotMask['mode'], string> = { in: 'In', out: 'Out', photo: 'Photo', dither: 'Dither' }
+
+  function setHoverZone(i: number | null) {
+    hoverZone = i
+    drawOverlay()
+  }
+
+  /* while drawing or editing, the cover shows the source photo without its screen, framed like the engine */
+  function showRawPhoto(raw: boolean) {
+    for (const c of hero?.querySelectorAll<HTMLCanvasElement>('canvas.dither-canvas, canvas.topo-on') ?? [])
+      c.style.visibility = raw ? 'hidden' : ''
+    if (heroImg)
+      heroImg.style.objectPosition = raw ? `${state.focalX}% ${state.focalY}%` : ''
+  }
+
   function drawOverlay() {
     if (!overlay)
       return
     overlay.replaceChildren()
-    overlay.dataset.draw = drawMode
+    const busy = tool.kind !== 'idle'
+    showRawPhoto(busy)
     const f = coverFit()
-    if (!f || drawMode === 'off')
+    if (!f || (!busy && hoverZone === null))
       return
     overlay.setAttribute('viewBox', `0 0 ${f.cw} ${f.ch}`)
-    for (const m of currentMasks(state)) {
+    const editing = tool.kind === 'edit' ? tool.i : null
+    currentMasks(state).forEach((m, i) => {
+      if (!busy && i !== hoverZone)
+        return
       const pts = m.pts.map(p => toFrame(f, p).join(',')).join(' ')
-      overlay.appendChild(svgEl('polygon', m.mode === 'in'
-        ? { 'points': pts, 'fill': 'rgba(196, 106, 62, 0.28)', 'stroke': '#c46a3e', 'stroke-width': '2' }
-        : { 'points': pts, 'fill': 'rgba(255, 255, 255, 0.18)', 'stroke': '#fff', 'stroke-width': '2', 'stroke-dasharray': '6 4' }))
+      const hot = i === hoverZone || i === editing ? { 'fill': 'rgba(255, 255, 255, 0.35)', 'stroke-width': '4' } : {}
+      const dim = m.off && i !== editing ? { opacity: '0.4' } : {}
+      overlay.appendChild(svgEl('polygon', { points: pts, ...ZONE_STYLE[m.mode], ...hot, ...dim }))
+    })
+    if (editing !== null && hoverSeg !== null) {
+      const pts = currentMasks(state)[editing]?.pts ?? []
+      const [a, b] = [pts[hoverSeg], pts[(hoverSeg + 1) % pts.length]].map(p => toFrame(f, p))
+      if (a && b)
+        overlay.appendChild(svgEl('line', { 'x1': String(a[0]), 'y1': String(a[1]), 'x2': String(b[0]), 'y2': String(b[1]), 'stroke': '#c46a3e', 'stroke-width': '5' }))
+    }
+    if (editing !== null) {
+      for (const p of currentMasks(state)[editing]?.pts ?? []) {
+        const [x, y] = toFrame(f, p)
+        overlay.appendChild(svgEl('circle', { 'cx': String(x), 'cy': String(y), 'r': '6', 'fill': '#fff', 'stroke': '#000', 'stroke-width': '1.5' }))
+      }
     }
     if (draft.length) {
       const pts = [...draft, ...(cursor ? [cursor] : [])].map(p => toFrame(f, p).join(','))
@@ -779,9 +979,27 @@
     }
   }
 
+  /** a zone of another type: a dither zone gets a default screen, the others keep only their points */
+  function retype(m: EdZone, mode: SpotMask['mode']): EdZone {
+    const base = { mode, pts: m.pts, ...(m.off ? { off: true } : {}) }
+    if (mode !== 'dither')
+      return base
+    const [ink, paper] = ZONE_DUOS[0]
+    return { ink: hexToRgb(ink), paper: hexToRgb(paper), contrast: 1.6, cell: state.cell, ...m, ...base }
+  }
+
   function paintZones(s: TweakState) {
-    document.getElementById('k-zonemode')?.querySelectorAll('button').forEach(b =>
-      b.setAttribute('aria-pressed', b.dataset.val === drawMode ? 'true' : 'false'))
+    const add = document.getElementById('k-zonenew')
+    add?.setAttribute('aria-pressed', String(tool.kind === 'draw'))
+    const hint = document.getElementById('k-zonehint')
+    if (hint) {
+      hint.textContent = tool.kind === 'draw'
+        ? 'Nouvelle zone : clique pour poser les points · Entrée ou clic sur le premier point ferme · Retour arrière enlève un point · Échap annule'
+        : tool.kind === 'edit'
+          ? `Zone ${tool.i + 1} : glisse un point · clic sur un bord = nouveau point · double-clic sur un point = le retirer (3 au moins) · OK ou Échap termine`
+          : ''
+      hint.hidden = tool.kind === 'idle'
+    }
     const list = document.getElementById('k-zonelist')
     if (!list)
       return
@@ -790,58 +1008,201 @@
     ms.forEach((m, i) => {
       const item = document.createElement('div')
       item.className = 'tw-zone'
+      item.addEventListener('pointerenter', () => setHoverZone(i))
+      item.addEventListener('pointerleave', () => setHoverZone(null))
+
+      const on = document.createElement('input')
+      on.type = 'checkbox'
+      on.checked = !m.off
+      on.setAttribute('aria-label', `Zone ${i + 1} active`)
+      on.addEventListener('change', () => editMasks(ms.map((z, j) => j === i ? { ...z, off: !on.checked || undefined } : z)))
+
       const name = document.createElement('span')
-      name.textContent = `${m.mode === 'in' ? 'In' : 'Out'} · ${m.pts.length} pts`
+      name.textContent = `Zone ${i + 1}`
+
+      const type = document.createElement('select')
+      type.setAttribute('aria-label', `Zone ${i + 1} type`)
+      for (const mode of ['in', 'out', 'photo', 'dither'] as const)
+        type.add(new Option(ZONE_LABEL[mode], mode, false, mode === m.mode))
+      type.addEventListener('change', () => editMasks(ms.map((z, j) => j === i ? retype(z, type.value as SpotMask['mode']) : z)))
+
+      const editing = tool.kind === 'edit' && tool.i === i
+      const edit = document.createElement('button')
+      edit.type = 'button'
+      edit.textContent = editing ? 'OK' : 'Éditer'
+      edit.setAttribute('aria-pressed', String(editing))
+      edit.addEventListener('click', () => setTool(editing ? { kind: 'idle' } : { kind: 'edit', i }))
+
       const del = document.createElement('button')
       del.type = 'button'
       del.textContent = '×'
       del.setAttribute('aria-label', `Delete zone ${i + 1}`)
-      del.addEventListener('click', () => editMasks(ms.filter((_, j) => j !== i)))
-      item.append(name, del)
+      del.addEventListener('click', () => {
+        hoverZone = null
+        if (tool.kind === 'edit')
+          tool = { kind: 'idle' }
+        editMasks(ms.filter((_, j) => j !== i))
+      })
+      item.append(on, name, type, edit, del)
       list.appendChild(item)
+      if (m.mode === 'dither')
+        list.appendChild(zoneScreen(s, ms, i))
     })
   }
 
-  function editMasks(next: SpotMask[]) {
+  /** the controls of a `dither` zone's own screen; unset fields read the global ones */
+  function zoneScreen(s: TweakState, ms: SpotMask[], i: number): HTMLElement {
+    const m = ms[i]
+    const set = (patch: Partial<SpotMask>) => editMasks(ms.map((z, j) => j === i ? { ...z, ...patch } : z))
+    const box = document.createElement('div')
+    box.className = 'tw-zonescreen'
+
+    const duo = document.createElement('div')
+    duo.className = 'tw-swatches duo'
+    duo.setAttribute('role', 'radiogroup')
+    duo.setAttribute('aria-label', `Zone ${i + 1} tone`)
+    const cur = [Array.isArray(m.ink) ? toHex(m.ink as Rgb) : s.ground[0], Array.isArray(m.paper) ? toHex(m.paper as Rgb) : s.ground[1]].join()
+    for (const pair of ZONE_DUOS) {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = 'tw-swatch'
+      b.style.background = `linear-gradient(105deg, ${pair[0]} 0 50%, ${pair[1]} 50% 100%)`
+      b.setAttribute('aria-label', pair.join(' / '))
+      b.setAttribute('aria-pressed', String(pair.join() === cur))
+      b.addEventListener('click', () => set({ ink: hexToRgb(pair[0]), paper: hexToRgb(pair[1]) }))
+      duo.appendChild(b)
+    }
+    box.appendChild(duo)
+
+    const ranges: [keyof SpotMask & ('contrast' | 'brightness' | 'cell'), string, number, number, number, number][] = [
+      ['contrast', 'Contrast', 0.8, 2.4, 0.02, s.contrast],
+      ['brightness', 'Brightness', -0.3, 0.3, 0.01, s.brightness],
+      ['cell', 'Dot size', s.cell, s.cell * 4, s.cell, s.cell],
+    ]
+    for (const [k, label, min, max, step, fallback] of ranges) {
+      const row = document.createElement('label')
+      row.className = 'tw-zonerange'
+      const v = m[k] ?? fallback
+      const txt = document.createElement('span')
+      txt.textContent = `${label} ${Number.isInteger(v) ? v : v.toFixed(2)}`
+      const r = document.createElement('input')
+      r.type = 'range'
+      r.className = 'tw-range'
+      r.min = String(min)
+      r.max = String(max)
+      r.step = String(step)
+      r.value = String(v)
+      r.setAttribute('aria-label', `Zone ${i + 1} ${label}`)
+      r.addEventListener('change', () => set({ [k]: Number.parseFloat(r.value) }))
+      row.append(txt, r)
+      box.appendChild(row)
+    }
+    return box
+  }
+
+  function editMasks(next: EdZone[]) {
     if (next.length)
       state.masks[loadedName] = next
     else
       delete state.masks[loadedName]
     masksDirty = true
     save(state)
+    saveDraft(state)
     apply(state)
   }
 
-  function setDrawMode(m: DrawMode) {
-    drawMode = m
+  function setTool(t: Tool) {
+    tool = t
     draft = []
     cursor = null
+    drag = null
+    hoverSeg = null
+    lastPress = null
     if (overlay)
-      overlay.style.pointerEvents = m === 'off' ? 'none' : 'auto'
+      overlay.style.pointerEvents = t.kind === 'idle' ? 'none' : 'auto'
     drawOverlay()
     paintZones(state)
   }
 
+  /** a new zone is always added; its type is set afterwards in its row */
   function closeDraft() {
-    if (draft.length >= 3 && drawMode !== 'off') {
-      const mode = drawMode
+    if (draft.length >= 3 && tool.kind === 'draw') {
       const pts = draft
       draft = []
       cursor = null
-      editMasks([...currentMasks(state), { mode, pts }])
+      tool = { kind: 'idle' }
+      if (overlay)
+        overlay.style.pointerEvents = 'none'
+      editMasks([...currentMasks(state), { mode: 'photo', pts }])
       return
     }
     drawOverlay()
   }
 
+  function overlayPoint(e: PointerEvent, f: NonNullable<ReturnType<typeof coverFit>>): [number, number] {
+    const r = overlay!.getBoundingClientRect()
+    return [(e.clientX - r.left) * (f.cw / r.width), (e.clientY - r.top) * (f.ch / r.height)]
+  }
+
+  /** the point of the edited zone under (x, y), in hero px */
+  function pointAt(f: NonNullable<ReturnType<typeof coverFit>>, pts: [number, number][], x: number, y: number): number {
+    return pts.findIndex(p => Math.hypot(toFrame(f, p)[0] - x, toFrame(f, p)[1] - y) < 12)
+  }
+
+  /** the edge of the edited zone under (x, y), away from its points */
+  function segmentAt(f: NonNullable<ReturnType<typeof coverFit>>, pts: [number, number][], x: number, y: number): number | null {
+    if (pointAt(f, pts, x, y) >= 0)
+      return null
+    let best: number | null = null
+    let bestD = 8
+    pts.forEach((p, k) => {
+      const [ax, ay] = toFrame(f, p)
+      const [bx, by] = toFrame(f, pts[(k + 1) % pts.length])
+      const len2 = (bx - ax) ** 2 + (by - ay) ** 2
+      const t = len2 ? Math.min(1, Math.max(0, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / len2)) : 0
+      const d = Math.hypot(ax + t * (bx - ax) - x, ay + t * (by - ay) - y)
+      if (d < bestD) {
+        bestD = d
+        best = k
+      }
+    })
+    return best
+  }
+
   overlay?.addEventListener('pointerdown', (e) => {
     const f = coverFit()
-    if (!f || drawMode === 'off')
+    if (!f || tool.kind === 'idle')
       return
     e.preventDefault()
-    const r = overlay.getBoundingClientRect()
-    const x = (e.clientX - r.left) * (f.cw / r.width)
-    const y = (e.clientY - r.top) * (f.ch / r.height)
+    /* a panel button keeps focus otherwise, and Enter would press it instead of closing */
+    if (document.activeElement instanceof HTMLElement)
+      document.activeElement.blur()
+    const [x, y] = overlayPoint(e, f)
+    if (tool.kind === 'edit') {
+      const z = currentMasks(state)[tool.i]
+      if (!z)
+        return
+      const near = pointAt(f, z.pts, x, y)
+      const double = near >= 0 && lastPress?.k === near && e.timeStamp - lastPress.t < 400
+      lastPress = near >= 0 && !double ? { k: near, t: e.timeStamp } : null
+      if (double) {
+        if (z.pts.length > 3) {
+          const i = tool.i
+          editMasks(currentMasks(state).map((m, j) => j === i ? { ...m, pts: m.pts.filter((_, k) => k !== near) } : m))
+        }
+        return
+      }
+      const seg = near < 0 ? segmentAt(f, z.pts, x, y) : null
+      if (seg !== null) {
+        z.pts = [...z.pts.slice(0, seg + 1), toImg(f, x, y), ...z.pts.slice(seg + 1)]
+        hoverSeg = null
+      }
+      drag = seg !== null ? seg + 1 : near >= 0 ? near : null
+      if (drag !== null)
+        overlay.setPointerCapture(e.pointerId)
+      drawOverlay()
+      return
+    }
     if (draft.length >= 3) {
       const [fx, fy] = toFrame(f, draft[0])
       if (Math.hypot(fx - x, fy - y) < 12) {
@@ -855,15 +1216,48 @@
 
   overlay?.addEventListener('pointermove', (e) => {
     const f = coverFit()
-    if (!f || !draft.length)
+    if (!f)
       return
-    const r = overlay.getBoundingClientRect()
-    cursor = toImg(f, (e.clientX - r.left) * (f.cw / r.width), (e.clientY - r.top) * (f.ch / r.height))
+    const [x, y] = overlayPoint(e, f)
+    if (tool.kind === 'edit' && drag !== null) {
+      const ms = currentMasks(state)
+      const z = ms[tool.i]
+      z.pts = z.pts.map((p, k) => k === drag ? toImg(f, x, y) : p)
+      drawOverlay()
+      return
+    }
+    if (tool.kind === 'edit') {
+      const seg = segmentAt(f, currentMasks(state)[tool.i]?.pts ?? [], x, y)
+      if (seg !== hoverSeg) {
+        hoverSeg = seg
+        drawOverlay()
+      }
+      return
+    }
+    if (!draft.length)
+      return
+    cursor = toImg(f, x, y)
     drawOverlay()
   })
 
+  overlay?.addEventListener('pointerup', () => {
+    if (drag === null)
+      return
+    drag = null
+    editMasks([...currentMasks(state)])
+  })
+
   addEventListener('keydown', (e) => {
-    if (drawMode === 'off' || (e.target as HTMLElement).matches('input, textarea, select, button, [contenteditable]'))
+    if (tool.kind === 'idle')
+      return
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      setTool({ kind: 'idle' })
+      return
+    }
+    if ((e.target as HTMLElement).matches('input, textarea, select, button, [contenteditable]'))
+      return
+    if (tool.kind !== 'draw')
       return
     if (e.key === 'Enter') {
       e.preventDefault()
@@ -872,17 +1266,6 @@
     else if (e.key === 'Backspace') {
       e.preventDefault()
       draft.pop()
-      drawOverlay()
-    }
-    else if (e.key === 'Escape') {
-      if (draft.length) {
-        draft = []
-        cursor = null
-      }
-      else {
-        setDrawMode('off')
-        return
-      }
       drawOverlay()
     }
   })
@@ -901,10 +1284,39 @@
   document.getElementById('tw-close')?.addEventListener('click', () => setPanelVisible(false))
   restore.addEventListener('click', () => setPanelVisible(true))
 
+  /* the panel moves, dragged by its header */
+  const head = panel.querySelector<HTMLElement>('.tw-head')!
+  let grab: { dx: number, dy: number } | null = null
+  head.addEventListener('pointerdown', (e) => {
+    if ((e.target as HTMLElement).closest('button'))
+      return
+    const r = panel.getBoundingClientRect()
+    grab = { dx: e.clientX - r.left, dy: e.clientY - r.top }
+    head.setPointerCapture(e.pointerId)
+    e.preventDefault()
+  })
+  head.addEventListener('pointermove', (e) => {
+    if (!grab)
+      return
+    const x = Math.min(Math.max(0, e.clientX - grab.dx), innerWidth - 40)
+    const y = Math.min(Math.max(0, e.clientY - grab.dy), innerHeight - 40)
+    Object.assign(panel.style, { left: `${x}px`, top: `${y}px`, right: 'auto', width: `${panel.offsetWidth}px` })
+  })
+  head.addEventListener('pointerup', () => {
+    grab = null
+  })
+
   function reset() {
+    dropDraft()
+    setTool({ kind: 'idle' })
+    const p = PRESETS.find(x => x.src === loadedPreset)
+    if (p?.recipe) {
+      // an article cover goes back to its file
+      loadPreset(p)
+      return
+    }
     Object.assign(state, DEFAULTS, { masks: structuredClone(DEFAULTS.masks) })
     masksDirty = true
-    setDrawMode('off')
     save(state)
     apply(state)
   }
@@ -956,9 +1368,57 @@
     }
   })
 
+  /* ---- aperçu mobile : cette page dans un cadre de 390 px, en mode `?phone=<photo>` ----
+     Le cadre a sa propre largeur de viewport : les vrais breakpoints du composant
+     (≤700px, taille du titre en vw) s'y appliquent. Il lit l'état que le panneau écrit
+     dans localStorage et le suit par l'événement `storage` ; il n'écrit jamais rien. */
+  const PHONE = new URLSearchParams(location.search).get('phone')
+  const phoneFrame = document.getElementById('tw-phone-frame')!
+  const phoneView = document.querySelector<HTMLIFrameElement>('#tw-phone-view')!
+  const phoneBtn = document.getElementById('tw-phone')!
+
+  function syncPhone() {
+    if (PHONE !== null || phoneFrame.hidden)
+      return
+    const src = `${location.pathname}?phone=${encodeURIComponent(loadedPreset ?? '')}`
+    if (phoneView.getAttribute('src') !== src)
+      phoneView.setAttribute('src', src)
+    const cap = phoneFrame.querySelector('.tw-phone-cap')
+    if (cap)
+      cap.textContent = loadedPreset ? '390 px' : '390 px · photo par défaut : un fichier déposé ne passe pas'
+  }
+  phoneBtn.addEventListener('click', () => {
+    phoneFrame.hidden = !phoneFrame.hidden
+    phoneBtn.setAttribute('aria-pressed', String(!phoneFrame.hidden))
+    syncPhone()
+  })
+
+  function startPhone() {
+    panel.style.display = 'none'
+    restore.style.display = 'none'
+    if (PHONE) {
+      loadedPreset = PHONE
+      loadedName = PHONE.split('/').pop() ?? PHONE
+      setImage(PHONE, loadedName)
+    }
+    apply(state)
+    hero?.scrollIntoView({ block: 'start' })
+    addEventListener('storage', (e) => {
+      if (e.key !== STORAGE_KEY)
+        return
+      Object.assign(state, load())
+      masksDirty = true
+      apply(state)
+    })
+  }
+
   /* démarrage : attendre le handle si le hero n'est pas encore monté */
   function start() {
     build()
+    if (PHONE !== null) {
+      startPhone()
+      return
+    }
     apply(state)
     status()
   }
@@ -1002,6 +1462,8 @@
     top: 0;
     background: var(--paper);
     z-index: 1;
+    cursor: move;
+    touch-action: none;
   }
   .tw-head .ttl {
     font-family: var(--mono);
@@ -1353,6 +1815,37 @@
     color: var(--paper);
   }
 
+  /* le cadre de l'aperçu mobile, à gauche : le panneau tient la droite */
+  .tw-phone {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    width: 392px;
+    height: min(870px, calc(100vh - 32px));
+    background: var(--paper);
+    border: 1px solid var(--ink);
+  }
+  .tw-phone[hidden] {
+    display: none;
+  }
+  .tw-phone-cap {
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--ink);
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tr-micro);
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .tw-phone iframe {
+    flex: 1;
+    width: 390px;
+    border: 0;
+  }
+
   .tw-ov {
     position: absolute;
     inset: 0;
@@ -1386,11 +1879,27 @@
 
   .tw-body :global(.tw-zone) {
     display: flex;
+    gap: 6px;
     justify-content: space-between;
     align-items: center;
     border: 1px solid var(--line);
     padding: 2px 6px;
     font-size: 11px;
+  }
+
+  .tw-body :global(.tw-zonescreen) {
+    display: grid;
+    gap: 4px;
+    padding: 4px 6px 6px;
+    border: 1px solid var(--line);
+    border-top: 0;
+    margin-top: -4px;
+    font-size: 10px;
+  }
+
+  .tw-body :global(.tw-zonerange) {
+    display: grid;
+    gap: 2px;
   }
 
   .tw-body :global(.tw-zone button) {

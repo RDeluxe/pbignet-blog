@@ -52,8 +52,13 @@ export interface SpotRecipe {
   hueSoft?: number
   satMin?: number
   satSoft?: number
-  /** zones dessinées (polygones normalisés sur l'image) : `in` restreint, `out` retire */
+  /**
+   * zones dessinées (polygones normalisés sur l'image) : `in` restreint, `out` retire,
+   * `photo` garde la photo nette, `dither` porte sa propre trame
+   */
   masks?: SpotMask[]
+  /** `false` : aucune couleur ne poppe, tout est tramé sauf les zones `photo` */
+  pop?: boolean
   /** fond des cellules éteintes : couleur `paper` (défaut), photo d'origine, ou transparent */
   ground?: SpotGround
   groundMix?: number
@@ -352,6 +357,10 @@ document.querySelectorAll<HTMLElement>('.post-hero').forEach((hero) => {
   @media (max-width: 700px) {
     .post-hero { --ph-title-y: var(--phTitleYMobile); }
     .ph-vcap { display: none; }
+  }
+  /* un trait d'union conditionnel (U+00AD) dans le mot ne coupe qu'en étroit */
+  @media (min-width: 701px) {
+    .ph-word { hyphens: none; }
   }
 
   /* imprimée, la cover ne doit pas manger une page entière — et l'invite à scroller
