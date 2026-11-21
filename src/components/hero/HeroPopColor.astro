@@ -358,6 +358,10 @@ document.querySelectorAll<HTMLElement>('.post-hero').forEach((hero) => {
     .post-hero { --ph-title-y: var(--phTitleYMobile); }
     .ph-vcap { display: none; }
   }
+  /* un trait d'union conditionnel (U+00AD) dans le mot ne coupe qu'en étroit */
+  @media (min-width: 701px) {
+    .ph-word { hyphens: none; }
+  }
 
   /* imprimée, la cover ne doit pas manger une page entière — et l'invite à scroller
      n'a plus de sens sur du papier. `min-height` doit tomber, sinon les 540px
