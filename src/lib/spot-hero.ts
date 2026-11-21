@@ -20,11 +20,25 @@
 /** Couleur acceptée : `'#c8321e'`, `'20,22,15'`, `[20, 22, 15]` ou `'var(--ink)'`. */
 export type SpotColor = string | readonly [number, number, number]
 
+/**
+ * What a zone does. `in`/`out` shape the colour selection: with at least one `in`, the
+ * selection is restricted to their union; `out` zones are removed from it. `photo` and
+ * `dither` carry their own treatment and ignore the colour selection: `photo` keeps the
+ * zone as the full-resolution photograph, `dither` gives it its own screen.
+ */
+export type SpotMaskMode = 'in' | 'out' | 'photo' | 'dither'
+
 /** Polygone de zone, en coordonnées NORMALISÉES sur l'image naturelle (0..1). */
 export interface SpotMask {
-  /** `in` : la sélection est restreinte à l'union des `in` · `out` : elle s'en retire */
-  mode: 'in' | 'out'
+  mode: SpotMaskMode
   pts: [number, number][]
+  /* `dither` zones only: the zone's own screen. Unset fields fall back to the global ones. */
+  ink?: SpotColor
+  paper?: SpotColor
+  contrast?: number
+  brightness?: number
+  /** px; rounded to a whole multiple of the global `cell` (the zone can only be coarser) */
+  cell?: number
 }
 
 /** Ce que devient une cellule « éteinte » du dither (voir `SpotHeroOptions.ground`). */
@@ -85,6 +99,11 @@ export interface SpotHeroOptions {
    */
   masks: SpotMask[] | null
   /**
+   * `false` = no colour pops anywhere: the whole frame is screened, except `photo` zones.
+   * Applied after `invert`.
+   */
+  pop: boolean
+  /**
    * Fond des cellules éteintes (opt-in). `flat` = la couleur `paper` · `photo` = le pixel
    * d'origine (désaturé par `groundSat`, éclairci par `groundLift`, mixé vers `paper` par
    * `groundMix`) · `transparent` = alpha 0 : le fond de la section transparaît, et l'`img`
@@ -125,6 +144,7 @@ const DEFAULTS: SpotHeroOptions = {
   satMin: 40,
   satSoft: 20,
   masks: null,
+  pop: true,
   ground: 'flat',
   groundMix: 0,
   groundSat: 1,
@@ -235,6 +255,10 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
   let builtFocalY = 0.5
   // masque rasterisé (1 octet par cellule) et cover-fit qui l'a placé
   let mask: Uint8Array | null = null
+  // treated zones (`photo`, `dither`): per cell, 1 + the zone's index in `zones`, 0 = none
+  let zoneMap: Uint8Array | null = null
+  let zones: SpotMask[] = []
+  let hasPhotoZone = false
   let fit: { dx: number, dy: number, dw: number, dh: number } | null = null
   let imgHidden = false
   let raf = 0
@@ -326,22 +350,19 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
    */
   function buildMask(): void {
     mask = null
-    const ms = P.masks
-    if (!ms || !ms.length || !fit)
+    zoneMap = null
+    zones = []
+    hasPhotoZone = false
+    const ms = (P.masks ?? []).filter(m => m.pts && m.pts.length >= 3)
+    if (!ms.length || !fit)
       return
     const off = document.createElement('canvas')
     off.width = lw
     off.height = lh
-    const o = off.getContext('2d')
+    const o = off.getContext('2d', { willReadFrequently: true })
     if (!o)
       return
-    const hasIn = ms.some(m => m.mode === 'in')
-    o.fillStyle = hasIn ? '#000' : '#fff'
-    o.fillRect(0, 0, lw, lh)
-    for (const m of ms) {
-      if (!m.pts || m.pts.length < 3)
-        continue
-      o.fillStyle = m.mode === 'in' ? '#fff' : '#000'
+    const path = (m: SpotMask): void => {
       o.beginPath()
       m.pts.forEach(([px, py], j) => {
         const gx = fit!.dx + px * fit!.dw
@@ -353,15 +374,49 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
       o.closePath()
       o.fill()
     }
-    const d = o.getImageData(0, 0, lw, lh).data
-    mask = new Uint8Array(lw * lh)
-    for (let k = 0; k < mask.length; k++)
-      mask[k] = d[k * 4]
+
+    const sel = ms.filter(m => m.mode === 'in' || m.mode === 'out')
+    if (sel.length) {
+      const hasIn = sel.some(m => m.mode === 'in')
+      o.fillStyle = hasIn ? '#000' : '#fff'
+      o.fillRect(0, 0, lw, lh)
+      for (const m of sel) {
+        o.fillStyle = m.mode === 'in' ? '#fff' : '#000'
+        path(m)
+      }
+      const d = o.getImageData(0, 0, lw, lh).data
+      mask = new Uint8Array(lw * lh)
+      for (let k = 0; k < mask.length; k++)
+        mask[k] = d[k * 4]
+    }
+
+    // treated zones: one pass each, hard edge at half coverage, the later zone wins
+    zones = ms.filter(m => m.mode === 'photo' || m.mode === 'dither')
+    if (!zones.length)
+      return
+    zoneMap = new Uint8Array(lw * lh)
+    zones.forEach((m, z) => {
+      o.fillStyle = '#000'
+      o.fillRect(0, 0, lw, lh)
+      o.fillStyle = '#fff'
+      path(m)
+      const d = o.getImageData(0, 0, lw, lh).data
+      for (let k = 0; k < zoneMap!.length; k++) {
+        if (d[k * 4] >= 128)
+          zoneMap![k] = z + 1
+      }
+    })
+    hasPhotoZone = zones.some(m => m.mode === 'photo')
   }
 
-  /** l'`img` ne doit pas transparaître sous un fond `transparent` — sauf en keepSharp */
+  /** a photo zone is a hole in the canvas, like keepSharp: both need the img and a masked topo */
+  function hasHoles(): boolean {
+    return P.keepSharp || hasPhotoZone
+  }
+
+  /** l'`img` ne doit pas transparaître sous un fond `transparent` — sauf là où le canvas se troue */
   function syncImgVisibility(): void {
-    const hide = P.ground === 'transparent' && !P.keepSharp
+    const hide = P.ground === 'transparent' && !hasHoles()
     if (hide === imgHidden)
       return
     img!.style.visibility = hide ? 'hidden' : ''
@@ -389,23 +444,49 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
     const gl = P.groundLift * 255
     syncImgVisibility()
 
+    // the screen of each cell: the global one, or that of the `dither` zone it falls in
+    interface Screen { ink: number[], paper: number[], contrast: number, brightness: number, k: number }
+    const base: Screen = { ink, paper, contrast: P.contrast, brightness: P.brightness, k: 1 }
+    const screens: (Screen | null)[] = zones.map(m => m.mode === 'dither'
+      ? {
+          ink: m.ink != null ? toRgb(m.ink, container) : ink,
+          paper: m.paper != null ? toRgb(m.paper, container) : paper,
+          contrast: m.contrast ?? P.contrast,
+          brightness: m.brightness ?? P.brightness,
+          k: Math.max(1, Math.round((m.cell ?? P.cell) / P.cell)),
+        }
+      : null)
+
     for (let y = 0; y < lh; y++) {
       for (let x = 0; x < lw; x++) {
         const i = (y * lw + x) * 4
-        const r = src[i]
-        const g = src[i + 1]
-        const b = src[i + 2]
+        const z = zoneMap ? zoneMap[y * lw + x] : 0
+        if (z && zones[z - 1].mode === 'photo') {
+          // the canvas is a hole here: the full-resolution photo shows through
+          d[i + 3] = 0
+          continue
+        }
+        const sc = z ? screens[z - 1]! : base
+        // a coarser zone screen samples and thresholds per block of k×k cells
+        const bx = sc.k > 1 ? (x / sc.k) | 0 : x
+        const by = sc.k > 1 ? (y / sc.k) | 0 : y
+        const si = sc.k > 1
+          ? (Math.min(lh - 1, by * sc.k + (sc.k >> 1)) * lw + Math.min(lw - 1, bx * sc.k + (sc.k >> 1))) * 4
+          : i
+        const r = src[si]
+        const g = src[si + 1]
+        const b = src[si + 2]
         const lum = 0.299 * r + 0.587 * g + 0.114 * b
-        const l = clamp((lum / 255 - 0.5) * P.contrast + 0.5 + P.brightness, 0, 1)
+        const l = clamp((lum / 255 - 0.5) * sc.contrast + 0.5 + sc.brightness, 0, 1)
 
-        let thr = BAYER[y & 7][x & 7]
+        let thr = BAYER[by & 7][bx & 7]
         if (boil)
-          thr += (vnoise(x + (tick | 0), y - ((tick * 1.3) | 0)) - 0.5) * boil
+          thr += (vnoise(bx + (tick | 0), by - ((tick * 1.3) | 0)) - 0.5) * boil
 
         const on = 1 - l > thr
-        let R = on ? ink[0] : paper[0]
-        let G = on ? ink[1] : paper[1]
-        let B = on ? ink[2] : paper[2]
+        let R = on ? sc.ink[0] : sc.paper[0]
+        let G = on ? sc.ink[1] : sc.paper[1]
+        let B = on ? sc.ink[2] : sc.paper[2]
         let A = 255
         if (!on) {
           if (gPhoto) {
@@ -413,9 +494,9 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
             const pr = clamp(lum + (r - lum) * P.groundSat + gl, 0, 255)
             const pg = clamp(lum + (g - lum) * P.groundSat + gl, 0, 255)
             const pb = clamp(lum + (b - lum) * P.groundSat + gl, 0, 255)
-            R = pr + (paper[0] - pr) * P.groundMix
-            G = pg + (paper[1] - pg) * P.groundMix
-            B = pb + (paper[2] - pb) * P.groundMix
+            R = pr + (sc.paper[0] - pr) * P.groundMix
+            G = pg + (sc.paper[1] - pg) * P.groundMix
+            B = pb + (sc.paper[2] - pb) * P.groundMix
           }
           else if (gClear) {
             A = 0
@@ -443,6 +524,9 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
           w *= mask[y * lw + x] / 255
         if (P.invert)
           w = 1 - w
+        // a `dither` zone takes its own screen, never the colour selection
+        if (!P.pop || z)
+          w = 0
 
         if (P.keepSharp) {
           // la zone gardée n'est pas repeinte : le canvas s'y troue (alpha = 1−w) et
@@ -487,7 +571,7 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
     const topo = container.querySelector<HTMLCanvasElement>('canvas.topo-on')
     if (!topo)
       return
-    if (P.keepSharp) {
+    if (hasHoles()) {
       if (!topoMaskDirty)
         return
       const url = `url(${canvas!.toDataURL()})`

@@ -17,12 +17,40 @@
  * s'en retire), ils sortent dans la Recipe en coordonnées normalisées sur l'image.
  * Repris de l'outil de trame du carrousel (artefact vault 2026-11-12, `tweaks.html`).
  *
+ * Une zone peut aussi porter son propre traitement : `photo` (la photo nette, sans filtre)
+ * ou `dither` (sa propre trame : encre, papier, contraste, luminosité, taille de point).
+ * Le mode `None` coupe la couleur sélective partout (`pop: false`).
+ *
  * L'état persiste dans localStorage — mais les DÉFAUTS sont la recipe montée par la
- * page : un chargement frais montre toujours ce que le fichier décrit.
+ * page : un chargement frais montre toujours ce que le fichier décrit. Les covers des
+ * articles s'ajoutent aux sources : les choisir charge leur recipe, zones comprises.
  */
+import { getCollection } from 'astro:content'
+
+/* une cover par photo : les traductions partagent la leur */
+const covers = new Map<string, { label: string, src: string, recipe: Record<string, unknown> }>()
+for (const post of await getCollection('writing')) {
+  const c = post.data.cover
+  if (c?.kind !== 'pop-color' || covers.has(c.src))
+    continue
+  covers.set(c.src, {
+    label: post.id.replace(/^fr-/, '').split('-').slice(0, 3).join(' '),
+    src: c.src,
+    recipe: {
+      ...c.spot,
+      focalX: c.focal?.x,
+      focalY: c.focal?.y,
+      title: c.word ?? post.data.title,
+      titleX: c.titleX,
+      titleY: c.titleY,
+      titleInk: c.titleInk,
+      height: c.height,
+    },
+  })
+}
 ---
 
-<aside class="tw-panel tw-hidden" id="tw-panel" aria-label="Tweak panel">
+<aside class="tw-panel tw-hidden" id="tw-panel" aria-label="Tweak panel" data-covers={JSON.stringify([...covers.values()])}>
   <header class="tw-head">
     <span class="ttl">Tweaks</span>
     <button class="tw-x" id="tw-close" type="button" aria-label="Hide panel" title="Hide (T)">×</button>
@@ -56,7 +84,8 @@
   type Duo = [string, string]
 
   interface TweakState {
-    mode: 'pop' | 'invert'
+    /** `none` = aucune couleur ne poppe (`pop: false`) */
+    mode: 'pop' | 'invert' | 'none'
     keep: 'dither' | 'sharp'
     keepColor: string
     threshold: number
@@ -106,7 +135,7 @@
      jamais s'appliquer — c'est lui qui faisait paraître le mode invert « à l'envers » */
   const STORAGE_KEY = 'tweaks-ds-hero-pop-color.v3'
 
-  type DrawMode = 'off' | 'in' | 'out'
+  type DrawMode = 'off' | SpotMask['mode']
 
   const HUES = ['#c8321e', '#d2691e', '#d9a521', '#3f8f3a', '#1f8a7a', '#2f6fd0', '#7a5ae0', '#c0398f']
   const GROUNDS: Duo[] = [
@@ -119,10 +148,31 @@
 
   /* Les sources EN COULEUR du repo. Jamais les PNG déjà dithérés : la sélection se fait
      par teinte — une source monochrome ne fait rien popper. */
-  const PRESETS = [
+  /* un `dither` neuf part d'une trame contrastée, à régler ensuite dans la liste des zones */
+  const ZONE_DUOS: Duo[] = [
+    ['#0c0c0a', '#d8d2bc'], /* os      */
+    ['#0a0a0a', '#f0ece0'], /* craie   */
+    ['#1c160c', '#c9a45a'], /* laiton  */
+    ...GROUNDS,
+  ]
+
+  interface Preset { label: string, src: string, recipe?: CoverRecipe }
+  /** la recipe d'une cover d'article, telle que l'assemble le frontmatter du composant */
+  type CoverRecipe = Partial<SpotHeroOptions> & {
+    ink?: Rgb
+    paper?: Rgb
+    title?: string
+    titleX?: string
+    titleY?: string
+    titleInk?: 'light' | 'dark'
+    height?: string
+  }
+
+  const PRESETS: Preset[] = [
     { label: 'bridge red', src: '/photos/source/bridge-red-web.jpg' },
     { label: 'castle blue', src: '/photos/source/castle-blue-web.jpg' },
     { label: 'zones demo', src: '/photos/source/trame-zones-web.jpg' },
+    ...JSON.parse(document.getElementById('tw-panel')?.dataset.covers ?? '[]') as Preset[],
   ]
 
   const hero = document.querySelector<HTMLElement & { spotHero?: SpotHeroHandle }>('.post-hero')
@@ -139,11 +189,29 @@
   /* Les défauts SONT la recipe montée par la page : lue sur data-recipe, pas dupliquée. */
   const initialName = heroImg?.src.split('/').pop() ?? ''
 
+  function toHex(c: Rgb): string {
+    return `#${c.map(v => v.toString(16).padStart(2, '0')).join('')}`
+  }
+
+  /** `'18%'` → 18 ; absent ou illisible → `fallback` */
+  function pct(v: string | undefined, fallback: number): number {
+    const n = Number.parseFloat(v ?? '')
+    return Number.isFinite(n) ? n : fallback
+  }
+
   function defaultsFromMount(): TweakState {
-    const r: Partial<SpotHeroOptions> & { ink?: Rgb, paper?: Rgb } = JSON.parse(hero?.dataset.recipe ?? '{}')
-    const toHex = (c: Rgb) => `#${c.map(v => v.toString(16).padStart(2, '0')).join('')}`
+    const r: CoverRecipe = JSON.parse(hero?.dataset.recipe ?? '{}')
+    return stateFromRecipe(r, initialName, {
+      title: hero?.querySelector('.ph-word')?.textContent?.trim() ?? 'Title',
+      titleX: 4,
+      titleY: 11,
+      titleInk: hero?.dataset.titleInk === 'dark' ? 'dark' : 'light',
+    })
+  }
+
+  function stateFromRecipe(r: CoverRecipe, name: string, type: Pick<TweakState, 'title' | 'titleX' | 'titleY' | 'titleInk'>): TweakState {
     return {
-      mode: r.invert ? 'invert' : 'pop',
+      mode: r.pop === false ? 'none' : r.invert ? 'invert' : 'pop',
       keep: r.keepSharp ? 'sharp' : 'dither',
       keepColor: typeof r.keepColor === 'string' ? r.keepColor : '#c8321e',
       threshold: r.hueLo ?? 34,
@@ -158,19 +226,19 @@
       groundMix: r.groundMix ?? 0,
       groundSat: r.groundSat ?? 1,
       groundLift: r.groundLift ?? 0,
-      masks: r.masks?.length ? { [initialName]: r.masks } : {},
+      masks: r.masks?.length ? { [name]: structuredClone(r.masks) } : {},
       ground: [toHex(r.ink ?? [20, 22, 15]), toHex(r.paper ?? [74, 78, 62])],
       cell: r.cell ?? 3,
       contrast: r.contrast ?? 1.3,
       brightness: r.brightness ?? -0.02,
       shimmer: REDUCED ? 0 : (r.boil ?? 0.05),
-      coverH: 100,
+      coverH: pct(r.height, 100),
       focalX: Math.round((r.focalX ?? 0.5) * 100),
       focalY: Math.round((r.focalY ?? 0.5) * 100),
-      title: hero?.querySelector('.ph-word')?.textContent?.trim() ?? 'Title',
-      titleX: 4,
-      titleY: 11,
-      titleInk: hero?.dataset.titleInk === 'dark' ? 'dark' : 'light',
+      title: r.title ?? type.title,
+      titleX: pct(r.titleX, type.titleX),
+      titleY: pct(r.titleY, type.titleY),
+      titleInk: r.titleInk ?? type.titleInk,
     }
   }
 
@@ -181,7 +249,7 @@
     { k: 'image', type: 'image', label: 'Photo' },
 
     { sec: 'Selective colour' },
-    { k: 'mode', type: 'seg', label: 'Mode', options: [['pop', 'Pop'], ['invert', 'Invert']] },
+    { k: 'mode', type: 'seg', label: 'Mode', options: [['pop', 'Pop'], ['invert', 'Invert'], ['none', 'None']] },
     { k: 'keep', type: 'seg', label: 'Kept zone', options: [['dither', 'Dithered'], ['sharp', 'Sharp']] },
     { k: 'keepColor', type: 'swatch', label: 'Keep colour', options: HUES },
     { k: 'hueMode', type: 'toggle', label: 'Hue mode (angle)' },
@@ -284,6 +352,7 @@
       hueSpan: s.softness,
       satBoost: s.pop,
       invert: s.mode === 'invert',
+      pop: s.mode !== 'none',
       keepSharp: s.keep === 'sharp',
       hueMode: s.hueMode,
       hueTol: s.hueTol,
@@ -330,6 +399,19 @@
     return Number.isInteger(v) ? String(v) : String(Number.parseFloat(v.toFixed(3)))
   }
 
+  function maskSnippet(m: SpotMask): string {
+    const screen = m.mode === 'dither'
+      ? [
+          ...(Array.isArray(m.ink) ? [`ink: [${m.ink.join(', ')}]`] : []),
+          ...(Array.isArray(m.paper) ? [`paper: [${m.paper.join(', ')}]`] : []),
+          ...(m.contrast != null ? [`contrast: ${num(m.contrast)}`] : []),
+          ...(m.brightness != null ? [`brightness: ${num(m.brightness)}`] : []),
+          ...(m.cell != null ? [`cell: ${num(m.cell)}`] : []),
+        ].map(f => `, ${f}`).join('')
+      : ''
+    return `    { mode: '${m.mode}'${screen}, pts: [${m.pts.map(p => `[${num(p[0])}, ${num(p[1])}]`).join(', ')}] },`
+  }
+
   function recipeSnippet(s: TweakState): string {
     const ink = hexToRgb(s.ground[0])
     const paper = hexToRgb(s.ground[1])
@@ -353,6 +435,7 @@
         : [`  hueLo: ${num(s.threshold)},`, `  hueSpan: ${num(s.softness)},`]),
       `  satBoost: ${num(s.pop)},`,
       ...(s.mode === 'invert' ? ['  invert: true,'] : []),
+      ...(s.mode === 'none' ? ['  pop: false,'] : []),
       ...(s.keep === 'sharp' ? ['  keepSharp: true,'] : []),
       ...(s.groundKind !== 'flat' ? [`  ground: '${s.groundKind}',`] : []),
       ...(s.groundKind === 'photo'
@@ -361,8 +444,7 @@
       ...(currentMasks(s).length
         ? [
             '  masks: [',
-            ...currentMasks(s).map(m =>
-              `    { mode: '${m.mode}', pts: [${m.pts.map(p => `[${num(p[0])}, ${num(p[1])}]`).join(', ')}] },`),
+            ...currentMasks(s).map(maskSnippet),
             '  ],',
           ]
         : []),
@@ -500,10 +582,17 @@
     fr.readAsDataURL(file)
   }
 
-  function loadPreset(p: { label: string, src: string }) {
+  function loadPreset(p: Preset) {
     loadedPreset = p.src
     loadedName = p.src.split('/').pop() ?? p.src
+    if (p.recipe) {
+      // an article cover brings its whole recipe, zones included
+      Object.assign(state, stateFromRecipe(p.recipe, loadedName, state), { shimmer: REDUCED ? 0 : (p.recipe.boil ?? 0.05) })
+      save(state)
+    }
     setImage(p.src, loadedName)
+    if (p.recipe)
+      apply(state)
   }
 
   function paintPresets() {
@@ -656,7 +745,7 @@
         seg.id = 'k-zonemode'
         seg.setAttribute('role', 'radiogroup')
         seg.setAttribute('aria-label', knob.label)
-        for (const [val, label] of [['off', 'Off'], ['in', 'Draw in'], ['out', 'Draw out']] as const) {
+        for (const [val, label] of [['off', 'Off'], ['in', 'In'], ['out', 'Out'], ['photo', 'Photo'], ['dither', 'Dither']] as const) {
           const b = document.createElement('button')
           b.type = 'button'
           b.dataset.val = val
@@ -668,7 +757,7 @@
         const hint = document.createElement('p')
         hint.className = 'tw-hint'
         hint.id = 'k-zonehint'
-        hint.textContent = 'Click to add points · Enter or click the first point closes · Backspace undoes a point · Esc cancels'
+        hint.textContent = 'In / Out shape the colour selection · Photo keeps the zone as the sharp photo · Dither gives it its own screen. Click to add points · Enter or click the first point closes · Backspace undoes a point · Esc cancels'
         row.appendChild(hint)
         const list = document.createElement('div')
         list.className = 'tw-zones'
@@ -754,6 +843,15 @@
     return el
   }
 
+  /* l'overlay ne montre que le contour : le remplissage reste léger pour voir le rendu */
+  const ZONE_STYLE: Record<SpotMask['mode'], Record<string, string>> = {
+    in: { 'fill': 'rgba(196, 106, 62, 0.28)', 'stroke': '#c46a3e', 'stroke-width': '2' },
+    out: { 'fill': 'rgba(255, 255, 255, 0.18)', 'stroke': '#fff', 'stroke-width': '2', 'stroke-dasharray': '6 4' },
+    photo: { 'fill': 'none', 'stroke': '#7fd3ff', 'stroke-width': '2' },
+    dither: { 'fill': 'none', 'stroke': '#ffd75e', 'stroke-width': '2', 'stroke-dasharray': '2 3' },
+  }
+  const ZONE_LABEL: Record<SpotMask['mode'], string> = { in: 'In', out: 'Out', photo: 'Photo', dither: 'Dither' }
+
   function drawOverlay() {
     if (!overlay)
       return
@@ -765,9 +863,7 @@
     overlay.setAttribute('viewBox', `0 0 ${f.cw} ${f.ch}`)
     for (const m of currentMasks(state)) {
       const pts = m.pts.map(p => toFrame(f, p).join(',')).join(' ')
-      overlay.appendChild(svgEl('polygon', m.mode === 'in'
-        ? { 'points': pts, 'fill': 'rgba(196, 106, 62, 0.28)', 'stroke': '#c46a3e', 'stroke-width': '2' }
-        : { 'points': pts, 'fill': 'rgba(255, 255, 255, 0.18)', 'stroke': '#fff', 'stroke-width': '2', 'stroke-dasharray': '6 4' }))
+      overlay.appendChild(svgEl('polygon', { points: pts, ...ZONE_STYLE[m.mode] }))
     }
     if (draft.length) {
       const pts = [...draft, ...(cursor ? [cursor] : [])].map(p => toFrame(f, p).join(','))
@@ -791,7 +887,7 @@
       const item = document.createElement('div')
       item.className = 'tw-zone'
       const name = document.createElement('span')
-      name.textContent = `${m.mode === 'in' ? 'In' : 'Out'} · ${m.pts.length} pts`
+      name.textContent = `${ZONE_LABEL[m.mode]} · ${m.pts.length} pts`
       const del = document.createElement('button')
       del.type = 'button'
       del.textContent = '×'
@@ -799,7 +895,59 @@
       del.addEventListener('click', () => editMasks(ms.filter((_, j) => j !== i)))
       item.append(name, del)
       list.appendChild(item)
+      if (m.mode === 'dither')
+        list.appendChild(zoneScreen(s, ms, i))
     })
+  }
+
+  /** the controls of a `dither` zone's own screen; unset fields read the global ones */
+  function zoneScreen(s: TweakState, ms: SpotMask[], i: number): HTMLElement {
+    const m = ms[i]
+    const set = (patch: Partial<SpotMask>) => editMasks(ms.map((z, j) => j === i ? { ...z, ...patch } : z))
+    const box = document.createElement('div')
+    box.className = 'tw-zonescreen'
+
+    const duo = document.createElement('div')
+    duo.className = 'tw-swatches duo'
+    duo.setAttribute('role', 'radiogroup')
+    duo.setAttribute('aria-label', `Zone ${i + 1} tone`)
+    const cur = [Array.isArray(m.ink) ? toHex(m.ink as Rgb) : s.ground[0], Array.isArray(m.paper) ? toHex(m.paper as Rgb) : s.ground[1]].join()
+    for (const pair of ZONE_DUOS) {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = 'tw-swatch'
+      b.style.background = `linear-gradient(105deg, ${pair[0]} 0 50%, ${pair[1]} 50% 100%)`
+      b.setAttribute('aria-label', pair.join(' / '))
+      b.setAttribute('aria-pressed', String(pair.join() === cur))
+      b.addEventListener('click', () => set({ ink: hexToRgb(pair[0]), paper: hexToRgb(pair[1]) }))
+      duo.appendChild(b)
+    }
+    box.appendChild(duo)
+
+    const ranges: [keyof SpotMask & ('contrast' | 'brightness' | 'cell'), string, number, number, number, number][] = [
+      ['contrast', 'Contrast', 0.8, 2.4, 0.02, s.contrast],
+      ['brightness', 'Brightness', -0.3, 0.3, 0.01, s.brightness],
+      ['cell', 'Dot size', s.cell, s.cell * 4, s.cell, s.cell],
+    ]
+    for (const [k, label, min, max, step, fallback] of ranges) {
+      const row = document.createElement('label')
+      row.className = 'tw-zonerange'
+      const v = m[k] ?? fallback
+      const txt = document.createElement('span')
+      txt.textContent = `${label} ${Number.isInteger(v) ? v : v.toFixed(2)}`
+      const r = document.createElement('input')
+      r.type = 'range'
+      r.className = 'tw-range'
+      r.min = String(min)
+      r.max = String(max)
+      r.step = String(step)
+      r.value = String(v)
+      r.setAttribute('aria-label', `Zone ${i + 1} ${label}`)
+      r.addEventListener('change', () => set({ [k]: Number.parseFloat(r.value) }))
+      row.append(txt, r)
+      box.appendChild(row)
+    }
+    return box
   }
 
   function editMasks(next: SpotMask[]) {
@@ -828,7 +976,10 @@
       const pts = draft
       draft = []
       cursor = null
-      editMasks([...currentMasks(state), { mode, pts }])
+      const [ink, paper] = ZONE_DUOS[0]
+      editMasks([...currentMasks(state), mode === 'dither'
+        ? { mode, pts, ink: hexToRgb(ink), paper: hexToRgb(paper), contrast: 1.6, cell: state.cell }
+        : { mode, pts }])
       return
     }
     drawOverlay()
@@ -1391,6 +1542,21 @@
     border: 1px solid var(--line);
     padding: 2px 6px;
     font-size: 11px;
+  }
+
+  .tw-body :global(.tw-zonescreen) {
+    display: grid;
+    gap: 4px;
+    padding: 4px 6px 6px;
+    border: 1px solid var(--line);
+    border-top: 0;
+    margin-top: -4px;
+    font-size: 10px;
+  }
+
+  .tw-body :global(.tw-zonerange) {
+    display: grid;
+    gap: 2px;
   }
 
   .tw-body :global(.tw-zone button) {
