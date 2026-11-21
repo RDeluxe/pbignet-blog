@@ -333,6 +333,9 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
     }
 
     fit = { dx, dy, dw, dh }
+    // the img under the canvas shows through its holes (photo zones, keepSharp): it must
+    // be panned like the canvas, object-position x% being the same (frame - drawn) * x offset
+    img!.style.objectPosition = `${P.focalX * 100}% ${P.focalY * 100}%`
     buildMask()
 
     canvas!.width = lw
@@ -687,6 +690,7 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
       io.disconnect()
       if (imgHidden)
         img.style.visibility = ''
+      img.style.objectPosition = ''
       img.removeEventListener('load', onLoad)
       window.removeEventListener('resize', onResize)
     },
