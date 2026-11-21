@@ -14,23 +14,34 @@ cover:
   src: /photos/source/remuneration-pt1-web.jpg
   alt: A worn shopfront house with a slate mansard roof between granite houses, across a crosswalk
   word: "Rému\u00ADnération"
-  titleY: 80%
+  titleY: 62%
   titleYMobile: 72%
   titleInk: light
   height: 100vh
-  focal: { x: 0.5, y: 0.5 }
-  # proposition 2026-11-21 : la maison du centre en photo nette, le reste en trame charbon
+  focal: { x: 0.33, y: 0.5 }
   spot:
-    ink: [18, 18, 18]
-    paper: [69, 69, 69]
+    keepColor: '#c8321e'
+    ink: [10, 18, 11]
+    paper: [54, 72, 44]
     cell: 3
     contrast: 1.3
     brightness: -0.02
-    boil: 0.05
+    boil: 0.02
+    hueLo: 34
+    hueSpan: 62
+    satBoost: 0.35
     pop: false
+    keepSharp: true
     masks:
+      - mode: dither
+        ink: [20, 22, 15]
+        paper: [74, 78, 62]
+        contrast: 1.48
+        brightness: -0.03
+        cell: 3
+        pts: [[0.265, 0.36], [0.265, 0.294], [0.321, 0.22], [0.324, 0.2], [0.306, 0.194], [0.328, 0.18], [0.328, 0.171], [0.363, 0.154], [0.373, 0.156], [0.374, 0.163], [0.403, 0.179], [0.438, 0.16], [0.439, 0.142], [0.423, 0.137], [0.467, 0.105], [0.545, 0.1], [0.519, 0.121], [0.579, 0.099], [0.6, 0.06], [0.62, 0.02], [0.64, 0], [0.81, 0], [0.82, 0.065], [0.785, 0.085], [0.775, 0.14], [0.79, 0.47], [0.795, 0.773], [0.688, 0.75], [0.265, 0.68]]
       - mode: photo
-        pts: [[0.265, 0.36], [0.3, 0.265], [0.38, 0.185], [0.47, 0.15], [0.51, 0.115], [0.545, 0.1], [0.59, 0.11], [0.6, 0.06], [0.62, 0.02], [0.64, 0.0], [0.81, 0.0], [0.82, 0.065], [0.785, 0.085], [0.775, 0.14], [0.79, 0.47], [0.785, 0.75], [0.69, 0.74], [0.265, 0.68]]
+        pts: [[0.26, 0.501], [0.751, 0.454], [0.761, 0.459], [0.78, 0.468], [0.789, 0.47], [0.79, 0.531], [0.259, 0.55]]
 ---
 
 *Cet article a été rédigé en début d'année 2024*
