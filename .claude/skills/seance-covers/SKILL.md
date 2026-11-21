@@ -28,17 +28,24 @@ Donne à Pierrick l'URL et ce mode d'emploi, tel quel :
 
 1. Appuie sur **T** (ou le bouton T en bas) : le panneau Tweaks s'ouvre, il est replié au chargement.
 2. Section **Photo** : clique le bouton de ton article (les trois premiers mots de son slug). La photo se charge avec sa recipe actuelle.
-3. **Zones** (« Draw on the cover ») : choisis le type de zone, puis trace au clic. **Photo** garde la zone en photo nette, **Dither** lui donne sa propre trame, **In** / **Out** restreignent ou retirent la sélection de couleur. Entrée (ou un clic sur le premier point) ferme la zone, Retour arrière retire un point, Échap annule.
+3. **Zones** : clique **« + Nouvelle zone »**, puis clique sur la photo pour poser ses points. Entrée (ou un clic sur le premier point) ferme la zone, Retour arrière retire le dernier point posé, Échap annule. La zone entre dans la **liste des zones**, où chaque ligne a :
+   - une case qui active ou désactive la zone (une zone désactivée reste dans la liste, hors du rendu et de la recipe) ;
+   - un menu pour son type : **Photo** garde la zone en photo nette, **Dither** lui donne sa propre trame (réglable sous la ligne), **In** / **Out** restreignent ou retirent la sélection de couleur ;
+   - **Éditer** : glisse un point pour le déplacer, clique sur un bord pour y ajouter un point, double-clique sur un point pour le retirer (une zone garde au moins 3 points) ; OK ou Échap termine ;
+   - **×** pour supprimer la zone.
 4. Règle la trame, le titre (texte, X, Y, encre) et le point focal.
-5. **Copy recipe**, puis colle le résultat dans le pane. Sur cette adresse en http, le presse-papiers peut refuser : la recipe s'affiche alors dans la boîte « Recipe » du panneau, à copier à la main.
+5. **Aperçu mobile** (en bas du panneau) ouvre à gauche la cover à 390 px de large, comme sur un téléphone, avec les vrais réglages du site en étroit. Règle **Title Y mobile** en la regardant ; l'aperçu suit chaque réglage. Il ne montre que les photos du repo, pas un fichier déposé.
+6. **Copy recipe**, puis colle le résultat dans le pane. Sur cette adresse en http, le presse-papiers peut refuser : la recipe s'affiche alors dans la boîte « Recipe » du panneau, à copier à la main.
 
-L'éditeur garde son état dans le navigateur : **Reset** revient à la recipe du fichier.
+L'éditeur garde un **brouillon par photo** dans le navigateur, écrit à chaque réglage : rechoisir la photo, même après un rechargement de la page, reprend le brouillon plutôt que le fichier. **Reset** jette le brouillon de la photo et revient à la recipe du fichier.
+
+**Pendant que Pierrick travaille dans l'éditeur, aucune édition de fichier** dans la branche servie (ni le composant, ni un `.mdoc`, ni la skill) : le serveur rechargerait la page sous ses mains. On attend sa recipe, ou son feu vert.
 
 **Fini quand** Pierrick a l'URL qui répond et le mode d'emploi.
 
 ## 3. Poser la recipe
 
-La recipe copiée est au format des props Astro (`spot={{ … }}`, `title="…"`, `titleY="…%"`, `focal={{ x, y }}`). Traduis-la dans le bloc `cover:` YAML du `.mdoc`, champ pour champ : `title` devient `word`, `spot`, `focal`, `titleX`, `titleY`, `titleInk`, `height` gardent leur nom. Chaque valeur passe à l'identique, chaque point de zone compris ; une traduction reçoit la même recipe. Les commentaires de fin de recipe ne se recopient pas.
+La recipe copiée est au format des props Astro (`spot={{ … }}`, `title="…"`, `titleY="…%"`, `titleYMobile="…%"`, `focal={{ x, y }}`). Traduis-la dans le bloc `cover:` YAML du `.mdoc`, champ pour champ : `title` devient `word`, `spot`, `focal`, `titleX`, `titleY`, `titleYMobile`, `titleInk`, `height` gardent leur nom. Chaque valeur passe à l'identique, chaque point de zone compris ; une traduction reçoit la même recipe. Les commentaires de fin de recipe ne se recopient pas.
 
 Puis `pnpm build`, et vérifie que la page de l'article rend la cover (le serveur de l'étape 2 suffit). Mesure le contraste du titre et donne-le à Pierrick, sans rien retoucher : c'est lui qui juge.
 

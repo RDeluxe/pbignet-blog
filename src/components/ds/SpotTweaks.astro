@@ -45,6 +45,7 @@ for (const post of await getCollection('writing')) {
       title: c.word ?? post.data.title,
       titleX: c.titleX,
       titleY: c.titleY,
+      titleYMobile: c.titleYMobile,
       titleInk: c.titleInk,
       height: c.height,
     },
@@ -69,12 +70,19 @@ for (const post of await getCollection('writing')) {
 
   <footer class="tw-foot">
     <span><kbd>T</kbd><kbd>R</kbd></span>
+    <button id="tw-phone" type="button" aria-pressed="false" title="La cover à 390 px de large, comme sur un téléphone">Aperçu mobile</button>
     <button id="tw-reset" type="button">Reset</button>
     <button id="tw-copy" class="tw-copy" type="button">Copy recipe</button>
   </footer>
 </aside>
 
 <svg class="tw-ov" id="tw-ov" aria-hidden="true"></svg>
+
+<!-- l'aperçu mobile : cette même page dans un cadre de 390 px, ses breakpoints réels -->
+<div class="tw-phone" id="tw-phone-frame" hidden>
+  <span class="tw-phone-cap">390 px</span>
+  <iframe id="tw-phone-view" title="Aperçu mobile de la cover"></iframe>
+</div>
 
 <button class="tw-restore tw-show" id="tw-restore" type="button" aria-label="Show tweaks panel" title="Tweaks (T)">T</button>
 
@@ -115,6 +123,8 @@ for (const post of await getCollection('writing')) {
     title: string
     titleX: number
     titleY: number
+    /** placement du titre en étroit (≤700px) */
+    titleYMobile: number
     titleInk: 'light' | 'dark'
   }
 
@@ -169,6 +179,7 @@ for (const post of await getCollection('writing')) {
     title?: string
     titleX?: string
     titleY?: string
+    titleYMobile?: string
     titleInk?: 'light' | 'dark'
     height?: string
   }
@@ -244,6 +255,7 @@ for (const post of await getCollection('writing')) {
       title: r.title ?? type.title,
       titleX: pct(r.titleX, type.titleX),
       titleY: pct(r.titleY, type.titleY),
+      titleYMobile: pct(r.titleYMobile, pct(r.titleY, type.titleY)),
       titleInk: r.titleInk ?? type.titleInk,
     }
   }
@@ -288,6 +300,7 @@ for (const post of await getCollection('writing')) {
     { k: 'title', type: 'text', label: 'Title' },
     { k: 'titleX', type: 'range', label: 'Title X', min: 0, max: 70, step: 1, unit: '%' },
     { k: 'titleY', type: 'range', label: 'Title Y', min: 2, max: 62, step: 1, unit: '%' },
+    { k: 'titleYMobile', type: 'range', label: 'Title Y mobile', min: 2, max: 90, step: 1, unit: '%' },
     { k: 'titleInk', type: 'seg', label: 'Title ink', options: [['light', 'Light'], ['dark', 'Dark']] },
   ]
 
@@ -299,7 +312,9 @@ for (const post of await getCollection('writing')) {
   function load(): TweakState {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      const s: TweakState = { ...DEFAULTS, ...(raw ? JSON.parse(raw) : {}) }
+      const parsed: Partial<TweakState> = raw ? JSON.parse(raw) : {}
+      // a state saved before the mobile knob places the mobile title like the desktop one
+      const s: TweakState = { ...DEFAULTS, ...parsed, titleYMobile: parsed.titleYMobile ?? parsed.titleY ?? DEFAULTS.titleYMobile }
       // never share the masks object with DEFAULTS: editMasks() mutates it in place
       s.masks = structuredClone(s.masks)
       if (raw && REDUCED)
@@ -424,6 +439,7 @@ for (const post of await getCollection('writing')) {
       el.style.setProperty('--phGround', paper.join(', '))
       el.style.setProperty('--phTitleX', `${s.titleX}%`)
       el.style.setProperty('--phTitleYBase', `${s.titleY}%`)
+      el.style.setProperty('--phTitleYMobile', `${s.titleYMobile}%`)
     }
     /* la hauteur change clientHeight sans émettre de resize ; le moteur écoute resize */
     if (heightChanged)
@@ -497,11 +513,11 @@ for (const post of await getCollection('writing')) {
       `title="${s.title}"`,
       ...(s.titleX !== 4 ? [`titleX="${s.titleX}%"`] : []),
       `titleY="${s.titleY}%"`,
+      `titleYMobile="${s.titleYMobile}%"`,
       `titleInk="${s.titleInk}"`,
       `height="${s.coverH}vh"`,
       `focal={{ x: ${num(s.focalX / 100)}, y: ${num(s.focalY / 100)} }}`,
       '',
-      '// titleYMobile : override ≤700px à vérifier sur le vrai breakpoint,',
       '// contraste du titre ≥3:1 MESURÉ (PIPELINE §4.6b).',
     ].join('\n')
   }
@@ -614,6 +630,7 @@ for (const post of await getCollection('writing')) {
     draft = []
     paintPresets()
     status()
+    syncPhone()
   }
 
   function loadFile(file: File | null | undefined) {
@@ -634,7 +651,12 @@ for (const post of await getCollection('writing')) {
     const saved = drafts()[loadedName]
     if (saved) {
       // a draft of this photo wins over its file: the work in progress comes back
-      Object.assign(state, saved, { masks: { ...state.masks, [loadedName]: saved.masks[loadedName] ?? [] } })
+      // (a draft older than the mobile knob takes the file's mobile placement, else its desktop one)
+      const fileMobile = p.recipe ? stateFromRecipe(p.recipe, loadedName, state).titleYMobile : undefined
+      Object.assign(state, saved, {
+        titleYMobile: saved.titleYMobile ?? fileMobile ?? saved.titleY,
+        masks: { ...state.masks, [loadedName]: saved.masks[loadedName] ?? [] },
+      })
       save(state)
     }
     else if (p.recipe) {
@@ -1346,9 +1368,57 @@ for (const post of await getCollection('writing')) {
     }
   })
 
+  /* ---- aperçu mobile : cette page dans un cadre de 390 px, en mode `?phone=<photo>` ----
+     Le cadre a sa propre largeur de viewport : les vrais breakpoints du composant
+     (≤700px, taille du titre en vw) s'y appliquent. Il lit l'état que le panneau écrit
+     dans localStorage et le suit par l'événement `storage` ; il n'écrit jamais rien. */
+  const PHONE = new URLSearchParams(location.search).get('phone')
+  const phoneFrame = document.getElementById('tw-phone-frame')!
+  const phoneView = document.querySelector<HTMLIFrameElement>('#tw-phone-view')!
+  const phoneBtn = document.getElementById('tw-phone')!
+
+  function syncPhone() {
+    if (PHONE !== null || phoneFrame.hidden)
+      return
+    const src = `${location.pathname}?phone=${encodeURIComponent(loadedPreset ?? '')}`
+    if (phoneView.getAttribute('src') !== src)
+      phoneView.setAttribute('src', src)
+    const cap = phoneFrame.querySelector('.tw-phone-cap')
+    if (cap)
+      cap.textContent = loadedPreset ? '390 px' : '390 px · photo par défaut : un fichier déposé ne passe pas'
+  }
+  phoneBtn.addEventListener('click', () => {
+    phoneFrame.hidden = !phoneFrame.hidden
+    phoneBtn.setAttribute('aria-pressed', String(!phoneFrame.hidden))
+    syncPhone()
+  })
+
+  function startPhone() {
+    panel.style.display = 'none'
+    restore.style.display = 'none'
+    if (PHONE) {
+      loadedPreset = PHONE
+      loadedName = PHONE.split('/').pop() ?? PHONE
+      setImage(PHONE, loadedName)
+    }
+    apply(state)
+    hero?.scrollIntoView({ block: 'start' })
+    addEventListener('storage', (e) => {
+      if (e.key !== STORAGE_KEY)
+        return
+      Object.assign(state, load())
+      masksDirty = true
+      apply(state)
+    })
+  }
+
   /* démarrage : attendre le handle si le hero n'est pas encore monté */
   function start() {
     build()
+    if (PHONE !== null) {
+      startPhone()
+      return
+    }
     apply(state)
     status()
   }
@@ -1743,6 +1813,37 @@ for (const post of await getCollection('writing')) {
   .tw-copy[data-done='on'] {
     background: var(--ink);
     color: var(--paper);
+  }
+
+  /* le cadre de l'aperçu mobile, à gauche : le panneau tient la droite */
+  .tw-phone {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    width: 392px;
+    height: min(870px, calc(100vh - 32px));
+    background: var(--paper);
+    border: 1px solid var(--ink);
+  }
+  .tw-phone[hidden] {
+    display: none;
+  }
+  .tw-phone-cap {
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--ink);
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    letter-spacing: var(--tr-micro);
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .tw-phone iframe {
+    flex: 1;
+    width: 390px;
+    border: 0;
   }
 
   .tw-ov {
