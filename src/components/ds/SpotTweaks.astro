@@ -102,7 +102,7 @@ for (const post of await getCollection('writing')) {
     groundSat: number
     groundLift: number
     /** zones par photo, clé = nom du fichier : elles n'ont de sens que sur leur image */
-    masks: Record<string, SpotMask[]>
+    masks: Record<string, EdZone[]>
     cell: number
     contrast: number
     brightness: number
@@ -135,7 +135,10 @@ for (const post of await getCollection('writing')) {
      jamais s'appliquer — c'est lui qui faisait paraître le mode invert « à l'envers » */
   const STORAGE_KEY = 'tweaks-ds-hero-pop-color.v3'
 
-  type DrawMode = 'off' | SpotMask['mode']
+  /** a zone in the editor: `off` keeps it in the list but out of the render and the recipe */
+  type EdZone = SpotMask & { off?: boolean }
+  /** idle, drawing a new zone, or moving the points of zone `i` */
+  type Tool = { kind: 'idle' } | { kind: 'draw' } | { kind: 'edit', i: number }
 
   const HUES = ['#c8321e', '#d2691e', '#d9a521', '#3f8f3a', '#1f8a7a', '#2f6fd0', '#7a5ae0', '#c0398f']
   const GROUNDS: Duo[] = [
@@ -177,7 +180,7 @@ for (const post of await getCollection('writing')) {
 
   const hero = document.querySelector<HTMLElement & { spotHero?: SpotHeroHandle }>('.post-hero')
   const heroImg = hero?.querySelector<HTMLImageElement>('img.dsrc') ?? null
-  const ZONE_HINT = 'In / Out shape the colour selection · Photo keeps the zone as the sharp photo · Dither gives it its own screen. Pick a type, then click to add points · Enter or click the first point closes · Backspace undoes a point · Esc cancels'
+  const ZONE_HELP = '« + Nouvelle zone », puis clique sur la photo pour poser ses points. Dans la liste : la case active ou désactive une zone, le menu choisit son type (In / Out règlent la couleur, Photo garde la photo nette, Dither lui donne sa trame), Éditer déplace ses points, × la supprime.'
   const fade = hero?.nextElementSibling instanceof HTMLElement && hero.nextElementSibling.classList.contains('hero-fade')
     ? hero.nextElementSibling
     : null
@@ -330,9 +333,17 @@ for (const post of await getCollection('writing')) {
      (édition de zone, changement de photo) */
   let masksDirty = true
   let draft: [number, number][] = []
+  let tool: Tool = { kind: 'idle' }
+  /** the point of the edited zone being dragged */
+  let drag: number | null = null
 
-  function currentMasks(s: TweakState): SpotMask[] {
+  function currentMasks(s: TweakState): EdZone[] {
     return s.masks[loadedName] ?? []
+  }
+
+  /** the zones the engine and the recipe see: active ones, without the editor flag */
+  function liveMasks(s: TweakState): SpotMask[] {
+    return currentMasks(s).filter(m => !m.off).map(({ off: _off, ...m }) => m)
   }
 
   function apply(s: TweakState) {
@@ -364,7 +375,7 @@ for (const post of await getCollection('writing')) {
       groundMix: s.groundMix,
       groundSat: s.groundSat,
       groundLift: s.groundLift,
-      ...(masksDirty ? { masks: currentMasks(s) } : {}),
+      ...(masksDirty ? { masks: liveMasks(s) } : {}),
       focalX: s.focalX / 100,
       focalY: s.focalY / 100,
     })
@@ -442,10 +453,10 @@ for (const post of await getCollection('writing')) {
       ...(s.groundKind === 'photo'
         ? [`  groundMix: ${num(s.groundMix)},`, `  groundSat: ${num(s.groundSat)},`, `  groundLift: ${num(s.groundLift)},`]
         : []),
-      ...(currentMasks(s).length
+      ...(liveMasks(s).length
         ? [
             '  masks: [',
-            ...currentMasks(s).map(maskSnippet),
+            ...liveMasks(s).map(maskSnippet),
             '  ],',
           ]
         : []),
@@ -741,24 +752,22 @@ for (const post of await getCollection('writing')) {
         row.appendChild(t)
       }
       else if (knob.type === 'zones') {
+        const help = document.createElement('p')
+        help.className = 'tw-hint'
+        help.textContent = ZONE_HELP
+        row.appendChild(help)
         const seg = document.createElement('div')
         seg.className = 'tw-seg'
-        seg.id = 'k-zonemode'
-        seg.setAttribute('role', 'radiogroup')
-        seg.setAttribute('aria-label', knob.label)
-        for (const [val, label] of [['off', 'Off'], ['in', 'In'], ['out', 'Out'], ['photo', 'Photo'], ['dither', 'Dither']] as const) {
-          const b = document.createElement('button')
-          b.type = 'button'
-          b.dataset.val = val
-          b.textContent = label
-          b.addEventListener('click', () => setDrawMode(val))
-          seg.appendChild(b)
-        }
+        const add = document.createElement('button')
+        add.type = 'button'
+        add.id = 'k-zonenew'
+        add.textContent = '+ Nouvelle zone'
+        add.addEventListener('click', () => setTool(tool.kind === 'draw' ? { kind: 'idle' } : { kind: 'draw' }))
+        seg.appendChild(add)
         row.appendChild(seg)
         const hint = document.createElement('p')
         hint.className = 'tw-hint'
         hint.id = 'k-zonehint'
-        hint.textContent = ZONE_HINT
         row.appendChild(hint)
         const list = document.createElement('div')
         list.className = 'tw-zones'
@@ -791,7 +800,6 @@ for (const post of await getCollection('writing')) {
      attend) ; l'overlay les projette en px du hero avec le même cover-fit que le moteur. */
   const SVGNS = 'http://www.w3.org/2000/svg'
   const overlay = document.getElementById('tw-ov') as unknown as SVGSVGElement | null
-  let drawMode: DrawMode = 'off'
   let cursor: [number, number] | null = null
   /** index of the zone hovered in the panel list, highlighted on the photo */
   let hoverZone: number | null = null
@@ -860,7 +868,7 @@ for (const post of await getCollection('writing')) {
     drawOverlay()
   }
 
-  /* while drawing, the cover shows the source photo without its screen, framed like the engine */
+  /* while drawing or editing, the cover shows the source photo without its screen, framed like the engine */
   function showRawPhoto(raw: boolean) {
     for (const c of hero?.querySelectorAll<HTMLCanvasElement>('canvas.dither-canvas, canvas.topo-on') ?? [])
       c.style.visibility = raw ? 'hidden' : ''
@@ -872,19 +880,27 @@ for (const post of await getCollection('writing')) {
     if (!overlay)
       return
     overlay.replaceChildren()
-    overlay.dataset.draw = drawMode
-    showRawPhoto(drawMode !== 'off')
+    const busy = tool.kind !== 'idle'
+    showRawPhoto(busy)
     const f = coverFit()
-    if (!f || (drawMode === 'off' && hoverZone === null))
+    if (!f || (!busy && hoverZone === null))
       return
     overlay.setAttribute('viewBox', `0 0 ${f.cw} ${f.ch}`)
+    const editing = tool.kind === 'edit' ? tool.i : null
     currentMasks(state).forEach((m, i) => {
-      if (drawMode === 'off' && i !== hoverZone)
+      if (!busy && i !== hoverZone)
         return
       const pts = m.pts.map(p => toFrame(f, p).join(',')).join(' ')
-      const hot = i === hoverZone ? { 'fill': 'rgba(255, 255, 255, 0.35)', 'stroke-width': '4' } : {}
-      overlay.appendChild(svgEl('polygon', { points: pts, ...ZONE_STYLE[m.mode], ...hot }))
+      const hot = i === hoverZone || i === editing ? { 'fill': 'rgba(255, 255, 255, 0.35)', 'stroke-width': '4' } : {}
+      const dim = m.off && i !== editing ? { opacity: '0.4' } : {}
+      overlay.appendChild(svgEl('polygon', { points: pts, ...ZONE_STYLE[m.mode], ...hot, ...dim }))
     })
+    if (editing !== null) {
+      for (const p of currentMasks(state)[editing]?.pts ?? []) {
+        const [x, y] = toFrame(f, p)
+        overlay.appendChild(svgEl('circle', { 'cx': String(x), 'cy': String(y), 'r': '6', 'fill': '#fff', 'stroke': '#000', 'stroke-width': '1.5' }))
+      }
+    }
     if (draft.length) {
       const pts = [...draft, ...(cursor ? [cursor] : [])].map(p => toFrame(f, p).join(','))
       overlay.appendChild(svgEl('polyline', { 'points': pts.join(' '), 'fill': 'none', 'stroke': '#fff', 'stroke-width': '2' }))
@@ -895,13 +911,26 @@ for (const post of await getCollection('writing')) {
     }
   }
 
+  /** a zone of another type: a dither zone gets a default screen, the others keep only their points */
+  function retype(m: EdZone, mode: SpotMask['mode']): EdZone {
+    const base = { mode, pts: m.pts, ...(m.off ? { off: true } : {}) }
+    if (mode !== 'dither')
+      return base
+    const [ink, paper] = ZONE_DUOS[0]
+    return { ink: hexToRgb(ink), paper: hexToRgb(paper), contrast: 1.6, cell: state.cell, ...m, ...base }
+  }
+
   function paintZones(s: TweakState) {
-    document.getElementById('k-zonemode')?.querySelectorAll('button').forEach(b =>
-      b.setAttribute('aria-pressed', b.dataset.val === drawMode ? 'true' : 'false'))
+    const add = document.getElementById('k-zonenew')
+    add?.setAttribute('aria-pressed', String(tool.kind === 'draw'))
     const hint = document.getElementById('k-zonehint')
     if (hint) {
-      hint.textContent = drawMode === 'off' ? ZONE_HINT : `Nouvelle zone (${ZONE_LABEL[drawMode]}) : clique pour poser les points`
-      hint.dataset.drawing = drawMode === 'off' ? 'off' : 'on'
+      hint.textContent = tool.kind === 'draw'
+        ? 'Nouvelle zone : clique pour poser les points · Entrée ou clic sur le premier point ferme · Retour arrière enlève un point · Échap annule'
+        : tool.kind === 'edit'
+          ? `Zone ${tool.i + 1} : glisse ses points sur la photo · OK ou Échap termine`
+          : ''
+      hint.hidden = tool.kind === 'idle'
     }
     const list = document.getElementById('k-zonelist')
     if (!list)
@@ -913,17 +942,40 @@ for (const post of await getCollection('writing')) {
       item.className = 'tw-zone'
       item.addEventListener('pointerenter', () => setHoverZone(i))
       item.addEventListener('pointerleave', () => setHoverZone(null))
+
+      const on = document.createElement('input')
+      on.type = 'checkbox'
+      on.checked = !m.off
+      on.setAttribute('aria-label', `Zone ${i + 1} active`)
+      on.addEventListener('change', () => editMasks(ms.map((z, j) => j === i ? { ...z, off: !on.checked || undefined } : z)))
+
       const name = document.createElement('span')
-      name.textContent = `Zone ${i + 1} · ${ZONE_LABEL[m.mode]}`
+      name.textContent = `Zone ${i + 1}`
+
+      const type = document.createElement('select')
+      type.setAttribute('aria-label', `Zone ${i + 1} type`)
+      for (const mode of ['in', 'out', 'photo', 'dither'] as const)
+        type.add(new Option(ZONE_LABEL[mode], mode, false, mode === m.mode))
+      type.addEventListener('change', () => editMasks(ms.map((z, j) => j === i ? retype(z, type.value as SpotMask['mode']) : z)))
+
+      const editing = tool.kind === 'edit' && tool.i === i
+      const edit = document.createElement('button')
+      edit.type = 'button'
+      edit.textContent = editing ? 'OK' : 'Éditer'
+      edit.setAttribute('aria-pressed', String(editing))
+      edit.addEventListener('click', () => setTool(editing ? { kind: 'idle' } : { kind: 'edit', i }))
+
       const del = document.createElement('button')
       del.type = 'button'
       del.textContent = '×'
       del.setAttribute('aria-label', `Delete zone ${i + 1}`)
       del.addEventListener('click', () => {
         hoverZone = null
+        if (tool.kind === 'edit')
+          tool = { kind: 'idle' }
         editMasks(ms.filter((_, j) => j !== i))
       })
-      item.append(name, del)
+      item.append(on, name, type, edit, del)
       list.appendChild(item)
       if (m.mode === 'dither')
         list.appendChild(zoneScreen(s, ms, i))
@@ -980,7 +1032,7 @@ for (const post of await getCollection('writing')) {
     return box
   }
 
-  function editMasks(next: SpotMask[]) {
+  function editMasks(next: EdZone[]) {
     if (next.length)
       state.masks[loadedName] = next
     else
@@ -990,42 +1042,55 @@ for (const post of await getCollection('writing')) {
     apply(state)
   }
 
-  function setDrawMode(m: DrawMode) {
-    drawMode = m
+  function setTool(t: Tool) {
+    tool = t
     draft = []
     cursor = null
+    drag = null
     if (overlay)
-      overlay.style.pointerEvents = m === 'off' ? 'none' : 'auto'
+      overlay.style.pointerEvents = t.kind === 'idle' ? 'none' : 'auto'
     drawOverlay()
     paintZones(state)
   }
 
+  /** a new zone is always added; its type is set afterwards in its row */
   function closeDraft() {
-    if (draft.length >= 3 && drawMode !== 'off') {
-      const mode = drawMode
+    if (draft.length >= 3 && tool.kind === 'draw') {
       const pts = draft
       draft = []
       cursor = null
-      const [ink, paper] = ZONE_DUOS[0]
-      editMasks([...currentMasks(state), mode === 'dither'
-        ? { mode, pts, ink: hexToRgb(ink), paper: hexToRgb(paper), contrast: 1.6, cell: state.cell }
-        : { mode, pts }])
+      tool = { kind: 'idle' }
+      if (overlay)
+        overlay.style.pointerEvents = 'none'
+      editMasks([...currentMasks(state), { mode: 'photo', pts }])
       return
     }
     drawOverlay()
   }
 
+  function overlayPoint(e: PointerEvent, f: NonNullable<ReturnType<typeof coverFit>>): [number, number] {
+    const r = overlay!.getBoundingClientRect()
+    return [(e.clientX - r.left) * (f.cw / r.width), (e.clientY - r.top) * (f.ch / r.height)]
+  }
+
   overlay?.addEventListener('pointerdown', (e) => {
     const f = coverFit()
-    if (!f || drawMode === 'off')
+    if (!f || tool.kind === 'idle')
       return
     e.preventDefault()
-    /* the type button keeps focus otherwise, and Enter would press it instead of closing */
+    /* a panel button keeps focus otherwise, and Enter would press it instead of closing */
     if (document.activeElement instanceof HTMLElement)
       document.activeElement.blur()
-    const r = overlay.getBoundingClientRect()
-    const x = (e.clientX - r.left) * (f.cw / r.width)
-    const y = (e.clientY - r.top) * (f.ch / r.height)
+    const [x, y] = overlayPoint(e, f)
+    if (tool.kind === 'edit') {
+      const pts = currentMasks(state)[tool.i]?.pts ?? []
+      const near = pts.findIndex(p => Math.hypot(toFrame(f, p)[0] - x, toFrame(f, p)[1] - y) < 12)
+      if (near >= 0) {
+        drag = near
+        overlay.setPointerCapture(e.pointerId)
+      }
+      return
+    }
     if (draft.length >= 3) {
       const [fx, fy] = toFrame(f, draft[0])
       if (Math.hypot(fx - x, fy - y) < 12) {
@@ -1039,15 +1104,40 @@ for (const post of await getCollection('writing')) {
 
   overlay?.addEventListener('pointermove', (e) => {
     const f = coverFit()
-    if (!f || !draft.length)
+    if (!f)
       return
-    const r = overlay.getBoundingClientRect()
-    cursor = toImg(f, (e.clientX - r.left) * (f.cw / r.width), (e.clientY - r.top) * (f.ch / r.height))
+    const [x, y] = overlayPoint(e, f)
+    if (tool.kind === 'edit' && drag !== null) {
+      const ms = currentMasks(state)
+      const z = ms[tool.i]
+      z.pts = z.pts.map((p, k) => k === drag ? toImg(f, x, y) : p)
+      drawOverlay()
+      return
+    }
+    if (!draft.length)
+      return
+    cursor = toImg(f, x, y)
     drawOverlay()
   })
 
+  overlay?.addEventListener('pointerup', () => {
+    if (drag === null)
+      return
+    drag = null
+    editMasks([...currentMasks(state)])
+  })
+
   addEventListener('keydown', (e) => {
-    if (drawMode === 'off' || (e.target as HTMLElement).matches('input, textarea, select, button, [contenteditable]'))
+    if (tool.kind === 'idle')
+      return
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      setTool({ kind: 'idle' })
+      return
+    }
+    if ((e.target as HTMLElement).matches('input, textarea, select, button, [contenteditable]'))
+      return
+    if (tool.kind !== 'draw')
       return
     if (e.key === 'Enter') {
       e.preventDefault()
@@ -1056,17 +1146,6 @@ for (const post of await getCollection('writing')) {
     else if (e.key === 'Backspace') {
       e.preventDefault()
       draft.pop()
-      drawOverlay()
-    }
-    else if (e.key === 'Escape') {
-      if (draft.length) {
-        draft = []
-        cursor = null
-      }
-      else {
-        setDrawMode('off')
-        return
-      }
       drawOverlay()
     }
   })
@@ -1110,7 +1189,7 @@ for (const post of await getCollection('writing')) {
   function reset() {
     Object.assign(state, DEFAULTS, { masks: structuredClone(DEFAULTS.masks) })
     masksDirty = true
-    setDrawMode('off')
+    setTool({ kind: 'idle' })
     save(state)
     apply(state)
   }
@@ -1594,6 +1673,7 @@ for (const post of await getCollection('writing')) {
 
   .tw-body :global(.tw-zone) {
     display: flex;
+    gap: 6px;
     justify-content: space-between;
     align-items: center;
     border: 1px solid var(--line);
