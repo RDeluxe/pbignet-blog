@@ -24,6 +24,8 @@
  * L'état persiste dans localStorage — mais les DÉFAUTS sont la recipe montée par la
  * page : un chargement frais montre toujours ce que le fichier décrit. Les covers des
  * articles s'ajoutent aux sources : les choisir charge leur recipe, zones comprises.
+ * Chaque modification s'écrit aussi dans un brouillon par photo : rechoisir la photo
+ * reprend son brouillon plutôt que le fichier ; Reset le jette.
  */
 import { getCollection } from 'astro:content'
 
@@ -180,7 +182,7 @@ for (const post of await getCollection('writing')) {
 
   const hero = document.querySelector<HTMLElement & { spotHero?: SpotHeroHandle }>('.post-hero')
   const heroImg = hero?.querySelector<HTMLImageElement>('img.dsrc') ?? null
-  const ZONE_HELP = '« + Nouvelle zone », puis clique sur la photo pour poser ses points. Dans la liste : la case active ou désactive une zone, le menu choisit son type (In / Out règlent la couleur, Photo garde la photo nette, Dither lui donne sa trame), Éditer déplace ses points, × la supprime.'
+  const ZONE_HELP = '« + Nouvelle zone », puis clique sur la photo pour poser ses points. Dans la liste : la case active ou désactive une zone, le menu choisit son type (In / Out règlent la couleur, Photo garde la photo nette, Dither lui donne sa trame), Éditer : glisse un point pour le déplacer, clique sur un bord pour ajouter un point, double-clique sur un point pour le retirer ; × supprime la zone.'
   const fade = hero?.nextElementSibling instanceof HTMLElement && hero.nextElementSibling.classList.contains('hero-fade')
     ? hero.nextElementSibling
     : null
@@ -315,6 +317,33 @@ for (const post of await getCollection('writing')) {
     catch {}
   }
 
+  /* un brouillon par photo, écrit à chaque modification : rechoisir la cover le reprend,
+     même après un rechargement de la page ; Reset le jette et revient au fichier */
+  const DRAFTS_KEY = 'tweaks-ds-hero-pop-color.drafts.v1'
+  function drafts(): Record<string, TweakState> {
+    try {
+      return JSON.parse(localStorage.getItem(DRAFTS_KEY) ?? '{}')
+    }
+    catch {
+      return {}
+    }
+  }
+  function writeDrafts(d: Record<string, TweakState>) {
+    try {
+      localStorage.setItem(DRAFTS_KEY, JSON.stringify(d))
+    }
+    catch {}
+  }
+  /** the current photo's draft keeps only its own zones */
+  function saveDraft(s: TweakState) {
+    writeDrafts({ ...drafts(), [loadedName]: { ...s, masks: { [loadedName]: s.masks[loadedName] ?? [] } } })
+  }
+  function dropDraft() {
+    const d = drafts()
+    delete d[loadedName]
+    writeDrafts(d)
+  }
+
   function drawHeroTopo(ink: Rgb) {
     const topo = hero?.querySelector<HTMLCanvasElement>('canvas.topo-on')
     if (!topo)
@@ -336,6 +365,10 @@ for (const post of await getCollection('writing')) {
   let tool: Tool = { kind: 'idle' }
   /** the point of the edited zone being dragged */
   let drag: number | null = null
+  /** in edit mode, the edge under the pointer (from point k to k + 1), where a click inserts a point */
+  let hoverSeg: number | null = null
+  /** the last point pressed in edit mode, to catch a double click (the overlay redraws under the pointer, so dblclick never fires) */
+  let lastPress: { k: number, t: number } | null = null
 
   function currentMasks(s: TweakState): EdZone[] {
     return s.masks[loadedName] ?? []
@@ -528,6 +561,7 @@ for (const post of await getCollection('writing')) {
   function commit<K extends keyof TweakState>(key: K, value: TweakState[K]) {
     state[key] = value
     save(state)
+    saveDraft(state)
     apply(state)
   }
 
@@ -597,13 +631,19 @@ for (const post of await getCollection('writing')) {
   function loadPreset(p: Preset) {
     loadedPreset = p.src
     loadedName = p.src.split('/').pop() ?? p.src
-    if (p.recipe) {
+    const saved = drafts()[loadedName]
+    if (saved) {
+      // a draft of this photo wins over its file: the work in progress comes back
+      Object.assign(state, saved, { masks: { ...state.masks, [loadedName]: saved.masks[loadedName] ?? [] } })
+      save(state)
+    }
+    else if (p.recipe) {
       // an article cover brings its whole recipe, zones included
       Object.assign(state, stateFromRecipe(p.recipe, loadedName, state), { shimmer: REDUCED ? 0 : (p.recipe.boil ?? 0.05) })
       save(state)
     }
     setImage(p.src, loadedName)
-    if (p.recipe)
+    if (saved || p.recipe)
       apply(state)
   }
 
@@ -895,6 +935,12 @@ for (const post of await getCollection('writing')) {
       const dim = m.off && i !== editing ? { opacity: '0.4' } : {}
       overlay.appendChild(svgEl('polygon', { points: pts, ...ZONE_STYLE[m.mode], ...hot, ...dim }))
     })
+    if (editing !== null && hoverSeg !== null) {
+      const pts = currentMasks(state)[editing]?.pts ?? []
+      const [a, b] = [pts[hoverSeg], pts[(hoverSeg + 1) % pts.length]].map(p => toFrame(f, p))
+      if (a && b)
+        overlay.appendChild(svgEl('line', { 'x1': String(a[0]), 'y1': String(a[1]), 'x2': String(b[0]), 'y2': String(b[1]), 'stroke': '#c46a3e', 'stroke-width': '5' }))
+    }
     if (editing !== null) {
       for (const p of currentMasks(state)[editing]?.pts ?? []) {
         const [x, y] = toFrame(f, p)
@@ -928,7 +974,7 @@ for (const post of await getCollection('writing')) {
       hint.textContent = tool.kind === 'draw'
         ? 'Nouvelle zone : clique pour poser les points · Entrée ou clic sur le premier point ferme · Retour arrière enlève un point · Échap annule'
         : tool.kind === 'edit'
-          ? `Zone ${tool.i + 1} : glisse ses points sur la photo · OK ou Échap termine`
+          ? `Zone ${tool.i + 1} : glisse un point · clic sur un bord = nouveau point · double-clic sur un point = le retirer (3 au moins) · OK ou Échap termine`
           : ''
       hint.hidden = tool.kind === 'idle'
     }
@@ -1039,6 +1085,7 @@ for (const post of await getCollection('writing')) {
       delete state.masks[loadedName]
     masksDirty = true
     save(state)
+    saveDraft(state)
     apply(state)
   }
 
@@ -1047,6 +1094,8 @@ for (const post of await getCollection('writing')) {
     draft = []
     cursor = null
     drag = null
+    hoverSeg = null
+    lastPress = null
     if (overlay)
       overlay.style.pointerEvents = t.kind === 'idle' ? 'none' : 'auto'
     drawOverlay()
@@ -1073,6 +1122,31 @@ for (const post of await getCollection('writing')) {
     return [(e.clientX - r.left) * (f.cw / r.width), (e.clientY - r.top) * (f.ch / r.height)]
   }
 
+  /** the point of the edited zone under (x, y), in hero px */
+  function pointAt(f: NonNullable<ReturnType<typeof coverFit>>, pts: [number, number][], x: number, y: number): number {
+    return pts.findIndex(p => Math.hypot(toFrame(f, p)[0] - x, toFrame(f, p)[1] - y) < 12)
+  }
+
+  /** the edge of the edited zone under (x, y), away from its points */
+  function segmentAt(f: NonNullable<ReturnType<typeof coverFit>>, pts: [number, number][], x: number, y: number): number | null {
+    if (pointAt(f, pts, x, y) >= 0)
+      return null
+    let best: number | null = null
+    let bestD = 8
+    pts.forEach((p, k) => {
+      const [ax, ay] = toFrame(f, p)
+      const [bx, by] = toFrame(f, pts[(k + 1) % pts.length])
+      const len2 = (bx - ax) ** 2 + (by - ay) ** 2
+      const t = len2 ? Math.min(1, Math.max(0, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / len2)) : 0
+      const d = Math.hypot(ax + t * (bx - ax) - x, ay + t * (by - ay) - y)
+      if (d < bestD) {
+        bestD = d
+        best = k
+      }
+    })
+    return best
+  }
+
   overlay?.addEventListener('pointerdown', (e) => {
     const f = coverFit()
     if (!f || tool.kind === 'idle')
@@ -1083,12 +1157,28 @@ for (const post of await getCollection('writing')) {
       document.activeElement.blur()
     const [x, y] = overlayPoint(e, f)
     if (tool.kind === 'edit') {
-      const pts = currentMasks(state)[tool.i]?.pts ?? []
-      const near = pts.findIndex(p => Math.hypot(toFrame(f, p)[0] - x, toFrame(f, p)[1] - y) < 12)
-      if (near >= 0) {
-        drag = near
-        overlay.setPointerCapture(e.pointerId)
+      const z = currentMasks(state)[tool.i]
+      if (!z)
+        return
+      const near = pointAt(f, z.pts, x, y)
+      const double = near >= 0 && lastPress?.k === near && e.timeStamp - lastPress.t < 400
+      lastPress = near >= 0 && !double ? { k: near, t: e.timeStamp } : null
+      if (double) {
+        if (z.pts.length > 3) {
+          const i = tool.i
+          editMasks(currentMasks(state).map((m, j) => j === i ? { ...m, pts: m.pts.filter((_, k) => k !== near) } : m))
+        }
+        return
       }
+      const seg = near < 0 ? segmentAt(f, z.pts, x, y) : null
+      if (seg !== null) {
+        z.pts = [...z.pts.slice(0, seg + 1), toImg(f, x, y), ...z.pts.slice(seg + 1)]
+        hoverSeg = null
+      }
+      drag = seg !== null ? seg + 1 : near >= 0 ? near : null
+      if (drag !== null)
+        overlay.setPointerCapture(e.pointerId)
+      drawOverlay()
       return
     }
     if (draft.length >= 3) {
@@ -1112,6 +1202,14 @@ for (const post of await getCollection('writing')) {
       const z = ms[tool.i]
       z.pts = z.pts.map((p, k) => k === drag ? toImg(f, x, y) : p)
       drawOverlay()
+      return
+    }
+    if (tool.kind === 'edit') {
+      const seg = segmentAt(f, currentMasks(state)[tool.i]?.pts ?? [], x, y)
+      if (seg !== hoverSeg) {
+        hoverSeg = seg
+        drawOverlay()
+      }
       return
     }
     if (!draft.length)
@@ -1187,9 +1285,16 @@ for (const post of await getCollection('writing')) {
   })
 
   function reset() {
+    dropDraft()
+    setTool({ kind: 'idle' })
+    const p = PRESETS.find(x => x.src === loadedPreset)
+    if (p?.recipe) {
+      // an article cover goes back to its file
+      loadPreset(p)
+      return
+    }
     Object.assign(state, DEFAULTS, { masks: structuredClone(DEFAULTS.masks) })
     masksDirty = true
-    setTool({ kind: 'idle' })
     save(state)
     apply(state)
   }
