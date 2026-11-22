@@ -505,7 +505,7 @@ const posts = import.meta.env.DEV
   interface RecipeOut {
     spot: Record<string, Value | Record<string, Value>[]>
     word: string
-    titleX?: string
+    titleX: string
     titleY: string
     titleYMobile: string
     titleInk: string
@@ -556,7 +556,7 @@ const posts = import.meta.env.DEV
         ...(masks.length ? { masks: masks.map(maskOut) } : {}),
       },
       word: s.title,
-      ...(s.titleX !== 4 ? { titleX: `${s.titleX}%` } : {}),
+      titleX: `${s.titleX}%`,
       titleY: `${s.titleY}%`,
       titleYMobile: `${s.titleYMobile}%`,
       titleInk: s.titleInk,
@@ -589,7 +589,7 @@ const posts = import.meta.env.DEV
         : []),
       '}}',
       `title="${r.word}"`,
-      ...(r.titleX ? [`titleX="${r.titleX}"`] : []),
+      `titleX="${r.titleX}"`,
       `titleY="${r.titleY}"`,
       `titleYMobile="${r.titleYMobile}"`,
       `titleInk="${r.titleInk}"`,
