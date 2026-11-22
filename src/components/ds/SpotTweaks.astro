@@ -631,6 +631,13 @@ const posts = import.meta.env.DEV
         const key = String(v)
         host.querySelectorAll('button').forEach(b =>
           b.setAttribute('aria-pressed', b.dataset.val === key ? 'true' : 'false'))
+        if (knob.type === 'duo') {
+          document.querySelectorAll<HTMLInputElement>(`#k-${knob.k}-pick input`).forEach((inp) => {
+            const hex = (v as Duo)[Number(inp.dataset.side)]
+            if (document.activeElement !== inp && inp.value !== hex)
+              inp.value = hex
+          })
+        }
       }
       else if (knob.type === 'seg') {
         host.querySelectorAll('button').forEach(b =>
@@ -848,6 +855,9 @@ const posts = import.meta.env.DEV
           grid.appendChild(b)
         }
         row.appendChild(grid)
+        const picks = colorPair(knob.label, state[knob.k] as Duo, p => commit(knob.k, p as never), true)
+        picks.id = `k-${knob.k}-pick`
+        row.appendChild(picks)
       }
       else if (knob.type === 'image') {
         const pick = document.createElement('label')
@@ -1122,6 +1132,29 @@ const posts = import.meta.env.DEV
     })
   }
 
+  /* Free colours: ink and paper picked by hand, past the presets. Only a pick changes
+     anything: a recipe that was never touched keeps its values. `live` repaints while
+     the picker moves; otherwise the pick lands when it closes (a zone's list is rebuilt
+     on each change, which would close the picker under the cursor). */
+  function colorPair(label: string, pair: Duo, pick: (pair: Duo) => void, live: boolean): HTMLElement {
+    const row = document.createElement('div')
+    row.className = 'tw-pick'
+    ;(['Encre', 'Papier'] as const).forEach((name, i) => {
+      const l = document.createElement('label')
+      const inp = document.createElement('input')
+      inp.type = 'color'
+      inp.value = pair[i]
+      inp.dataset.side = String(i)
+      inp.setAttribute('aria-label', `${label} ${name.toLowerCase()}`)
+      // the pair is read from both inputs at pick time: the panel keeps them in step with the state
+      inp.addEventListener(live ? 'input' : 'change', () =>
+        pick([...row.querySelectorAll('input')].map(x => x.value) as Duo))
+      l.append(inp, name)
+      row.appendChild(l)
+    })
+    return row
+  }
+
   /** the controls of a `dither` zone's own screen; unset fields read the global ones */
   function zoneScreen(s: TweakState, ms: SpotMask[], i: number): HTMLElement {
     const m = ms[i]
@@ -1145,6 +1178,7 @@ const posts = import.meta.env.DEV
       duo.appendChild(b)
     }
     box.appendChild(duo)
+    box.appendChild(colorPair(`Zone ${i + 1}`, cur.split(',') as Duo, p => set({ ink: hexToRgb(p[0]), paper: hexToRgb(p[1]) }), false))
 
     const ranges: [keyof SpotMask & ('contrast' | 'brightness' | 'cell'), string, number, number, number, number][] = [
       ['contrast', 'Contrast', 0.8, 2.4, 0.02, s.contrast],
@@ -2165,6 +2199,31 @@ const posts = import.meta.env.DEV
     font-size: 10px;
   }
 
+  .tw-body :global(.tw-pick) {
+    display: flex;
+    gap: 12px;
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .tw-body :global(.tw-pick label) {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+  }
+  .tw-body :global(.tw-pick input) {
+    width: 22px;
+    height: 16px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    background: none;
+    cursor: pointer;
+  }
   .tw-body :global(.tw-zonerange) {
     display: grid;
     gap: 2px;
