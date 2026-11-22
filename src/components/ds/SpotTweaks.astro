@@ -51,6 +51,20 @@ for (const post of await getCollection('writing')) {
     },
   })
 }
+
+/* Save (dev only): every post a recipe can be written into, with what the editor needs to
+   pick the right one and to know whether a translation shares the cover */
+const posts = import.meta.env.DEV
+  ? (await getCollection('writing'))
+      .map(post => ({
+        slug: post.id,
+        lang: post.data.lang,
+        translation: post.data.translation,
+        src: post.data.cover?.src,
+        hasAlt: Boolean(post.data.cover?.alt),
+      }))
+      .sort((a, b) => a.slug.localeCompare(b.slug))
+  : []
 ---
 
 <aside class="tw-panel tw-hidden" id="tw-panel" aria-label="Tweak panel" data-covers={JSON.stringify([...covers.values()])}>
@@ -67,6 +81,27 @@ for (const post of await getCollection('writing')) {
     <summary>Recipe</summary>
     <textarea id="tw-recipe" readonly spellcheck="false" aria-label="Recipe for HeroPopColor"></textarea>
   </details>
+
+  {import.meta.env.DEV && (
+    <section class="tw-save" id="tw-save" data-posts={JSON.stringify(posts)} aria-label="Save the recipe into a post">
+      <label class="tw-save-row">
+        <span>Article</span>
+        <select id="tw-save-post"></select>
+      </label>
+      <label class="tw-save-row" id="tw-save-both-row" hidden>
+        <input type="checkbox" id="tw-save-both" checked />
+        <span id="tw-save-both-label">+ traduction</span>
+      </label>
+      <label class="tw-save-row" id="tw-save-alt-row" hidden>
+        <span>Alt</span>
+        <input type="text" id="tw-save-alt" placeholder="Ce que montre la photo" />
+      </label>
+      <div class="tw-save-row">
+        <p class="tw-save-msg" id="tw-save-msg" role="status"></p>
+        <button id="tw-save-btn" class="tw-copy" type="button">Enregistrer</button>
+      </div>
+    </section>
+  )}
 
   <footer class="tw-foot">
     <span><kbd>T</kbd><kbd>R</kbd></span>
@@ -460,63 +495,99 @@ for (const post of await getCollection('writing')) {
     return Number.isInteger(v) ? String(v) : String(Number.parseFloat(v.toFixed(3)))
   }
 
-  function maskSnippet(m: SpotMask): string {
-    const screen = m.mode === 'dither'
-      ? [
-          ...(Array.isArray(m.ink) ? [`ink: [${m.ink.join(', ')}]`] : []),
-          ...(Array.isArray(m.paper) ? [`paper: [${m.paper.join(', ')}]`] : []),
-          ...(m.contrast != null ? [`contrast: ${num(m.contrast)}`] : []),
-          ...(m.brightness != null ? [`brightness: ${num(m.brightness)}`] : []),
-          ...(m.cell != null ? [`cell: ${num(m.cell)}`] : []),
-        ].map(f => `, ${f}`).join('')
-      : ''
-    return `    { mode: '${m.mode}'${screen}, pts: [${m.pts.map(p => `[${num(p[0])}, ${num(p[1])}]`).join(', ')}] },`
+  type Value = string | number | boolean | number[] | number[][]
+  interface RecipeOut {
+    spot: Record<string, Value | Record<string, Value>[]>
+    word: string
+    titleX?: string
+    titleY: string
+    titleYMobile: string
+    titleInk: string
+    height: string
+    focal: { x: number, y: number }
+  }
+
+  /* one recipe, two outputs: the Copy snippet prints it, Save writes it into the post */
+  function maskOut(m: SpotMask): Record<string, Value> {
+    return {
+      mode: m.mode,
+      ...(m.mode === 'dither'
+        ? {
+            ...(Array.isArray(m.ink) ? { ink: m.ink } : {}),
+            ...(Array.isArray(m.paper) ? { paper: m.paper } : {}),
+            ...(m.contrast != null ? { contrast: +num(m.contrast) } : {}),
+            ...(m.brightness != null ? { brightness: +num(m.brightness) } : {}),
+            ...(m.cell != null ? { cell: +num(m.cell) } : {}),
+          }
+        : {}),
+      pts: m.pts.map(p => [+num(p[0]), +num(p[1])]),
+    }
+  }
+
+  function recipeOf(s: TweakState): RecipeOut {
+    const masks = liveMasks(s)
+    return {
+      spot: {
+        keepColor: s.keepColor,
+        ink: hexToRgb(s.ground[0]),
+        paper: hexToRgb(s.ground[1]),
+        cell: +num(s.cell),
+        contrast: +num(s.contrast),
+        brightness: +num(s.brightness),
+        boil: +num(s.shimmer),
+        ...(s.hueMode
+          ? { hueMode: true, hueTol: +num(s.hueTol), hueSoft: +num(s.hueSoft), satMin: +num(s.satMin), satSoft: +num(s.satSoft) }
+          : { hueLo: +num(s.threshold), hueSpan: +num(s.softness) }),
+        satBoost: +num(s.pop),
+        ...(s.mode === 'invert' ? { invert: true } : {}),
+        ...(s.mode === 'none' ? { pop: false } : {}),
+        ...(s.keep === 'sharp' ? { keepSharp: true } : {}),
+        ...(s.groundKind !== 'flat' ? { ground: s.groundKind } : {}),
+        ...(s.groundKind === 'photo'
+          ? { groundMix: +num(s.groundMix), groundSat: +num(s.groundSat), groundLift: +num(s.groundLift) }
+          : {}),
+        ...(masks.length ? { masks: masks.map(maskOut) } : {}),
+      },
+      word: s.title,
+      ...(s.titleX !== 4 ? { titleX: `${s.titleX}%` } : {}),
+      titleY: `${s.titleY}%`,
+      titleYMobile: `${s.titleYMobile}%`,
+      titleInk: s.titleInk,
+      height: `${s.coverH}vh`,
+      focal: { x: +num(s.focalX / 100), y: +num(s.focalY / 100) },
+    }
+  }
+
+  function lit(v: Value): string {
+    if (typeof v === 'string')
+      return `'${v}'`
+    if (Array.isArray(v))
+      return `[${v.map(x => lit(x as Value)).join(', ')}]`
+    return typeof v === 'number' ? num(v) : String(v)
   }
 
   function recipeSnippet(s: TweakState): string {
-    const ink = hexToRgb(s.ground[0])
-    const paper = hexToRgb(s.ground[1])
+    const r = recipeOf(s)
+    const { masks, ...spot } = r.spot
+    const zones = (masks ?? []) as Record<string, Value>[]
     return [
       'spot={{',
-      `  keepColor: '${s.keepColor}',`,
-      `  ink: [${ink.join(', ')}],`,
-      `  paper: [${paper.join(', ')}],`,
-      `  cell: ${num(s.cell)},`,
-      `  contrast: ${num(s.contrast)},`,
-      `  brightness: ${num(s.brightness)},`,
-      `  boil: ${num(s.shimmer)},`,
-      ...(s.hueMode
-        ? [
-            '  hueMode: true,',
-            `  hueTol: ${num(s.hueTol)},`,
-            `  hueSoft: ${num(s.hueSoft)},`,
-            `  satMin: ${num(s.satMin)},`,
-            `  satSoft: ${num(s.satSoft)},`,
-          ]
-        : [`  hueLo: ${num(s.threshold)},`, `  hueSpan: ${num(s.softness)},`]),
-      `  satBoost: ${num(s.pop)},`,
-      ...(s.mode === 'invert' ? ['  invert: true,'] : []),
-      ...(s.mode === 'none' ? ['  pop: false,'] : []),
-      ...(s.keep === 'sharp' ? ['  keepSharp: true,'] : []),
-      ...(s.groundKind !== 'flat' ? [`  ground: '${s.groundKind}',`] : []),
-      ...(s.groundKind === 'photo'
-        ? [`  groundMix: ${num(s.groundMix)},`, `  groundSat: ${num(s.groundSat)},`, `  groundLift: ${num(s.groundLift)},`]
-        : []),
-      ...(liveMasks(s).length
+      ...Object.entries(spot).map(([k, v]) => `  ${k}: ${lit(v as Value)},`),
+      ...(zones.length
         ? [
             '  masks: [',
-            ...liveMasks(s).map(maskSnippet),
+            ...zones.map(m => `    { ${Object.entries(m).map(([k, v]) => `${k}: ${lit(v)}`).join(', ')} },`),
             '  ],',
           ]
         : []),
       '}}',
-      `title="${s.title}"`,
-      ...(s.titleX !== 4 ? [`titleX="${s.titleX}%"`] : []),
-      `titleY="${s.titleY}%"`,
-      `titleYMobile="${s.titleYMobile}%"`,
-      `titleInk="${s.titleInk}"`,
-      `height="${s.coverH}vh"`,
-      `focal={{ x: ${num(s.focalX / 100)}, y: ${num(s.focalY / 100)} }}`,
+      `title="${r.word}"`,
+      ...(r.titleX ? [`titleX="${r.titleX}"`] : []),
+      `titleY="${r.titleY}"`,
+      `titleYMobile="${r.titleYMobile}"`,
+      `titleInk="${r.titleInk}"`,
+      `height="${r.height}"`,
+      `focal={{ x: ${num(r.focal.x)}, y: ${num(r.focal.y)} }}`,
       '',
       '// contraste du titre ≥3:1 MESURÉ (PIPELINE §4.6b).',
     ].join('\n')
@@ -631,6 +702,7 @@ for (const post of await getCollection('writing')) {
     paintPresets()
     status()
     syncPhone()
+    syncSave()
   }
 
   function loadFile(file: File | null | undefined) {
@@ -1351,6 +1423,133 @@ for (const post of await getCollection('writing')) {
     flash('Select + ⌘C')
   })
 
+  /* ---- Save (dev only): write the recipe into a post's `cover:` block ----
+       The endpoint is the dev server's (scripts/cover-save.mjs); in a build this whole block
+       is dead code and the controls are not rendered. The recipe sent is recipeOf(), the very
+       one Copy prints. A dropped photo can only be saved if the repo has it under the same
+       name in public/photos/source/: the editor never moves a file. */
+  interface SavePost { slug: string, lang: string, translation?: string, src?: string, hasAlt: boolean }
+  const saveBox = import.meta.env.DEV ? document.getElementById('tw-save') : null
+  const savePosts: SavePost[] = JSON.parse(saveBox?.dataset.posts ?? '[]')
+  const REOPEN_KEY = 'tweaks-ds-hero-pop-color.reopen'
+  /** dropped file name → its repo path, or null when the repo does not have it */
+  const repoPhotos = new Map<string, string | null>()
+  let savedFor: string | null = null
+
+  /** the repo path of the photo on screen, `undefined` while a dropped file is being looked up */
+  function photoSrc(): string | null | undefined {
+    if (loadedPreset?.startsWith('/photos/source/'))
+      return loadedPreset
+    if (loadedPreset)
+      return null
+    return repoPhotos.get(loadedName)
+  }
+
+  function syncSave() {
+    if (!saveBox)
+      return
+    const select = document.querySelector<HTMLSelectElement>('#tw-save-post')!
+    const btn = document.querySelector<HTMLButtonElement>('#tw-save-btn')!
+    const msg = document.getElementById('tw-save-msg')!
+    const say = (text: string, bad = false) => {
+      msg.textContent = text
+      if (bad)
+        msg.dataset.tone = 'bad'
+      else
+        delete msg.dataset.tone
+    }
+
+    if (!select.options.length) {
+      select.add(new Option('Choisir l\'article…', ''))
+      for (const p of savePosts)
+        select.add(new Option(`${p.slug} · ${p.lang}`, p.slug))
+    }
+    let src = photoSrc()
+    const looking = src === undefined
+    if (looking) {
+      // a dropped file: is it a photo of the repo, under the same name?
+      const name = loadedName
+      const path = `/photos/source/${name}`
+      repoPhotos.set(name, null)
+      fetch(path, { method: 'HEAD' })
+        .then(r => repoPhotos.set(name, r.ok && (r.headers.get('content-type') ?? '').startsWith('image/') ? path : null))
+        .catch(() => {})
+        .finally(() => {
+          if (loadedName === name)
+            syncSave()
+        })
+      src = null
+    }
+    // a new photo selects the post whose cover it is
+    if (src !== savedFor) {
+      savedFor = src
+      const owner = src ? (savePosts.find(p => p.src === src && p.lang === 'en') ?? savePosts.find(p => p.src === src)) : undefined
+      // no owner: no guess, the post is picked by hand
+      select.value = owner ? owner.slug : ''
+    }
+
+    const post = savePosts.find(p => p.slug === select.value)
+    const other = post?.translation ? savePosts.find(p => p.slug === post.translation) : undefined
+    const both = document.querySelector<HTMLInputElement>('#tw-save-both')!
+    document.getElementById('tw-save-both-row')!.hidden = !other
+    document.getElementById('tw-save-both-label')!.textContent = other ? `+ traduction (${other.slug} · ${other.lang})` : ''
+    const needsAlt = !!post && (!post.hasAlt || (!!other && both.checked && !other.hasAlt))
+    document.getElementById('tw-save-alt-row')!.hidden = !needsAlt
+
+    if (!src) {
+      btn.disabled = true
+      say(!looking
+        ? `Photo hors du repo : ${loadedName} n'est pas dans public/photos/source/. Copie-la là sous ce nom, puis redépose-la ; l'éditeur ne déplace aucun fichier.`
+        : `Recherche de ${loadedName} dans le repo…`, true)
+      return
+    }
+    btn.disabled = !post
+    say(post ? `${src} → cover de ${post.slug}${other && both.checked ? ` et de ${other.slug}` : ''}` : `${src} : choisis l'article où l'écrire.`)
+  }
+
+  if (saveBox) {
+    const select = document.querySelector<HTMLSelectElement>('#tw-save-post')!
+    const both = document.querySelector<HTMLInputElement>('#tw-save-both')!
+    const alt = document.querySelector<HTMLInputElement>('#tw-save-alt')!
+    const btn = document.querySelector<HTMLButtonElement>('#tw-save-btn')!
+    const msg = document.getElementById('tw-save-msg')!
+    select.addEventListener('change', syncSave)
+    both.addEventListener('change', syncSave)
+    btn.addEventListener('click', async () => {
+      const src = photoSrc()
+      const post = savePosts.find(p => p.slug === select.value)
+      if (!src || !post)
+        return
+      const translation = !document.getElementById('tw-save-both-row')!.hidden && both.checked
+      btn.disabled = true
+      msg.textContent = 'Écriture…'
+      delete msg.dataset.tone
+      try {
+        const res = await fetch('/__cover-save', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ slug: post.slug, translation, src, alt: alt.value.trim() || undefined, recipe: recipeOf(state) }),
+        })
+        const data = await res.json() as { files?: string[], error?: string }
+        if (!res.ok || !data.files)
+          throw new Error(data.error ?? `HTTP ${res.status}`)
+          // the file is now the reference: its draft goes, and the editor reopens this photo
+          // if the dev server reloads the page for the content change
+        dropDraft()
+        const done = `Écrit : ${data.files.join(', ')}`
+        sessionStorage.setItem(REOPEN_KEY, JSON.stringify({ src, done, at: Date.now() }))
+        msg.textContent = done
+      }
+      catch (e) {
+        msg.textContent = `Pas écrit : ${e instanceof Error ? e.message : String(e)}`
+        msg.dataset.tone = 'bad'
+      }
+      finally {
+        btn.disabled = false
+      }
+    })
+  }
+
   /* ---- raccourcis ---- */
   addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey)
@@ -1421,6 +1620,27 @@ for (const post of await getCollection('writing')) {
     }
     apply(state)
     status()
+    if (import.meta.env.DEV)
+      reopenSaved()
+  }
+
+  /* after a Save, the dev server reloads the page: the photo that was saved comes back,
+     with the confirmation (kept a few seconds: a content change can reload more than once) */
+  function reopenSaved() {
+    const raw = sessionStorage.getItem(REOPEN_KEY)
+    const saved: { src?: string, done?: string, at?: number } = raw ? JSON.parse(raw) : {}
+    if (!saved.at || Date.now() - saved.at > 10_000) {
+      sessionStorage.removeItem(REOPEN_KEY)
+      syncSave()
+      return
+    }
+    const p = PRESETS.find(x => x.src === saved.src)
+    if (p)
+      loadPreset(p)
+    syncSave()
+    const msg = document.getElementById('tw-save-msg')
+    if (msg && saved.done)
+      msg.textContent = saved.done
   }
   if (hero?.spotHero)
     start()
@@ -1760,6 +1980,54 @@ for (const post of await getCollection('writing')) {
   }
 
   /* pied collant : à 16 réglages le contenu défile — la sortie doit rester atteignable */
+    /* Save (dev only): the article to write into, under the recipe */
+    .tw-save {
+      display: grid;
+      gap: 6px;
+      padding: 10px 16px;
+      border-top: 1px solid var(--line-soft);
+      font-family: var(--mono);
+      font-size: var(--fs-micro);
+      letter-spacing: var(--tr-micro);
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .tw-save-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tw-save-row[hidden] {
+      display: none;
+    }
+    .tw-save select,
+    .tw-save input[type='text'] {
+      flex: 1;
+      min-width: 0;
+      padding: 3px 5px;
+      border: 1px solid var(--line);
+      border-radius: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: inherit;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .tw-save-msg {
+      flex: 1;
+      margin: 0;
+      font-size: 9px;
+      line-height: 1.5;
+      text-transform: none;
+      letter-spacing: 0.04em;
+    }
+    .tw-save-msg[data-tone='bad'] {
+      color: var(--ink);
+    }
+    .tw-save button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
   .tw-foot {
     position: sticky;
     bottom: 0;

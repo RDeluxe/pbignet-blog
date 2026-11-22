@@ -1,0 +1,218 @@
+// @ts-check
+/**
+ * cover-save — the "Save" button of the cover editor (`/ds/hero-pop-color`), dev server only.
+ *
+ * An Astro integration whose only hook is `astro:server:setup`: the endpoint exists in
+ * `astro dev` and nowhere else, never in a build. It writes the recipe the editor sends
+ * (the same one "Copy recipe" prints) into the `cover:` block of a post's frontmatter,
+ * and of its translation when asked. Fields the recipe does not carry (`kind`, `alt`,
+ * `kicker`, `place`, `method`, `vcap`) are kept as they are; the rest of the file is not
+ * touched.
+ */
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { parse } from 'yaml'
+
+const ROUTE = '/__cover-save'
+const WRITING = new URL('../src/content/writing/', import.meta.url)
+const PUBLIC = new URL('../public/', import.meta.url)
+
+/** the recipe fields, in the order the block is written; `src` and `alt` come from the request or the file */
+const KEPT = ['kicker', 'place', 'method', 'vcap']
+
+/** @param {string} slug */
+function postFile(slug) {
+  if (!/^[\w-]+$/.test(slug))
+    return null
+  for (const ext of ['mdoc', 'md']) {
+    const url = new URL(`${slug}.${ext}`, WRITING)
+    if (existsSync(url))
+      return url
+  }
+  return null
+}
+
+/** a photo of the repo: a path under `/photos/source/` that exists in `public/` */
+/** @param {unknown} src */
+export function repoPhoto(src) {
+  return typeof src === 'string'
+    && /^\/photos\/source\/[\w.-]+$/.test(src)
+    && existsSync(new URL(`.${src}`, PUBLIC))
+}
+
+/* ---- YAML, in the hand-written style of the existing cover blocks ---- */
+
+/** invisible characters (soft hyphen, zero-width, controls) stay visible in the file as escapes */
+// eslint-disable-next-line no-control-regex -- control characters are exactly what it looks for
+const INVISIBLE = /[\u0000-\u001F\u007F\u00AD\u200B-\u200F\u2060\uFEFF]/g
+
+/** @param {string} s */
+function str(s) {
+  if (INVISIBLE.test(s)) {
+    INVISIBLE.lastIndex = 0
+    return `"${s.replace(/["\\]/g, c => `\\${c}`).replace(INVISIBLE, c => `\\u${c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')}`)}"`
+  }
+  INVISIBLE.lastIndex = 0
+  // plain when YAML reads it back as this very string, quoted otherwise
+  const plain = s.trim() === s && s !== '' && !/^[-?:,[\]{}#&*!|>'"%@`]/.test(s) && !/: | #|[\n\t]/.test(s) && !s.endsWith(':')
+  if (plain) {
+    try {
+      if (parse(`k: ${s}`)?.k === s)
+        return s
+    }
+    catch {}
+  }
+  return `'${s.replace(/'/g, '\'\'')}'`
+}
+
+/** @param {unknown} v */
+function scalar(v) {
+  if (typeof v === 'string')
+    return str(v)
+  if (Array.isArray(v))
+    return `[${v.map(scalar).join(', ')}]`
+  return String(v)
+}
+
+/**
+ * @param {Record<string, any>} m
+ * @param {string} pad
+ */
+function maskLines(m, pad) {
+  const keys = ['mode', 'ink', 'paper', 'contrast', 'brightness', 'cell', 'curve', 'pts'].filter(k => m[k] != null)
+  return keys.map((k, i) => `${pad}${i ? '  ' : '- '}${k}: ${scalar(m[k])}`)
+}
+
+/**
+ * The `cover:` block.
+ * @param {Record<string, any>} cover
+ */
+export function coverBlock(cover) {
+  const lines = ['cover:']
+  for (const [k, v] of Object.entries(cover)) {
+    if (v == null)
+      continue
+    if (k === 'focal') {
+      lines.push(`  focal: { x: ${v.x}, y: ${v.y} }`)
+    }
+    else if (k === 'spot') {
+      lines.push('  spot:')
+      for (const [sk, sv] of Object.entries(v)) {
+        if (sk === 'masks') {
+          lines.push('    masks:')
+          for (const m of sv)
+            lines.push(...maskLines(m, '      '))
+        }
+        else {
+          lines.push(`    ${sk}: ${scalar(sv)}`)
+        }
+      }
+    }
+    else {
+      lines.push(`  ${k}: ${scalar(v)}`)
+    }
+  }
+  return lines.join('\n')
+}
+
+/**
+ * The post's source with its `cover:` block replaced (or added at the end of the frontmatter).
+ * @param {string} text the whole file
+ * @param {{ src: string, alt?: string, recipe: Record<string, any> }} input
+ */
+export function withCover(text, { src, alt, recipe }) {
+  const fm = text.match(/^---\n([\s\S]*?)\n---/)
+  if (!fm)
+    throw new Error('no frontmatter')
+  const old = parse(fm[1])?.cover ?? {}
+  const finalAlt = old.alt ?? alt
+  if (!finalAlt)
+    throw new Error('this post has no cover yet: give its alt text')
+  const cover = {
+    kind: old.kind ?? 'pop-color',
+    src,
+    alt: finalAlt,
+    word: recipe.word,
+    ...Object.fromEntries(KEPT.map(k => [k, old[k]])),
+    titleX: recipe.titleX,
+    titleY: recipe.titleY,
+    titleYMobile: recipe.titleYMobile,
+    titleInk: recipe.titleInk,
+    height: recipe.height,
+    focal: recipe.focal,
+    spot: recipe.spot,
+  }
+
+  const lines = fm[1].split('\n')
+  const start = lines.findIndex(l => l.startsWith('cover:'))
+  let end = start
+  if (start >= 0) {
+    end = start + 1
+    while (end < lines.length && !/^\S/.test(lines[end]))
+      end++
+  }
+  const block = coverBlock(cover).split('\n')
+  if (start >= 0)
+    lines.splice(start, end - start, ...block)
+  else
+    lines.push(...block)
+  return text.replace(fm[0], `---\n${lines.join('\n')}\n---`)
+}
+
+/** @param {import('node:http').IncomingMessage} req */
+async function body(req) {
+  let raw = ''
+  for await (const chunk of req)
+    raw += chunk
+  return JSON.parse(raw)
+}
+
+/**
+ * @param {{ slug: string, translation?: boolean, src: string, alt?: string, recipe: Record<string, any> }} input
+ * @returns {string[]} the files written, relative to the repo
+ */
+export function saveCover({ slug, translation, src, alt, recipe }) {
+  if (!repoPhoto(src))
+    throw new Error(`${src} is not a photo of the repo (public/photos/source/)`)
+  if (!recipe || typeof recipe !== 'object' || !recipe.spot)
+    throw new Error('no recipe')
+  const file = postFile(slug)
+  if (!file)
+    throw new Error(`no post ${slug}`)
+  const files = [file]
+  if (translation) {
+    const other = parse(readFileSync(file, 'utf8').match(/^---\n([\s\S]*?)\n---/)?.[1] ?? '')?.translation
+    const otherFile = other && postFile(other)
+    if (otherFile)
+      files.push(otherFile)
+  }
+  // every file is rendered before any is written: a refusal leaves both untouched
+  const next = files.map(f => withCover(readFileSync(f, 'utf8'), { src, alt, recipe }))
+  files.forEach((f, i) => writeFileSync(f, next[i]))
+  return files.map(f => `src/content/writing/${f.pathname.split('/').pop()}`)
+}
+
+/** @returns {import('astro').AstroIntegration} the integration, which only hooks the dev server */
+export default function coverSave() {
+  return {
+    name: 'cover-save',
+    hooks: {
+      'astro:server:setup': ({ server }) => {
+        server.middlewares.use(ROUTE, async (req, res) => {
+          const reply = (/** @type {number} */ code, /** @type {unknown} */ data) => {
+            res.statusCode = code
+            res.setHeader('content-type', 'application/json')
+            res.end(JSON.stringify(data))
+          }
+          if (req.method !== 'POST')
+            return reply(405, { error: 'POST only' })
+          try {
+            reply(200, { files: saveCover(await body(req)) })
+          }
+          catch (e) {
+            reply(400, { error: e instanceof Error ? e.message : String(e) })
+          }
+        })
+      },
+    },
+  }
+}

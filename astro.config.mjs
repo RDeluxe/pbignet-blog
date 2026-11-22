@@ -5,6 +5,7 @@ import markdoc from '@astrojs/markdoc'
 import sitemap from '@astrojs/sitemap'
 import svelte from '@astrojs/svelte'
 import { defineConfig } from 'astro/config'
+import coverSave from './scripts/cover-save.mjs'
 
 /**
  * Translated pairs, for the sitemap's hreflang links: `translation:` in the posts'
@@ -76,6 +77,8 @@ export default defineConfig({
       },
     }),
     svelte(),
+    // the cover editor's Save button: an endpoint of the dev server only, absent from every build
+    coverSave(),
     ...(keepDs ? [] : [dropDsPages]),
   ],
 })
