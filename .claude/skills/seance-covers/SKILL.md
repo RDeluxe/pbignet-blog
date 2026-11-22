@@ -11,11 +11,11 @@ Le travail est mécanique : le secondmate le fait lui-même, ou un crewmate Sonn
 
 ## 1. Les photos dans le repo
 
-Les photos de Pierrick arrivent dans le vault, `20-29 Areas/23 Evergreen/23.16 Exhale/covers/`, ou collées dans le pane (un chemin `/tmp/herdr-clipboard-images-…`). Range d'abord la photo dans ce dossier du vault, nommée d'après l'article.
+Les photos ne passent plus par le vault : le dossier `23.16 Exhale/covers/` n'existe plus (règle de Pierrick, 22 novembre 2026). Pierrick colle la photo dans le pane, qui la donne sous un chemin `/tmp/herdr-clipboard-images-…`, et elle va **directement** dans le repo. Une source de travail que Pierrick veut garder (le fichier original, plus grand) va sur Proton Drive, dans `20-29_Areas/23_Evergreen/23.16_Exhale/`, jamais dans le vault.
 
 Pour chaque article, dans une branche de travail du repo :
 
-- copie la photo en `public/photos/source/<nom>-web.jpg`, réduite à 2000 px de grand côté si elle les dépasse ; c'est une source couleur, jamais un PNG dithéré ;
+- copie la photo collée en `public/photos/source/<nom>-web.jpg`, `<nom>` d'après l'article, réduite à 2000 px de grand côté si elle les dépasse ; c'est une source couleur, jamais un PNG dithéré ;
 - donne au `.mdoc` un bloc `cover:` minimal (`kind: pop-color`, `src`, `alt` en une phrase descriptive, `word`), calqué sur un article qui en a déjà un. Une traduction prend le même bloc que son original.
 
 **Fini quand** chaque article de la séance a sa photo dans `public/photos/source/` et son bloc `cover:` : c'est ce bloc qui fait apparaître la photo dans l'éditeur.
@@ -28,15 +28,19 @@ Donne à Pierrick l'URL et ce mode d'emploi, tel quel :
 
 1. Appuie sur **T** (ou le bouton T en bas) : le panneau Tweaks s'ouvre, il est replié au chargement.
 2. Section **Photo** : clique le bouton de ton article (les trois premiers mots de son slug). La photo se charge avec sa recipe actuelle.
-3. **Zones** : clique **« + Nouvelle zone »**, puis clique sur la photo pour poser ses points. Entrée (ou un clic sur le premier point) ferme la zone, Retour arrière retire le dernier point posé, Échap annule. Ou clique **« Baguette »**, puis sur une couleur de la photo : la zone de cette couleur s'ajoute ; la **Tolérance** règle jusqu'où elle s'étend et refait la dernière zone tant qu'elle n'a pas été retouchée ; Échap termine. La zone entre dans la **liste des zones**, où chaque ligne a :
+3. **Zones**, deux façons d'en ajouter une :
+   - **« + Nouvelle zone »** : clique sur la photo pour poser ses points. Entrée (ou un clic sur le premier point) ferme la zone, Retour arrière retire le dernier point posé, Échap annule.
+   - **« Baguette »** : clique sur une couleur de la photo, la zone de cette couleur s'ajoute. La **Tolérance** règle jusqu'où elle s'étend : la bouger refait la dernière zone, tant que tu ne l'as pas retouchée. Clique encore pour ajouter d'autres zones ; Échap termine.
+
+   Chaque zone entre dans la **liste des zones**, où sa ligne a :
    - une case qui active ou désactive la zone (une zone désactivée reste dans la liste, hors du rendu et de la recipe) ;
    - un menu pour son type : **Photo** garde la zone en photo nette, **Dither** lui donne sa propre trame (réglable sous la ligne), **In** / **Out** restreignent ou retirent la sélection de couleur ;
-   - **Arrondi** : le contour devient une courbe qui passe par les mêmes points ; un second clic le remet en droit ;
+   - **Arrondi** : le contour devient une courbe qui passe par les mêmes points, au lieu de segments droits ; un second clic le remet en droit ;
    - **Éditer** : glisse un point pour le déplacer, clique sur un bord pour y ajouter un point, double-clique sur un point pour le retirer (une zone garde au moins 3 points) ; OK ou Échap termine ;
    - **×** pour supprimer la zone.
-4. Règle la trame, le titre (texte, X, Y, encre) et le point focal. Sous les tons tout faits de la trame (et de chaque zone Dither), **Encre** et **Papier** prennent n'importe quelle couleur.
+4. Règle la trame, le titre (texte, X, Y, encre) et le point focal. **Couleurs libres** : sous les tons tout faits du fond, et sous ceux de chaque zone Dither, **Encre** et **Papier** prennent n'importe quelle couleur. Un ton tout fait recliqué reprend la main.
 5. **Aperçu mobile** (en bas du panneau) ouvre à gauche la cover à 390 px de large, comme sur un téléphone, avec les vrais réglages du site en étroit. Règle **Title Y mobile** en la regardant ; l'aperçu suit chaque réglage. Il ne montre que les photos du repo, pas un fichier déposé.
-6. **Enregistrer** (en bas du panneau) : choisis l'article, coche sa traduction s'il en a une, et la recipe s'écrit dans son `.mdoc`. La page se recharge et le dit. Une photo déposée qui n'est pas dans `public/photos/source/` ne s'enregistre pas : l'éditeur dit où la copier. Sinon, **Copy recipe**, puis colle le résultat dans le pane. Sur cette adresse en http, le presse-papiers peut refuser : la recipe s'affiche alors dans la boîte « Recipe » du panneau, à copier à la main.
+6. **Enregistrer** (en bas du panneau) : choisis l'article, coche sa traduction s'il en a une, et clique Enregistrer. La recipe s'écrit dans son `.mdoc`, sans copier-coller ; la page se recharge sur ta photo et dit quels fichiers ont été écrits. Une photo déposée qui n'est pas dans `public/photos/source/` ne s'enregistre pas : l'éditeur dit où la copier. **Copy recipe** reste en secours : colle alors le résultat dans le pane (sur cette adresse en http, le presse-papiers peut refuser ; la recipe s'affiche dans la boîte « Recipe » du panneau, à copier à la main).
 
 L'éditeur garde un **brouillon par photo** dans le navigateur, écrit à chaque réglage : rechoisir la photo, même après un rechargement de la page, reprend le brouillon plutôt que le fichier. **Reset** jette le brouillon de la photo et revient à la recipe du fichier.
 
