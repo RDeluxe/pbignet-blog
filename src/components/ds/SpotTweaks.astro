@@ -185,8 +185,8 @@ const posts = import.meta.env.DEV
 
   /** a zone in the editor: `off` keeps it in the list but out of the render and the recipe */
   type EdZone = SpotMask & { off?: boolean }
-  /** idle, drawing a new zone, or moving the points of zone `i` */
-  type Tool = { kind: 'idle' } | { kind: 'draw' } | { kind: 'edit', i: number }
+  /** idle, drawing a new zone, picking one by colour, or moving the points of zone `i` */
+  type Tool = { kind: 'idle' } | { kind: 'draw' } | { kind: 'wand' } | { kind: 'edit', i: number }
 
   const HUES = ['#c8321e', '#d2691e', '#d9a521', '#3f8f3a', '#1f8a7a', '#2f6fd0', '#7a5ae0', '#c0398f']
   const GROUNDS: Duo[] = [
@@ -229,7 +229,7 @@ const posts = import.meta.env.DEV
 
   const hero = document.querySelector<HTMLElement & { spotHero?: SpotHeroHandle }>('.post-hero')
   const heroImg = hero?.querySelector<HTMLImageElement>('img.dsrc') ?? null
-  const ZONE_HELP = '« + Nouvelle zone », puis clique sur la photo pour poser ses points. Dans la liste : la case active ou désactive une zone, le menu choisit son type (In / Out règlent la couleur, Photo garde la photo nette, Dither lui donne sa trame), Arrondi passe le contour en courbe par les mêmes points, Éditer : glisse un point pour le déplacer, clique sur un bord pour ajouter un point, double-clique sur un point pour le retirer ; × supprime la zone.'
+  const ZONE_HELP = '« + Nouvelle zone », puis clique sur la photo pour poser ses points ; ou « Baguette », puis clique sur une couleur : la zone de cette couleur s\'ajoute, la tolérance règle jusqu\'où elle s\'étend. Dans la liste : la case active ou désactive une zone, le menu choisit son type (In / Out règlent la couleur, Photo garde la photo nette, Dither lui donne sa trame), Arrondi passe le contour en courbe par les mêmes points, Éditer : glisse un point pour le déplacer, clique sur un bord pour ajouter un point, double-clique sur un point pour le retirer ; × supprime la zone.'
   const fade = hero?.nextElementSibling instanceof HTMLElement && hero.nextElementSibling.classList.contains('hero-fade')
     ? hero.nextElementSibling
     : null
@@ -413,6 +413,12 @@ const posts = import.meta.env.DEV
      (édition de zone, changement de photo) */
   let masksDirty = true
   let draft: [number, number][] = []
+  /* the wand: its tolerance (RGB distance), its last message, its last pick, the photo's pixels */
+  let wandTol = 32
+  let wandMsg = ''
+  /** the last wand pick: moving the tolerance redoes it while its zone is untouched */
+  let lastWand: { at: [number, number], zone: EdZone } | null = null
+  let wandPx: { src: string, w: number, h: number, data: Uint8ClampedArray } | null = null
   let tool: Tool = { kind: 'idle' }
   /** the point of the edited zone being dragged */
   let drag: number | null = null
@@ -909,8 +915,36 @@ const posts = import.meta.env.DEV
         add.id = 'k-zonenew'
         add.textContent = '+ Nouvelle zone'
         add.addEventListener('click', () => setTool(tool.kind === 'draw' ? { kind: 'idle' } : { kind: 'draw' }))
-        seg.appendChild(add)
+        const wand = document.createElement('button')
+        wand.type = 'button'
+        wand.id = 'k-zonewand'
+        wand.textContent = 'Baguette'
+        wand.title = 'Clique sur la photo : une zone de la même couleur'
+        wand.addEventListener('click', () => setTool(tool.kind === 'wand' ? { kind: 'idle' } : { kind: 'wand' }))
+        seg.append(add, wand)
         row.appendChild(seg)
+        const tol = document.createElement('label')
+        tol.className = 'tw-zonerange'
+        tol.id = 'k-wandtol-row'
+        const tolTxt = document.createElement('span')
+        tolTxt.textContent = `Tolérance ${wandTol}`
+        const tolIn = document.createElement('input')
+        tolIn.type = 'range'
+        tolIn.className = 'tw-range'
+        tolIn.id = 'k-wandtol'
+        tolIn.min = '4'
+        tolIn.max = '120'
+        tolIn.step = '2'
+        tolIn.value = String(wandTol)
+        tolIn.setAttribute('aria-label', 'Tolérance de la baguette')
+        tolIn.addEventListener('input', () => {
+          wandTol = Number(tolIn.value)
+          tolTxt.textContent = `Tolérance ${wandTol}`
+        })
+        tolIn.addEventListener('change', () => void rewand())
+        tol.style.display = 'none'
+        tol.append(tolTxt, tolIn)
+        row.appendChild(tol)
         const hint = document.createElement('p')
         hint.className = 'tw-hint'
         hint.id = 'k-zonehint'
@@ -1087,13 +1121,19 @@ const posts = import.meta.env.DEV
   function paintZones(s: TweakState) {
     const add = document.getElementById('k-zonenew')
     add?.setAttribute('aria-pressed', String(tool.kind === 'draw'))
+    document.getElementById('k-zonewand')?.setAttribute('aria-pressed', String(tool.kind === 'wand'))
+    const tolRow = document.getElementById('k-wandtol-row')
+    if (tolRow)
+      tolRow.style.display = tool.kind === 'wand' ? '' : 'none'
     const hint = document.getElementById('k-zonehint')
     if (hint) {
       hint.textContent = tool.kind === 'draw'
         ? 'Nouvelle zone : clique pour poser les points · Entrée ou clic sur le premier point ferme · Retour arrière enlève un point · Échap annule'
-        : tool.kind === 'edit'
-          ? `Zone ${tool.i + 1} : glisse un point · clic sur un bord = nouveau point · double-clic sur un point = le retirer (3 au moins) · OK ou Échap termine`
-          : ''
+        : tool.kind === 'wand'
+          ? wandMsg || 'Baguette : clique sur la photo, une zone de la même couleur s\'ajoute · la tolérance refait la dernière · Échap termine'
+          : tool.kind === 'edit'
+            ? `Zone ${tool.i + 1} : glisse un point · clic sur un bord = nouveau point · double-clic sur un point = le retirer (3 au moins) · OK ou Échap termine`
+            : ''
       hint.hidden = tool.kind === 'idle'
     }
     const list = document.getElementById('k-zonelist')
@@ -1241,6 +1281,7 @@ const posts = import.meta.env.DEV
 
   function setTool(t: Tool) {
     tool = t
+    wandMsg = ''
     draft = []
     cursor = null
     drag = null
@@ -1265,6 +1306,286 @@ const posts = import.meta.env.DEV
       return
     }
     drawOverlay()
+  }
+
+  /* ---- baguette : une zone par couleur ----
+     Le clic remplit, sur la photo source réduite, les pixels voisins de couleur proche
+     (distance RGB à la couleur cliquée ≤ tolérance) ; leur contour extérieur, simplifié,
+     devient une zone Photo ordinaire, à éditer comme les autres. */
+  /* coarse on purpose: a zone is a broad shape, and grain at this size is only noise */
+  const WAND_SIDE = 240
+  /** px of the clean-up: thinner bridges and spikes are cut, smaller gaps closed */
+  const WAND_CLEAN = 2
+  const WAND_MAX_PTS = 80
+
+  async function wandPixels() {
+    const src = heroImg?.currentSrc || heroImg?.src
+    if (!heroImg || !src)
+      return null
+    if (wandPx?.src === src)
+      return wandPx
+    await heroImg.decode().catch(() => {})
+    const k = Math.min(1, WAND_SIDE / Math.max(heroImg.naturalWidth, heroImg.naturalHeight))
+    const w = Math.max(1, Math.round(heroImg.naturalWidth * k))
+    const h = Math.max(1, Math.round(heroImg.naturalHeight * k))
+    const c = document.createElement('canvas')
+    c.width = w
+    c.height = h
+    const g = c.getContext('2d', { willReadFrequently: true })
+    if (!g)
+      return null
+    g.drawImage(heroImg, 0, 0, w, h)
+    wandPx = { src, w, h, data: blur(blur(g.getImageData(0, 0, w, h).data, w, h), w, h) }
+    return wandPx
+  }
+
+  /** a 3×3 box blur of RGBA pixels: the colour compared is the area's, not the grain's */
+  function blur(src: Uint8ClampedArray, w: number, h: number): Uint8ClampedArray {
+    const out = new Uint8ClampedArray(src.length)
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        for (let c = 0; c < 3; c++) {
+          let sum = 0
+          let n = 0
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const xx = x + dx
+              const yy = y + dy
+              if (xx >= 0 && yy >= 0 && xx < w && yy < h) {
+                sum += src[(yy * w + xx) * 4 + c]
+                n++
+              }
+            }
+          }
+          out[(y * w + x) * 4 + c] = sum / n
+        }
+        out[(y * w + x) * 4 + 3] = 255
+      }
+    }
+    return out
+  }
+
+  /** one 3×3 step of dilation (`grow`) or erosion of a binary mask; past the image edge counts as inside, so a region on the edge keeps it */
+  function morph(m: Uint8Array, w: number, h: number, grow: boolean): Uint8Array {
+    const out = new Uint8Array(m.length)
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        let hit = !grow
+        for (let dy = -1; dy <= 1 && hit !== grow; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const xx = x + dx
+            const yy = y + dy
+            const v = xx >= 0 && yy >= 0 && xx < w && yy < h ? m[yy * w + xx] : (grow ? 0 : 1)
+            if (grow ? v : !v) {
+              hit = grow
+              break
+            }
+          }
+        }
+        out[y * w + x] = hit ? 1 : 0
+      }
+    }
+    return out
+  }
+
+  /** the pixels of `m` connected to `seed` (4-neighbours) */
+  function connected(m: Uint8Array, w: number, h: number, seed: number): Uint8Array {
+    const out = new Uint8Array(m.length)
+    if (!m[seed])
+      return out
+    const stack = [seed]
+    out[seed] = 1
+    while (stack.length) {
+      const k = stack.pop()!
+      const x = k % w
+      for (const n of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, k - w, k + w]) {
+        if (n >= 0 && n < w * h && m[n] && !out[n]) {
+          out[n] = 1
+          stack.push(n)
+        }
+      }
+    }
+    return out
+  }
+
+  /**
+   * The region cleaned before its outline is traced: gaps closed, then thin bridges and spikes
+   * cut, the piece under the click kept, its holes filled. The outline only follows the outside.
+   */
+  function cleanRegion(m: Uint8Array, w: number, h: number, seed: number): Uint8Array {
+    let r = m
+    for (let i = 0; i < WAND_CLEAN; i++)
+      r = morph(r, w, h, true)
+    for (let i = 0; i < 2 * WAND_CLEAN; i++)
+      r = morph(r, w, h, false)
+    for (let i = 0; i < WAND_CLEAN; i++)
+      r = morph(r, w, h, true)
+    let kept = connected(r, w, h, seed)
+    if (!kept.includes(1))
+      kept = connected(m, w, h, seed) // a region thinner than the clean-up: kept as it was found
+    // holes: the empty pixels the border cannot reach
+    const outside = new Uint8Array(m.length)
+    const stack: number[] = []
+    for (let k = 0; k < w * h; k++) {
+      const x = k % w
+      const y = (k - x) / w
+      if ((x === 0 || y === 0 || x === w - 1 || y === h - 1) && !kept[k]) {
+        outside[k] = 1
+        stack.push(k)
+      }
+    }
+    while (stack.length) {
+      const k = stack.pop()!
+      const x = k % w
+      for (const n of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, k - w, k + w]) {
+        if (n >= 0 && n < w * h && !kept[n] && !outside[n]) {
+          outside[n] = 1
+          stack.push(n)
+        }
+      }
+    }
+    return outside.map(v => v ? 0 : 1)
+  }
+
+  /** the connected pixels whose colour is within `tol` of the seed's */
+  function floodFill(px: NonNullable<typeof wandPx>, sx: number, sy: number, tol: number): Uint8Array {
+    const { w, h, data } = px
+    const inside = new Uint8Array(w * h)
+    const s = (sy * w + sx) * 4
+    const [r, g, b] = [data[s], data[s + 1], data[s + 2]]
+    const t2 = tol * tol
+    const near = (k: number) => (data[k * 4] - r) ** 2 + (data[k * 4 + 1] - g) ** 2 + (data[k * 4 + 2] - b) ** 2 <= t2
+    const stack = [sy * w + sx]
+    inside[stack[0]] = 1
+    while (stack.length) {
+      const k = stack.pop()!
+      const x = k % w
+      for (const n of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, k - w, k + w]) {
+        if (n >= 0 && n < w * h && !inside[n] && near(n)) {
+          inside[n] = 1
+          stack.push(n)
+        }
+      }
+    }
+    return inside
+  }
+
+  /* the 8 neighbours, clockwise on screen (y down), from the west */
+  const RING: [number, number][] = [[-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1]]
+
+  /** the outer contour of a region (Moore neighbour tracing), as pixel coordinates */
+  function outline(inside: Uint8Array, w: number, h: number): [number, number][] {
+    const at = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h && inside[y * w + x] === 1
+    const first = inside.indexOf(1)
+    if (first < 0)
+      return []
+    const start: [number, number] = [first % w, Math.floor(first / w)]
+    const pts: [number, number][] = [start]
+    let [cx, cy] = start
+    let back = 0 // the west neighbour of the first pixel met in reading order is outside
+    for (let step = 0; step < 4 * w * h; step++) {
+      let next = -1
+      for (let k = 1; k <= 8; k++) {
+        const d = (back + k) % 8
+        if (at(cx + RING[d][0], cy + RING[d][1])) {
+          next = d
+          break
+        }
+      }
+      if (next < 0)
+        return pts // a single pixel
+      const [bx, by] = [cx + RING[(next + 7) % 8][0], cy + RING[(next + 7) % 8][1]]
+      const [nx, ny] = [cx + RING[next][0], cy + RING[next][1]]
+      if (cx === start[0] && cy === start[1] && pts.length > 2 && nx === pts[1][0] && ny === pts[1][1])
+        break
+      cx = nx
+      cy = ny
+      back = RING.findIndex(([dx, dy]) => dx === bx - cx && dy === by - cy)
+      pts.push([cx, cy])
+    }
+    if (pts.length > 1 && pts.at(-1)![0] === start[0] && pts.at(-1)![1] === start[1])
+      pts.pop()
+    return pts
+  }
+
+  /** Douglas-Peucker on an open run of points */
+  function simplify(pts: [number, number][], eps: number): [number, number][] {
+    if (pts.length < 3)
+      return pts
+    const [a, b] = [pts[0], pts.at(-1)!]
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1])
+    let far = 0
+    let farD = -1
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [px, py] = pts[i]
+      const d = len ? Math.abs((b[0] - a[0]) * (a[1] - py) - (a[0] - px) * (b[1] - a[1])) / len : Math.hypot(px - a[0], py - a[1])
+      if (d > farD) {
+        farD = d
+        far = i
+      }
+    }
+    if (farD <= eps)
+      return [a, b]
+    return [...simplify(pts.slice(0, far + 1), eps).slice(0, -1), ...simplify(pts.slice(far), eps)]
+  }
+
+  /** a closed contour simplified to at most WAND_MAX_PTS points, cut at its two farthest-apart ends */
+  function simplifyClosed(pts: [number, number][]): [number, number][] {
+    if (pts.length <= 3)
+      return pts
+    let far = 0
+    pts.forEach((p, i) => {
+      if (Math.hypot(p[0] - pts[0][0], p[1] - pts[0][1]) > Math.hypot(pts[far][0] - pts[0][0], pts[far][1] - pts[0][1]))
+        far = i
+    })
+    for (let eps = 1; ; eps *= 1.5) {
+      const out = [...simplify(pts.slice(0, far + 1), eps).slice(0, -1), ...simplify([...pts.slice(far), pts[0]], eps).slice(0, -1)]
+      if (out.length <= WAND_MAX_PTS || eps > 64)
+        return out
+    }
+  }
+
+  /** the zone the wand finds from an image point (normalised), or a reason it found none */
+  async function wandZone(at: [number, number]): Promise<[number, number][] | string> {
+    const px = await wandPixels()
+    if (!px)
+      return 'Baguette : la photo n\'est pas lisible.'
+    const sx = Math.min(px.w - 1, Math.floor(at[0] * px.w))
+    const sy = Math.min(px.h - 1, Math.floor(at[1] * px.h))
+    const region = cleanRegion(floodFill(px, sx, sy, wandTol), px.w, px.h, sy * px.w + sx)
+    const pts = simplifyClosed(outline(region, px.w, px.h))
+    if (pts.length < 3)
+      return 'Baguette : zone trop petite, monte la tolérance.'
+    return pts.map(([x, y]) => [+num((x + 0.5) / px.w), +num((y + 0.5) / px.h)])
+  }
+
+  async function wandAt(at: [number, number]) {
+    const pts = await wandZone(at)
+    wandMsg = typeof pts === 'string' ? pts : ''
+    if (typeof pts === 'string') {
+      paintZones(state)
+      return
+    }
+    const zone: EdZone = { mode: 'photo', pts }
+    lastWand = { at, zone }
+    editMasks([...currentMasks(state), zone])
+  }
+
+  /** the tolerance moved: the last pick is redone, if its zone was left as the wand made it */
+  async function rewand() {
+    const ms = currentMasks(state)
+    const i = lastWand ? ms.indexOf(lastWand.zone) : -1
+    if (!lastWand || i < 0)
+      return
+    const pts = await wandZone(lastWand.at)
+    wandMsg = typeof pts === 'string' ? pts : ''
+    if (typeof pts === 'string') {
+      paintZones(state)
+      return
+    }
+    const zone: EdZone = { ...ms[i], pts }
+    lastWand = { at: lastWand.at, zone }
+    editMasks(ms.map((z, j) => j === i ? zone : z))
   }
 
   function overlayPoint(e: PointerEvent, f: NonNullable<ReturnType<typeof coverFit>>): [number, number] {
@@ -1306,6 +1627,10 @@ const posts = import.meta.env.DEV
     if (document.activeElement instanceof HTMLElement)
       document.activeElement.blur()
     const [x, y] = overlayPoint(e, f)
+    if (tool.kind === 'wand') {
+      void wandAt(toImg(f, x, y))
+      return
+    }
     if (tool.kind === 'edit') {
       const z = currentMasks(state)[tool.i]
       if (!z)

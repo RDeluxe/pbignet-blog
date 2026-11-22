@@ -28,22 +28,25 @@ Donne à Pierrick l'URL et ce mode d'emploi, tel quel :
 
 1. Appuie sur **T** (ou le bouton T en bas) : le panneau Tweaks s'ouvre, il est replié au chargement.
 2. Section **Photo** : clique le bouton de ton article (les trois premiers mots de son slug). La photo se charge avec sa recipe actuelle.
-3. **Zones** : clique **« + Nouvelle zone »**, puis clique sur la photo pour poser ses points. Entrée (ou un clic sur le premier point) ferme la zone, Retour arrière retire le dernier point posé, Échap annule. La zone entre dans la **liste des zones**, où chaque ligne a :
+3. **Zones** : clique **« + Nouvelle zone »**, puis clique sur la photo pour poser ses points. Entrée (ou un clic sur le premier point) ferme la zone, Retour arrière retire le dernier point posé, Échap annule. Ou clique **« Baguette »**, puis sur une couleur de la photo : la zone de cette couleur s'ajoute ; la **Tolérance** règle jusqu'où elle s'étend et refait la dernière zone tant qu'elle n'a pas été retouchée ; Échap termine. La zone entre dans la **liste des zones**, où chaque ligne a :
    - une case qui active ou désactive la zone (une zone désactivée reste dans la liste, hors du rendu et de la recipe) ;
    - un menu pour son type : **Photo** garde la zone en photo nette, **Dither** lui donne sa propre trame (réglable sous la ligne), **In** / **Out** restreignent ou retirent la sélection de couleur ;
+   - **Arrondi** : le contour devient une courbe qui passe par les mêmes points ; un second clic le remet en droit ;
    - **Éditer** : glisse un point pour le déplacer, clique sur un bord pour y ajouter un point, double-clique sur un point pour le retirer (une zone garde au moins 3 points) ; OK ou Échap termine ;
    - **×** pour supprimer la zone.
-4. Règle la trame, le titre (texte, X, Y, encre) et le point focal.
+4. Règle la trame, le titre (texte, X, Y, encre) et le point focal. Sous les tons tout faits de la trame (et de chaque zone Dither), **Encre** et **Papier** prennent n'importe quelle couleur.
 5. **Aperçu mobile** (en bas du panneau) ouvre à gauche la cover à 390 px de large, comme sur un téléphone, avec les vrais réglages du site en étroit. Règle **Title Y mobile** en la regardant ; l'aperçu suit chaque réglage. Il ne montre que les photos du repo, pas un fichier déposé.
-6. **Copy recipe**, puis colle le résultat dans le pane. Sur cette adresse en http, le presse-papiers peut refuser : la recipe s'affiche alors dans la boîte « Recipe » du panneau, à copier à la main.
+6. **Enregistrer** (en bas du panneau) : choisis l'article, coche sa traduction s'il en a une, et la recipe s'écrit dans son `.mdoc`. La page se recharge et le dit. Une photo déposée qui n'est pas dans `public/photos/source/` ne s'enregistre pas : l'éditeur dit où la copier. Sinon, **Copy recipe**, puis colle le résultat dans le pane. Sur cette adresse en http, le presse-papiers peut refuser : la recipe s'affiche alors dans la boîte « Recipe » du panneau, à copier à la main.
 
 L'éditeur garde un **brouillon par photo** dans le navigateur, écrit à chaque réglage : rechoisir la photo, même après un rechargement de la page, reprend le brouillon plutôt que le fichier. **Reset** jette le brouillon de la photo et revient à la recipe du fichier.
 
-**Pendant que Pierrick travaille dans l'éditeur, aucune édition de fichier** dans la branche servie (ni le composant, ni un `.mdoc`, ni la skill) : le serveur rechargerait la page sous ses mains. On attend sa recipe, ou son feu vert.
+**Pendant que Pierrick travaille dans l'éditeur, aucune édition de fichier** dans la branche servie (ni le composant, ni un `.mdoc`, ni la skill) : le serveur rechargerait la page sous ses mains. On attend sa recipe, ou son feu vert. Son **Enregistrer** n'est pas une exception à cette règle : c'est lui qui écrit.
 
 **Fini quand** Pierrick a l'URL qui répond et le mode d'emploi.
 
 ## 3. Poser la recipe
+
+Si Pierrick a utilisé **Enregistrer**, la recipe est déjà dans le `.mdoc` (et dans celui de sa traduction s'il l'a cochée). Ne la retouche pas : passe au build. Sinon :
 
 La recipe copiée est au format des props Astro (`spot={{ … }}`, `title="…"`, `titleY="…%"`, `titleYMobile="…%"`, `focal={{ x, y }}`). Traduis-la dans le bloc `cover:` YAML du `.mdoc`, champ pour champ : `title` devient `word`, `spot`, `focal`, `titleX`, `titleY`, `titleYMobile`, `titleInk`, `height` gardent leur nom. Chaque valeur passe à l'identique, chaque point de zone compris ; une traduction reçoit la même recipe. Les commentaires de fin de recipe ne se recopient pas.
 
