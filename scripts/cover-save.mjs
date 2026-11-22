@@ -9,7 +9,7 @@
  * `kicker`, `place`, `method`, `vcap`) are kept as they are; the rest of the file is not
  * touched.
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { parse } from 'yaml'
 
 const ROUTE = '/__cover-save'
@@ -36,7 +36,9 @@ function postFile(slug) {
 export function repoPhoto(src) {
   return typeof src === 'string'
     && /^\/photos\/source\/[\w.-]+$/.test(src)
+    && !src.includes('..')
     && existsSync(new URL(`.${src}`, PUBLIC))
+    && statSync(new URL(`.${src}`, PUBLIC)).isFile()
 }
 
 /* ---- YAML, in the hand-written style of the existing cover blocks ---- */
@@ -115,6 +117,37 @@ export function coverBlock(cover) {
 }
 
 /**
+ * The same value with its keys sorted and its empty entries dropped: two covers compare by it.
+ * @param {unknown} v
+ * @returns {unknown} the canonical value
+ */
+function canonical(v) {
+  if (Array.isArray(v))
+    return v.map(canonical)
+  if (v && typeof v === 'object')
+    return Object.fromEntries(Object.entries(v).filter(([, x]) => x != null).sort(([a], [b]) => a.localeCompare(b)).map(([k, x]) => [k, canonical(x)]))
+  return v
+}
+
+/**
+ * The block, refused unless YAML reads it back as this very cover: a key or a value that
+ * would write anything else into the frontmatter (a line break, an object where a number
+ * goes, a field the block does not know) stops the save.
+ * @param {Record<string, any>} cover
+ */
+function safeBlock(cover) {
+  const block = coverBlock(cover)
+  let back
+  try {
+    back = parse(block)?.cover
+  }
+  catch {}
+  if (JSON.stringify(canonical(back)) !== JSON.stringify(canonical(cover)))
+    throw new Error('the recipe does not write back as itself: refused')
+  return block
+}
+
+/**
  * The post's source with its `cover:` block replaced (or added at the end of the frontmatter).
  * @param {string} text the whole file
  * @param {{ src: string, alt?: string, recipe: Record<string, any> }} input
@@ -150,12 +183,12 @@ export function withCover(text, { src, alt, recipe }) {
     while (end < lines.length && !/^\S/.test(lines[end]))
       end++
   }
-  const block = coverBlock(cover).split('\n')
+  const block = safeBlock(cover).split('\n')
   if (start >= 0)
     lines.splice(start, end - start, ...block)
   else
     lines.push(...block)
-  return text.replace(fm[0], `---\n${lines.join('\n')}\n---`)
+  return text.replace(fm[0], () => `---\n${lines.join('\n')}\n---`)
 }
 
 /** @param {import('node:http').IncomingMessage} req */
@@ -205,6 +238,13 @@ export default function coverSave() {
           }
           if (req.method !== 'POST')
             return reply(405, { error: 'POST only' })
+          // only the editor's own page: a JSON request from this very origin, which another
+          // site cannot send without a preflight the dev server does not answer
+          if (!req.headers['content-type']?.startsWith('application/json'))
+            return reply(415, { error: 'JSON only' })
+          const origin = req.headers.origin
+          if (!origin || origin !== `http://${req.headers.host}`)
+            return reply(403, { error: 'same origin only' })
           try {
             reply(200, { files: saveCover(await body(req)) })
           }

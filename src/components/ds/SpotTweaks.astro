@@ -256,13 +256,12 @@ const posts = import.meta.env.DEV
     const r: CoverRecipe = JSON.parse(hero?.dataset.recipe ?? '{}')
     return stateFromRecipe(r, initialName, {
       title: hero?.querySelector('.ph-word')?.textContent?.trim() ?? 'Title',
-      titleX: 4,
       titleY: 11,
       titleInk: hero?.dataset.titleInk === 'dark' ? 'dark' : 'light',
     })
   }
 
-  function stateFromRecipe(r: CoverRecipe, name: string, type: Pick<TweakState, 'title' | 'titleX' | 'titleY' | 'titleInk'>): TweakState {
+  function stateFromRecipe(r: CoverRecipe, name: string, type: Pick<TweakState, 'title' | 'titleY' | 'titleInk'>): TweakState {
     return {
       mode: r.pop === false ? 'none' : r.invert ? 'invert' : 'pop',
       keep: r.keepSharp ? 'sharp' : 'dither',
@@ -289,7 +288,7 @@ const posts = import.meta.env.DEV
       focalX: Math.round((r.focalX ?? 0.5) * 100),
       focalY: Math.round((r.focalY ?? 0.5) * 100),
       title: r.title ?? type.title,
-      titleX: pct(r.titleX, type.titleX),
+      titleX: pct(r.titleX, 4),
       titleY: pct(r.titleY, type.titleY),
       titleYMobile: pct(r.titleYMobile, pct(r.titleY, type.titleY)),
       titleInk: r.titleInk ?? type.titleInk,
@@ -417,7 +416,7 @@ const posts = import.meta.env.DEV
   let wandTol = 32
   let wandMsg = ''
   /** the last wand pick: moving the tolerance redoes it while its zone is untouched */
-  let lastWand: { at: [number, number], zone: EdZone } | null = null
+  let lastWand: { at: [number, number], made: string } | null = null
   let wandPx: { src: string, w: number, h: number, data: Uint8ClampedArray } | null = null
   let tool: Tool = { kind: 'idle' }
   /** the point of the edited zone being dragged */
@@ -714,6 +713,8 @@ const posts = import.meta.env.DEV
     heroImg.alt = `Source photograph: ${name}`
     masksDirty = true
     draft = []
+    // the engine takes this photo's zones (none, for a new one), never the previous photo's
+    apply(state)
     paintPresets()
     status()
     syncPhone()
@@ -752,8 +753,6 @@ const posts = import.meta.env.DEV
       save(state)
     }
     setImage(p.src, loadedName)
-    if (saved || p.recipe)
-      apply(state)
   }
 
   function paintPresets() {
@@ -1060,12 +1059,18 @@ const posts = import.meta.env.DEV
     drawOverlay()
   }
 
-  /* while drawing or editing, the cover shows the source photo without its screen, framed like the engine */
+  /*
+   * while drawing or editing, the cover shows the source photo without its screen (the engine
+   * already frames the img like its canvas). Back from it, the img is hidden again where the
+   * engine hides it: a transparent ground with no hole in the canvas.
+   */
   function showRawPhoto(raw: boolean) {
     for (const c of hero?.querySelectorAll<HTMLCanvasElement>('canvas.dither-canvas, canvas.topo-on') ?? [])
       c.style.visibility = raw ? 'hidden' : ''
-    if (heroImg)
-      heroImg.style.objectPosition = raw ? `${state.focalX}% ${state.focalY}%` : ''
+    if (!heroImg)
+      return
+    const holes = state.keep === 'sharp' || liveMasks(state).some(m => m.mode === 'photo')
+    heroImg.style.visibility = !raw && state.groundKind === 'transparent' && !holes ? 'hidden' : ''
   }
 
   function drawOverlay() {
@@ -1566,15 +1571,14 @@ const posts = import.meta.env.DEV
       paintZones(state)
       return
     }
-    const zone: EdZone = { mode: 'photo', pts }
-    lastWand = { at, zone }
-    editMasks([...currentMasks(state), zone])
+    lastWand = { at, made: JSON.stringify(pts) }
+    editMasks([...currentMasks(state), { mode: 'photo', pts }])
   }
 
-  /** the tolerance moved: the last pick is redone, if its zone was left as the wand made it */
+  /** the tolerance moved: the last pick is redone, if its zone is still there as the wand made it */
   async function rewand() {
     const ms = currentMasks(state)
-    const i = lastWand ? ms.indexOf(lastWand.zone) : -1
+    const i = lastWand ? ms.findIndex(z => JSON.stringify(z.pts) === lastWand!.made) : -1
     if (!lastWand || i < 0)
       return
     const pts = await wandZone(lastWand.at)
@@ -1583,9 +1587,8 @@ const posts = import.meta.env.DEV
       paintZones(state)
       return
     }
-    const zone: EdZone = { ...ms[i], pts }
-    lastWand = { at: lastWand.at, zone }
-    editMasks(ms.map((z, j) => j === i ? zone : z))
+    lastWand = { at: lastWand.at, made: JSON.stringify(pts) }
+    editMasks(ms.map((z, j) => j === i ? { ...z, pts } : z))
   }
 
   function overlayPoint(e: PointerEvent, f: NonNullable<ReturnType<typeof coverFit>>): [number, number] {
