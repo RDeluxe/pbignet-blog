@@ -19,6 +19,19 @@ const PUBLIC = new URL('../public/', import.meta.url)
 /** the recipe fields, in the order the block is written; `src` and `alt` come from the request or the file */
 const KEPT = ['kicker', 'place', 'method', 'vcap']
 
+/** the `spot` fields the editor sets; any other one in the file (e.g. `fps`) is kept as it is */
+const MODELLED = ['keepColor', 'ink', 'paper', 'cell', 'contrast', 'brightness', 'boil', 'hueMode', 'hueTol', 'hueSoft', 'satMin', 'satSoft', 'hueLo', 'hueSpan', 'satBoost', 'invert', 'pop', 'keepSharp', 'ground', 'groundMix', 'groundSat', 'groundLift', 'masks']
+
+/**
+ * The editor reads only a plain `<n>%` titleX and a plain `<n>vh` height; anything else (unset,
+ * `var(--gutter)`, `min(92vh, 880px)`) comes back as its fallback, `4%` or `100vh`. That
+ * fallback, unedited, must not replace what the file says.
+ * @param {unknown} old @param {unknown} sent @param {RegExp} plain @param {string} fallback
+ */
+function unread(old, sent, plain, fallback) {
+  return sent === fallback && !(typeof old === 'string' && plain.test(old.trim())) ? old : sent
+}
+
 /** @param {string} slug */
 function postFile(slug) {
   if (!/^[\w-]+$/.test(slug))
@@ -166,13 +179,18 @@ export function withCover(text, { src, alt, recipe }) {
     alt: finalAlt,
     word: recipe.word,
     ...Object.fromEntries(KEPT.map(k => [k, old[k]])),
-    titleX: recipe.titleX,
+    titleX: old.titleX == null ? recipe.titleX : unread(old.titleX, recipe.titleX, /^-?[\d.]+%$/, '4%'),
     titleY: recipe.titleY,
     titleYMobile: recipe.titleYMobile,
     titleInk: recipe.titleInk,
-    height: recipe.height,
+    height: unread(old.height, recipe.height, /^[\d.]+vh$/, '100vh'),
     focal: recipe.focal,
-    spot: recipe.spot,
+    spot: {
+      ...Object.fromEntries(Object.entries(old.spot ?? {}).filter(([k]) => !MODELLED.includes(k))),
+      // no boil sent (an editor under reduced motion shows it at 0): the file's stays
+      ...(recipe.spot.boil == null && old.spot?.boil != null ? { boil: old.spot.boil } : {}),
+      ...recipe.spot,
+    },
   }
 
   const lines = fm[1].split('\n')

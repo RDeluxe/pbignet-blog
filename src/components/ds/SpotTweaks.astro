@@ -543,7 +543,8 @@ const posts = import.meta.env.DEV
         cell: +num(s.cell),
         contrast: +num(s.contrast),
         brightness: +num(s.brightness),
-        boil: +num(s.shimmer),
+        // under reduced motion the editor shows no boil: a 0 there is not a choice, the file keeps its own
+        ...(REDUCED && !s.shimmer ? {} : { boil: +num(s.shimmer) }),
         ...(s.hueMode
           ? { hueMode: true, hueTol: +num(s.hueTol), hueSoft: +num(s.hueSoft), satMin: +num(s.satMin), satSoft: +num(s.satSoft) }
           : { hueLo: +num(s.threshold), hueSpan: +num(s.softness) }),
@@ -1346,7 +1347,15 @@ const posts = import.meta.env.DEV
     if (!g)
       return null
     g.drawImage(heroImg, 0, 0, w, h)
-    wandPx = { src, w, h, lab: toLab(blur(g.getImageData(0, 0, w, h).data, w, h)) }
+    let data: Uint8ClampedArray
+    try {
+      data = g.getImageData(0, 0, w, h).data
+    }
+    catch {
+      // a photo from another origin (or a file:// page) cannot be read
+      return null
+    }
+    wandPx = { src, w, h, lab: toLab(blur(data, w, h)) }
     return wandPx
   }
 
@@ -1637,7 +1646,15 @@ const posts = import.meta.env.DEV
   }
 
   /** a click of the wand: a new zone, or (Maj / Alt) a region added to or cut from the last one */
-  async function wandAt(at: [number, number], op: 'new' | 'add' | 'cut') {
+  let wandQueue: Promise<void> = Promise.resolve()
+
+  /** clicks run one after another: a Maj or Alt click waits for the zone of the click before it */
+  function wandAt(at: [number, number], op: 'new' | 'add' | 'cut') {
+    wandQueue = wandQueue.then(() => wandClick(at, op), () => wandClick(at, op))
+    return wandQueue
+  }
+
+  async function wandClick(at: [number, number], op: 'new' | 'add' | 'cut') {
     const i = lastWandIndex()
     if (op === 'cut' && i < 0) {
       wandMsg = 'Baguette : Alt+clic retire de la dernière zone faite à la baguette ; il n\'y en a pas (ou elle a été retouchée).'
