@@ -105,7 +105,7 @@ vers l'article migré s'il est dans le même dossier du vault.
 
 ## Les documents de design
 
-- [`CLAUDE.md`](CLAUDE.md) : les règles de travail du repo. À lire en premier.
+- [`AGENTS.md`](AGENTS.md) : les règles de travail du repo et l'entrée vers la DA. À lire en premier.
 - [`PRODUCT.md`](PRODUCT.md) : le produit, ses lecteurs, le ton, les anti-patterns.
 - [`design/PIPELINE.md`](design/PIPELINE.md) : la doctrine code (tokens, primitives, composants). À lire avant d'écrire un composant.
 - [`design/PROTOCOL.md`](design/PROTOCOL.md) : le protocole d'idéation avec Open Design, le code étant la source de vérité.
