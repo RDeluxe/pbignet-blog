@@ -33,7 +33,7 @@ n'entre dans `src/` sans son œil**.
 | **Comment le CSS d'idéation devient du code** | [`PIPELINE.md`](PIPELINE.md) | Le tri, les règles dures — inchangé. |
 | Sync vers l'atelier Open Design | [`scripts/sync-od.mjs`](../scripts/sync-od.mjs) (`pnpm build:od`) | Le dossier projet vient de `OD_PROJECT_DIR`. |
 | [`SESSION-CD.md`](SESSION-CD.md) | archive de l'ère claude.ai | Plus de destinataire depuis le 2026-08-05. |
-| `claude-design/Pierrick Blog/` | archive du **dernier état ramené** de CD (ère claude.ai) | Plus une référence : un instantané, daté par son commit. |
+| `claude-design/Pierrick Blog/` | archive du **dernier état ramené** de CD (ère claude.ai) | Un instantané, daté par son commit ; mais il reste **la référence des schémas** et de leur animation (`assets/diagram.js`, « Pâte graphique », « Pâte graphique - animation », `research/`), faits à la main, à garder : tout n'en est pas encore récupéré (Pierrick, 23/11/2026). |
 | `briefs/` | archive de l'ancien flux UP | Historique, plus alimenté. |
 
 ## 3. La boucle de travail avec Open Design
