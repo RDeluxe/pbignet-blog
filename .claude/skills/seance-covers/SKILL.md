@@ -30,7 +30,7 @@ Donne à Pierrick l'URL et ce mode d'emploi, tel quel :
 2. Section **Photo** : clique le bouton de ton article (les trois premiers mots de son slug). La photo se charge avec sa recipe actuelle.
 3. **Zones**, deux façons d'en ajouter une :
    - **« + Nouvelle zone »** : clique sur la photo pour poser ses points. Entrée (ou un clic sur le premier point) ferme la zone, Retour arrière retire le dernier point posé, Échap annule.
-   - **« Baguette »** : clique sur une couleur de la photo, la zone de cette couleur s'ajoute. La **Tolérance** règle jusqu'où elle s'étend : la bouger refait la dernière zone, tant que tu ne l'as pas retouchée. Clique encore pour ajouter d'autres zones ; Échap termine.
+   - **« Baguette »** : clique sur une couleur de la photo, la zone de cette couleur s'ajoute ; elle s'arrête aux bords nets de la photo. **Maj+clic** ajoute une région à la dernière zone, **Alt+clic** (Option sur Mac) en retire une. Une zone reste d'un seul tenant : une région qui ne la touche pas est laissée de côté, elle se fait par un clic simple. La **Tolérance** règle jusqu'où elle s'étend : la bouger refait la dernière zone avec tous ses clics, tant que tu ne l'as pas retouchée. Un clic simple ajoute une autre zone ; Échap termine.
 
    Chaque zone entre dans la **liste des zones**, où sa ligne a :
    - une case qui active ou désactive la zone (une zone désactivée reste dans la liste, hors du rendu et de la recipe) ;
