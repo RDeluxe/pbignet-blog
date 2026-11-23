@@ -63,7 +63,9 @@ design/
   doctrine/
     0_NORTHSTAR.html             ← ★ doctrine design (canonique ici depuis le 2026-08-04)
     Design Notes.md              ← journal historique des décisions de design
-  claude-design/Pierrick Blog/   ← ARCHIVE du dernier état ramené de CD (plus une référence)
+  claude-design/Pierrick Blog/   ← archive du dernier état ramené de CD ; reste LA référence des schémas
+                                   et de leur animation (assets/diagram.js, « Pâte graphique* »), pas encore
+                                   tout récupéré : à lire avant tout schéma (Pierrick, 23/11/2026)
   briefs/                        ← archive de l'ancien flux UP (plus alimenté)
   impeccable/                    ← artefacts Impeccable
 ```
