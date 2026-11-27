@@ -42,6 +42,9 @@ export default defineMarkdocConfig({
      */
     document: { ...nodes.document, render: null },
 
+    /** `[mot](a-venir)` marks a link to a post not written yet; any other link stays an `<a>` */
+    link: { ...nodes.link, render: component('./src/components/article/ArticleLink.astro') },
+
     /** every Markdown quote is a reading quote: the same component as `{% quote %}` */
     blockquote: { ...nodes.blockquote, render: component('./src/components/article/Quote.astro') },
   },
