@@ -103,6 +103,13 @@ chemin), sinon le titre. Les callouts `> [!note]` deviennent `{% callout %}`, le
 « importé depuis le blog » disparaît, les wikilinks et les liens vers l'ancien blog pointent
 vers l'article migré s'il est dans le même dossier du vault.
 
+## Écrire un article
+
+**Un lien vers un article pas encore écrit.** Dans la note, un lien markdown ordinaire vers la
+cible réservée `a-venir` : `[zone de confiance](a-venir)`. Au rendu, le mot est souligné en
+pointillés et, au survol, au focus ou au tap, une étiquette dit « Article en cours d'écriture,
+bientôt ici ». Quand l'article existe, on remplace `a-venir` par son lien. Preview : `/ds/coming-soon`.
+
 ## Les documents de design
 
 - [`AGENTS.md`](AGENTS.md) : les règles de travail du repo et l'entrée vers la DA. À lire en premier.

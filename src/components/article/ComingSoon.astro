@@ -1,0 +1,142 @@
+---
+/* eslint-disable style/eol-last -- le markup finit le fichier sans saut de ligne : Astro émettrait
+   sinon un espace après le mot, et « mot , » casserait la ponctuation */
+/**
+ * ComingSoon — un mot qui renvoie à un article pas encore écrit.
+ *
+ * Dans le texte : `[zone de confiance](a-venir)`. Le nœud `link` de Markdoc
+ * (`ArticleLink.astro`) reconnaît la cible réservée `a-venir` et rend ce composant à la
+ * place d'un `<a>`.
+ *
+ * Le mot se lit comme un lien mais ne s'y confond pas : soulignement en pointillés (un vrai
+ * lien est plein). Au survol, au focus clavier et au tap, une petite étiquette mono, celle
+ * du callout (E1), dit que l'article arrive. Filet, papier opaque, zéro ombre, zéro arrondi.
+ *
+ * C'est un `<button>` et non un `<a>` : il n'y a nulle part où aller. Le tap mobile ne
+ * donne pas le focus à un bouton sous Safari, d'où le petit script (ouverture au clic,
+ * fermeture au clic ailleurs ou à Échap). L'étiquette est DANS le bouton : elle fait partie
+ * de son nom accessible, sans `id` à générer. Elle est masquée par l'opacité, jamais par
+ * `display`/`visibility`, pour rester dans l'arbre d'accessibilité.
+ */
+interface Props {
+  /** le texte de l'étiquette, au cas où une page en voudrait un autre */
+  note?: string
+}
+
+const { note = 'Article en cours d’écriture, bientôt ici' } = Astro.props
+---
+
+<style>
+  .soon {
+    position: relative;
+    display: inline;
+  }
+
+  .word {
+    appearance: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--accent-text);
+    text-align: inherit;
+    cursor: help;
+    /* pointillés : le signe « pas encore un lien » */
+    text-decoration: underline dotted;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    transition: background-color var(--dur-fast);
+  }
+  .word:hover,
+  .soon[data-open] .word {
+    background: var(--paper-2);
+  }
+
+  /* l'étiquette : celle du callout, en mono, sur papier, au-dessus du mot.
+   * Au repos elle est masquée à la manière d'un texte « sr-only » (1px, rognée), pas par
+   * `display` ni `visibility` : elle reste dans le nom accessible du bouton, et ne
+   * fait pas déborder la page quand le mot est au bord de l'écran. */
+  .tip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    z-index: 2;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    pointer-events: none;
+    border: 1px solid var(--ink-2);
+    background: var(--paper);
+    font-family: var(--mono);
+    font-size: 11px; /* TODO token: --fs-tip (11px, entre --fs-tag et --fs-callout) */
+    font-weight: var(--w-regular);
+    line-height: 1.4;
+    letter-spacing: 0;
+    text-align: left;
+    text-decoration: none;
+    color: var(--ink-2);
+  }
+  .word:hover .tip,
+  .word:focus-visible .tip,
+  .soon[data-open] .tip {
+    width: max-content;
+    max-width: min(260px, 80vw);
+    height: auto;
+    padding: 4px 8px;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    /* --soon-shift est posée par le script pour garder l'étiquette dans l'écran */
+    transform: translateX(calc(-50% + var(--soon-shift, 0px)));
+  }
+</style>
+
+<script>
+  function open(soon: HTMLElement) {
+    soon.setAttribute('data-open', '')
+    place(soon)
+  }
+  function close(soon: HTMLElement) {
+    soon.removeAttribute('data-open')
+  }
+
+  /** pousse l'étiquette pour qu'elle ne déborde ni à gauche ni à droite de l'écran */
+  function place(soon: HTMLElement) {
+    const tip = soon.querySelector<HTMLElement>('.tip')
+    if (!tip)
+      return
+    soon.style.removeProperty('--soon-shift')
+    const { left, right } = tip.getBoundingClientRect()
+    const margin = 8
+    const shift = left < margin
+      ? margin - left
+      : right > innerWidth - margin ? innerWidth - margin - right : 0
+    // getBoundingClientRect inclut le translate de repos (3px vertical seulement) : ok
+    soon.style.setProperty('--soon-shift', `${shift}px`)
+  }
+
+  for (const soon of document.querySelectorAll<HTMLElement>('.soon')) {
+    const word = soon.querySelector('.word')
+    word?.addEventListener('mouseenter', () => place(soon))
+    word?.addEventListener('focus', () => place(soon))
+    word?.addEventListener('click', () => (soon.hasAttribute('data-open') ? close(soon) : open(soon)))
+  }
+  document.addEventListener('click', (e) => {
+    for (const soon of document.querySelectorAll<HTMLElement>('.soon[data-open]')) {
+      if (!soon.contains(e.target as Node))
+        close(soon)
+    }
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape')
+      return
+    for (const soon of document.querySelectorAll<HTMLElement>('.soon[data-open]'))
+      close(soon)
+  })
+</script>
+
+<span class="soon"><button type="button" class="word"><slot /><span class="tip"> {note}</span></button></span>

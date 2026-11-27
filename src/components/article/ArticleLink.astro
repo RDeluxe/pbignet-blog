@@ -1,0 +1,20 @@
+---
+/* eslint-disable style/eol-last -- le markup finit le fichier sans saut de ligne : Astro émettrait
+   sinon un espace après le mot, et « mot , » casserait la ponctuation */
+/**
+ * ArticleLink — le nœud `link` de Markdoc, pour tout article.
+ *
+ * Un lien ordinaire reste un `<a>`. La cible réservée `a-venir` (`[zone de confiance](a-venir)`)
+ * marque un mot qui renvoie à un article pas encore écrit : elle rend `ComingSoon`.
+ */
+import ComingSoon from './ComingSoon.astro'
+
+interface Props {
+  href: string
+  title?: string
+}
+
+const { href, title } = Astro.props
+const comingSoon = href === 'a-venir'
+---
+{comingSoon ? <ComingSoon><slot /></ComingSoon> : <a href={href} title={title}><slot /></a>}

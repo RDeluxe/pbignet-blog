@@ -1,0 +1,36 @@
+---
+/**
+ * Preview du lien à venir — un mot qui renvoie à un article pas encore écrit.
+ * Dans un article, l'écriture est `[zone de confiance](a-venir)` ; cette page monte le
+ * composant à la main pour le juger au survol, au focus clavier (Tab) et au tap.
+ * Page `ds/`, `noindex`, absente du build de prod.
+ */
+import ComingSoon from '../../components/article/ComingSoon.astro'
+import Prose from '../../components/primitives/Prose.astro'
+import Section from '../../components/primitives/Section.astro'
+import MonoLabel from '../../components/print/MonoLabel.astro'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+---
+
+<BaseLayout title="Lien à venir — exhale DS" noindex ink="sepia">
+  <Section as="header" rhythm="none">
+    <MonoLabel>DS · Article · Lien à venir</MonoLabel>
+  </Section>
+
+  <Section>
+    <Prose>
+      <p>
+        Au milieu d’une phrase, un mot comme <ComingSoon>zone de confiance</ComingSoon> pointe vers
+        un article qui n’existe pas encore. Il est souligné en pointillés, là où un
+        <a href="/writing">vrai lien</a> l’est en plein. Survole-le, tabule jusqu’à lui, ou touche-le.
+      </p>
+      <p>
+        Le cas du bord : un mot tout au bout de la ligne, comme
+        <ComingSoon>l’attention</ComingSoon>, ou collé à gauche.
+      </p>
+      <p style="text-align: right">
+        Collé à droite, pour l’étiquette qui doit rester dans l’écran : <ComingSoon>sécurité psychologique</ComingSoon>
+      </p>
+    </Prose>
+  </Section>
+</BaseLayout>
