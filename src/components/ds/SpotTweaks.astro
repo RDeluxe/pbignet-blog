@@ -51,6 +51,20 @@ for (const post of await getCollection('writing')) {
     },
   })
 }
+
+/* Save (dev only): every post a recipe can be written into, with what the editor needs to
+   pick the right one and to know whether a translation shares the cover */
+const posts = import.meta.env.DEV
+  ? (await getCollection('writing'))
+      .map(post => ({
+        slug: post.id,
+        lang: post.data.lang,
+        translation: post.data.translation,
+        src: post.data.cover?.src,
+        hasAlt: Boolean(post.data.cover?.alt),
+      }))
+      .sort((a, b) => a.slug.localeCompare(b.slug))
+  : []
 ---
 
 <aside class="tw-panel tw-hidden" id="tw-panel" aria-label="Tweak panel" data-covers={JSON.stringify([...covers.values()])}>
@@ -67,6 +81,27 @@ for (const post of await getCollection('writing')) {
     <summary>Recipe</summary>
     <textarea id="tw-recipe" readonly spellcheck="false" aria-label="Recipe for HeroPopColor"></textarea>
   </details>
+
+  {import.meta.env.DEV && (
+    <section class="tw-save" id="tw-save" data-posts={JSON.stringify(posts)} aria-label="Save the recipe into a post">
+      <label class="tw-save-row">
+        <span>Article</span>
+        <select id="tw-save-post"></select>
+      </label>
+      <label class="tw-save-row" id="tw-save-both-row" hidden>
+        <input type="checkbox" id="tw-save-both" checked />
+        <span id="tw-save-both-label">+ traduction</span>
+      </label>
+      <label class="tw-save-row" id="tw-save-alt-row" hidden>
+        <span>Alt</span>
+        <input type="text" id="tw-save-alt" placeholder="Ce que montre la photo" />
+      </label>
+      <div class="tw-save-row">
+        <p class="tw-save-msg" id="tw-save-msg" role="status"></p>
+        <button id="tw-save-btn" class="tw-copy" type="button">Enregistrer</button>
+      </div>
+    </section>
+  )}
 
   <footer class="tw-foot">
     <span><kbd>T</kbd><kbd>R</kbd></span>
@@ -88,6 +123,7 @@ for (const post of await getCollection('writing')) {
 
 <script>
   import type { SpotGround, SpotHeroHandle, SpotHeroOptions, SpotMask } from '../../lib/spot-hero'
+  import { traceZone } from '../../lib/spot-hero'
   import { Topo } from '../../scripts/texture'
 
   type Rgb = [number, number, number]
@@ -149,8 +185,8 @@ for (const post of await getCollection('writing')) {
 
   /** a zone in the editor: `off` keeps it in the list but out of the render and the recipe */
   type EdZone = SpotMask & { off?: boolean }
-  /** idle, drawing a new zone, or moving the points of zone `i` */
-  type Tool = { kind: 'idle' } | { kind: 'draw' } | { kind: 'edit', i: number }
+  /** idle, drawing a new zone, picking one by colour, or moving the points of zone `i` */
+  type Tool = { kind: 'idle' } | { kind: 'draw' } | { kind: 'wand' } | { kind: 'edit', i: number }
 
   const HUES = ['#c8321e', '#d2691e', '#d9a521', '#3f8f3a', '#1f8a7a', '#2f6fd0', '#7a5ae0', '#c0398f']
   const GROUNDS: Duo[] = [
@@ -193,7 +229,7 @@ for (const post of await getCollection('writing')) {
 
   const hero = document.querySelector<HTMLElement & { spotHero?: SpotHeroHandle }>('.post-hero')
   const heroImg = hero?.querySelector<HTMLImageElement>('img.dsrc') ?? null
-  const ZONE_HELP = '« + Nouvelle zone », puis clique sur la photo pour poser ses points. Dans la liste : la case active ou désactive une zone, le menu choisit son type (In / Out règlent la couleur, Photo garde la photo nette, Dither lui donne sa trame), Éditer : glisse un point pour le déplacer, clique sur un bord pour ajouter un point, double-clique sur un point pour le retirer ; × supprime la zone.'
+  const ZONE_HELP = '« + Nouvelle zone », puis clique sur la photo pour poser ses points ; ou « Baguette », puis clique sur une couleur : la zone de cette couleur s\'ajoute, la tolérance règle jusqu\'où elle s\'étend. Dans la liste : la case active ou désactive une zone, le menu choisit son type (In / Out règlent la couleur, Photo garde la photo nette, Dither lui donne sa trame), Arrondi passe le contour en courbe par les mêmes points, Éditer : glisse un point pour le déplacer, clique sur un bord pour ajouter un point, double-clique sur un point pour le retirer ; × supprime la zone.'
   const fade = hero?.nextElementSibling instanceof HTMLElement && hero.nextElementSibling.classList.contains('hero-fade')
     ? hero.nextElementSibling
     : null
@@ -220,13 +256,12 @@ for (const post of await getCollection('writing')) {
     const r: CoverRecipe = JSON.parse(hero?.dataset.recipe ?? '{}')
     return stateFromRecipe(r, initialName, {
       title: hero?.querySelector('.ph-word')?.textContent?.trim() ?? 'Title',
-      titleX: 4,
       titleY: 11,
       titleInk: hero?.dataset.titleInk === 'dark' ? 'dark' : 'light',
     })
   }
 
-  function stateFromRecipe(r: CoverRecipe, name: string, type: Pick<TweakState, 'title' | 'titleX' | 'titleY' | 'titleInk'>): TweakState {
+  function stateFromRecipe(r: CoverRecipe, name: string, type: Pick<TweakState, 'title' | 'titleY' | 'titleInk'>): TweakState {
     return {
       mode: r.pop === false ? 'none' : r.invert ? 'invert' : 'pop',
       keep: r.keepSharp ? 'sharp' : 'dither',
@@ -253,7 +288,7 @@ for (const post of await getCollection('writing')) {
       focalX: Math.round((r.focalX ?? 0.5) * 100),
       focalY: Math.round((r.focalY ?? 0.5) * 100),
       title: r.title ?? type.title,
-      titleX: pct(r.titleX, type.titleX),
+      titleX: pct(r.titleX, 4),
       titleY: pct(r.titleY, type.titleY),
       titleYMobile: pct(r.titleYMobile, pct(r.titleY, type.titleY)),
       titleInk: r.titleInk ?? type.titleInk,
@@ -377,6 +412,14 @@ for (const post of await getCollection('writing')) {
      (édition de zone, changement de photo) */
   let masksDirty = true
   let draft: [number, number][] = []
+  /* the wand: its tolerance (a Lab distance), its last message, its last zone, the photo's colours */
+  let wandTol = 18
+  let wandMsg = ''
+  /** a click of the wand: a plain or Maj click adds its region, an Alt click cuts it */
+  interface WandClick { at: [number, number], op: 'add' | 'cut' }
+  /** the clicks that made the last wand zone: moving the tolerance redoes them all while the zone is untouched */
+  let lastWand: { clicks: WandClick[], made: string } | null = null
+  let wandPx: { src: string, w: number, h: number, lab: Float32Array } | null = null
   let tool: Tool = { kind: 'idle' }
   /** the point of the edited zone being dragged */
   let drag: number | null = null
@@ -460,63 +503,101 @@ for (const post of await getCollection('writing')) {
     return Number.isInteger(v) ? String(v) : String(Number.parseFloat(v.toFixed(3)))
   }
 
-  function maskSnippet(m: SpotMask): string {
-    const screen = m.mode === 'dither'
-      ? [
-          ...(Array.isArray(m.ink) ? [`ink: [${m.ink.join(', ')}]`] : []),
-          ...(Array.isArray(m.paper) ? [`paper: [${m.paper.join(', ')}]`] : []),
-          ...(m.contrast != null ? [`contrast: ${num(m.contrast)}`] : []),
-          ...(m.brightness != null ? [`brightness: ${num(m.brightness)}`] : []),
-          ...(m.cell != null ? [`cell: ${num(m.cell)}`] : []),
-        ].map(f => `, ${f}`).join('')
-      : ''
-    return `    { mode: '${m.mode}'${screen}, pts: [${m.pts.map(p => `[${num(p[0])}, ${num(p[1])}]`).join(', ')}] },`
+  type Value = string | number | boolean | number[] | number[][]
+  interface RecipeOut {
+    spot: Record<string, Value | Record<string, Value>[]>
+    word: string
+    titleX: string
+    titleY: string
+    titleYMobile: string
+    titleInk: string
+    height: string
+    focal: { x: number, y: number }
+  }
+
+  /* one recipe, two outputs: the Copy snippet prints it, Save writes it into the post */
+  function maskOut(m: SpotMask): Record<string, Value> {
+    return {
+      mode: m.mode,
+      ...(m.mode === 'dither'
+        ? {
+            ...(Array.isArray(m.ink) ? { ink: m.ink } : {}),
+            ...(Array.isArray(m.paper) ? { paper: m.paper } : {}),
+            ...(m.contrast != null ? { contrast: +num(m.contrast) } : {}),
+            ...(m.brightness != null ? { brightness: +num(m.brightness) } : {}),
+            ...(m.cell != null ? { cell: +num(m.cell) } : {}),
+          }
+        : {}),
+      ...(m.curve ? { curve: true } : {}),
+      pts: m.pts.map(p => [+num(p[0]), +num(p[1])]),
+    }
+  }
+
+  function recipeOf(s: TweakState): RecipeOut {
+    const masks = liveMasks(s)
+    return {
+      spot: {
+        keepColor: s.keepColor,
+        ink: hexToRgb(s.ground[0]),
+        paper: hexToRgb(s.ground[1]),
+        cell: +num(s.cell),
+        contrast: +num(s.contrast),
+        brightness: +num(s.brightness),
+        // under reduced motion the editor shows no boil: a 0 there is not a choice, the file keeps its own
+        ...(REDUCED && !s.shimmer ? {} : { boil: +num(s.shimmer) }),
+        ...(s.hueMode
+          ? { hueMode: true, hueTol: +num(s.hueTol), hueSoft: +num(s.hueSoft), satMin: +num(s.satMin), satSoft: +num(s.satSoft) }
+          : { hueLo: +num(s.threshold), hueSpan: +num(s.softness) }),
+        satBoost: +num(s.pop),
+        ...(s.mode === 'invert' ? { invert: true } : {}),
+        ...(s.mode === 'none' ? { pop: false } : {}),
+        ...(s.keep === 'sharp' ? { keepSharp: true } : {}),
+        ...(s.groundKind !== 'flat' ? { ground: s.groundKind } : {}),
+        ...(s.groundKind === 'photo'
+          ? { groundMix: +num(s.groundMix), groundSat: +num(s.groundSat), groundLift: +num(s.groundLift) }
+          : {}),
+        ...(masks.length ? { masks: masks.map(maskOut) } : {}),
+      },
+      word: s.title,
+      titleX: `${s.titleX}%`,
+      titleY: `${s.titleY}%`,
+      titleYMobile: `${s.titleYMobile}%`,
+      titleInk: s.titleInk,
+      height: `${s.coverH}vh`,
+      focal: { x: +num(s.focalX / 100), y: +num(s.focalY / 100) },
+    }
+  }
+
+  function lit(v: Value): string {
+    if (typeof v === 'string')
+      return `'${v}'`
+    if (Array.isArray(v))
+      return `[${v.map(x => lit(x as Value)).join(', ')}]`
+    return typeof v === 'number' ? num(v) : String(v)
   }
 
   function recipeSnippet(s: TweakState): string {
-    const ink = hexToRgb(s.ground[0])
-    const paper = hexToRgb(s.ground[1])
+    const r = recipeOf(s)
+    const { masks, ...spot } = r.spot
+    const zones = (masks ?? []) as Record<string, Value>[]
     return [
       'spot={{',
-      `  keepColor: '${s.keepColor}',`,
-      `  ink: [${ink.join(', ')}],`,
-      `  paper: [${paper.join(', ')}],`,
-      `  cell: ${num(s.cell)},`,
-      `  contrast: ${num(s.contrast)},`,
-      `  brightness: ${num(s.brightness)},`,
-      `  boil: ${num(s.shimmer)},`,
-      ...(s.hueMode
-        ? [
-            '  hueMode: true,',
-            `  hueTol: ${num(s.hueTol)},`,
-            `  hueSoft: ${num(s.hueSoft)},`,
-            `  satMin: ${num(s.satMin)},`,
-            `  satSoft: ${num(s.satSoft)},`,
-          ]
-        : [`  hueLo: ${num(s.threshold)},`, `  hueSpan: ${num(s.softness)},`]),
-      `  satBoost: ${num(s.pop)},`,
-      ...(s.mode === 'invert' ? ['  invert: true,'] : []),
-      ...(s.mode === 'none' ? ['  pop: false,'] : []),
-      ...(s.keep === 'sharp' ? ['  keepSharp: true,'] : []),
-      ...(s.groundKind !== 'flat' ? [`  ground: '${s.groundKind}',`] : []),
-      ...(s.groundKind === 'photo'
-        ? [`  groundMix: ${num(s.groundMix)},`, `  groundSat: ${num(s.groundSat)},`, `  groundLift: ${num(s.groundLift)},`]
-        : []),
-      ...(liveMasks(s).length
+      ...Object.entries(spot).map(([k, v]) => `  ${k}: ${lit(v as Value)},`),
+      ...(zones.length
         ? [
             '  masks: [',
-            ...liveMasks(s).map(maskSnippet),
+            ...zones.map(m => `    { ${Object.entries(m).map(([k, v]) => `${k}: ${lit(v)}`).join(', ')} },`),
             '  ],',
           ]
         : []),
       '}}',
-      `title="${s.title}"`,
-      ...(s.titleX !== 4 ? [`titleX="${s.titleX}%"`] : []),
-      `titleY="${s.titleY}%"`,
-      `titleYMobile="${s.titleYMobile}%"`,
-      `titleInk="${s.titleInk}"`,
-      `height="${s.coverH}vh"`,
-      `focal={{ x: ${num(s.focalX / 100)}, y: ${num(s.focalY / 100)} }}`,
+      `title="${r.word}"`,
+      `titleX="${r.titleX}"`,
+      `titleY="${r.titleY}"`,
+      `titleYMobile="${r.titleYMobile}"`,
+      `titleInk="${r.titleInk}"`,
+      `height="${r.height}"`,
+      `focal={{ x: ${num(r.focal.x)}, y: ${num(r.focal.y)} }}`,
       '',
       '// contraste du titre ≥3:1 MESURÉ (PIPELINE §4.6b).',
     ].join('\n')
@@ -560,6 +641,13 @@ for (const post of await getCollection('writing')) {
         const key = String(v)
         host.querySelectorAll('button').forEach(b =>
           b.setAttribute('aria-pressed', b.dataset.val === key ? 'true' : 'false'))
+        if (knob.type === 'duo') {
+          document.querySelectorAll<HTMLInputElement>(`#k-${knob.k}-pick input`).forEach((inp) => {
+            const hex = (v as Duo)[Number(inp.dataset.side)]
+            if (document.activeElement !== inp && inp.value !== hex)
+              inp.value = hex
+          })
+        }
       }
       else if (knob.type === 'seg') {
         host.querySelectorAll('button').forEach(b =>
@@ -628,9 +716,12 @@ for (const post of await getCollection('writing')) {
     heroImg.alt = `Source photograph: ${name}`
     masksDirty = true
     draft = []
+    // the engine takes this photo's zones (none, for a new one), never the previous photo's
+    apply(state)
     paintPresets()
     status()
     syncPhone()
+    syncSave()
   }
 
   function loadFile(file: File | null | undefined) {
@@ -665,8 +756,6 @@ for (const post of await getCollection('writing')) {
       save(state)
     }
     setImage(p.src, loadedName)
-    if (saved || p.recipe)
-      apply(state)
   }
 
   function paintPresets() {
@@ -776,6 +865,9 @@ for (const post of await getCollection('writing')) {
           grid.appendChild(b)
         }
         row.appendChild(grid)
+        const picks = colorPair(knob.label, state[knob.k] as Duo, p => commit(knob.k, p as never), true)
+        picks.id = `k-${knob.k}-pick`
+        row.appendChild(picks)
       }
       else if (knob.type === 'image') {
         const pick = document.createElement('label')
@@ -825,8 +917,36 @@ for (const post of await getCollection('writing')) {
         add.id = 'k-zonenew'
         add.textContent = '+ Nouvelle zone'
         add.addEventListener('click', () => setTool(tool.kind === 'draw' ? { kind: 'idle' } : { kind: 'draw' }))
-        seg.appendChild(add)
+        const wand = document.createElement('button')
+        wand.type = 'button'
+        wand.id = 'k-zonewand'
+        wand.textContent = 'Baguette'
+        wand.title = 'Clique sur la photo : une zone de la même couleur · Maj+clic ajoute à la dernière, Alt+clic en retire'
+        wand.addEventListener('click', () => setTool(tool.kind === 'wand' ? { kind: 'idle' } : { kind: 'wand' }))
+        seg.append(add, wand)
         row.appendChild(seg)
+        const tol = document.createElement('label')
+        tol.className = 'tw-zonerange'
+        tol.id = 'k-wandtol-row'
+        const tolTxt = document.createElement('span')
+        tolTxt.textContent = `Tolérance ${wandTol}`
+        const tolIn = document.createElement('input')
+        tolIn.type = 'range'
+        tolIn.className = 'tw-range'
+        tolIn.id = 'k-wandtol'
+        tolIn.min = '4'
+        tolIn.max = '60'
+        tolIn.step = '1'
+        tolIn.value = String(wandTol)
+        tolIn.setAttribute('aria-label', 'Tolérance de la baguette')
+        tolIn.addEventListener('input', () => {
+          wandTol = Number(tolIn.value)
+          tolTxt.textContent = `Tolérance ${wandTol}`
+        })
+        tolIn.addEventListener('change', () => void rewand())
+        tol.style.display = 'none'
+        tol.append(tolTxt, tolIn)
+        row.appendChild(tol)
         const hint = document.createElement('p')
         hint.className = 'tw-hint'
         hint.id = 'k-zonehint'
@@ -916,6 +1036,18 @@ for (const post of await getCollection('writing')) {
     return el
   }
 
+  /** a zone's outline as an SVG path, traced by the engine's own `traceZone` */
+  function zoneD(pts: [number, number][], curve?: boolean): string {
+    const d: string[] = []
+    traceZone({
+      moveTo: (x, y) => d.push(`M${x} ${y}`),
+      lineTo: (x, y) => d.push(`L${x} ${y}`),
+      bezierCurveTo: (a, b, c, e, x, y) => d.push(`C${a} ${b} ${c} ${e} ${x} ${y}`),
+      closePath: () => d.push('Z'),
+    }, pts, curve)
+    return d.join('')
+  }
+
   /* l'overlay ne montre que le contour : le remplissage reste léger pour voir le rendu */
   const ZONE_STYLE: Record<SpotMask['mode'], Record<string, string>> = {
     in: { 'fill': 'rgba(196, 106, 62, 0.28)', 'stroke': '#c46a3e', 'stroke-width': '2' },
@@ -930,12 +1062,18 @@ for (const post of await getCollection('writing')) {
     drawOverlay()
   }
 
-  /* while drawing or editing, the cover shows the source photo without its screen, framed like the engine */
+  /*
+   * while drawing or editing, the cover shows the source photo without its screen (the engine
+   * already frames the img like its canvas). Back from it, the img is hidden again where the
+   * engine hides it: a transparent ground with no hole in the canvas.
+   */
   function showRawPhoto(raw: boolean) {
     for (const c of hero?.querySelectorAll<HTMLCanvasElement>('canvas.dither-canvas, canvas.topo-on') ?? [])
       c.style.visibility = raw ? 'hidden' : ''
-    if (heroImg)
-      heroImg.style.objectPosition = raw ? `${state.focalX}% ${state.focalY}%` : ''
+    if (!heroImg)
+      return
+    const holes = state.keep === 'sharp' || liveMasks(state).some(m => m.mode === 'photo')
+    heroImg.style.visibility = !raw && state.groundKind === 'transparent' && !holes ? 'hidden' : ''
   }
 
   function drawOverlay() {
@@ -952,10 +1090,10 @@ for (const post of await getCollection('writing')) {
     currentMasks(state).forEach((m, i) => {
       if (!busy && i !== hoverZone)
         return
-      const pts = m.pts.map(p => toFrame(f, p).join(',')).join(' ')
+      const d = zoneD(m.pts.map(p => toFrame(f, p)), m.curve)
       const hot = i === hoverZone || i === editing ? { 'fill': 'rgba(255, 255, 255, 0.35)', 'stroke-width': '4' } : {}
       const dim = m.off && i !== editing ? { opacity: '0.4' } : {}
-      overlay.appendChild(svgEl('polygon', { points: pts, ...ZONE_STYLE[m.mode], ...hot, ...dim }))
+      overlay.appendChild(svgEl('path', { d, ...ZONE_STYLE[m.mode], ...hot, ...dim }))
     })
     if (editing !== null && hoverSeg !== null) {
       const pts = currentMasks(state)[editing]?.pts ?? []
@@ -981,7 +1119,7 @@ for (const post of await getCollection('writing')) {
 
   /** a zone of another type: a dither zone gets a default screen, the others keep only their points */
   function retype(m: EdZone, mode: SpotMask['mode']): EdZone {
-    const base = { mode, pts: m.pts, ...(m.off ? { off: true } : {}) }
+    const base = { mode, pts: m.pts, ...(m.curve ? { curve: true } : {}), ...(m.off ? { off: true } : {}) }
     if (mode !== 'dither')
       return base
     const [ink, paper] = ZONE_DUOS[0]
@@ -991,13 +1129,19 @@ for (const post of await getCollection('writing')) {
   function paintZones(s: TweakState) {
     const add = document.getElementById('k-zonenew')
     add?.setAttribute('aria-pressed', String(tool.kind === 'draw'))
+    document.getElementById('k-zonewand')?.setAttribute('aria-pressed', String(tool.kind === 'wand'))
+    const tolRow = document.getElementById('k-wandtol-row')
+    if (tolRow)
+      tolRow.style.display = tool.kind === 'wand' ? '' : 'none'
     const hint = document.getElementById('k-zonehint')
     if (hint) {
       hint.textContent = tool.kind === 'draw'
         ? 'Nouvelle zone : clique pour poser les points · Entrée ou clic sur le premier point ferme · Retour arrière enlève un point · Échap annule'
-        : tool.kind === 'edit'
-          ? `Zone ${tool.i + 1} : glisse un point · clic sur un bord = nouveau point · double-clic sur un point = le retirer (3 au moins) · OK ou Échap termine`
-          : ''
+        : tool.kind === 'wand'
+          ? wandMsg || 'Baguette : clique sur la photo, une zone de la même couleur s\'ajoute · Maj+clic ajoute à la dernière zone, Alt+clic en retire · la tolérance la refait · Échap termine'
+          : tool.kind === 'edit'
+            ? `Zone ${tool.i + 1} : glisse un point · clic sur un bord = nouveau point · double-clic sur un point = le retirer (3 au moins) · OK ou Échap termine`
+            : ''
       hint.hidden = tool.kind === 'idle'
     }
     const list = document.getElementById('k-zonelist')
@@ -1033,6 +1177,14 @@ for (const post of await getCollection('writing')) {
       edit.setAttribute('aria-pressed', String(editing))
       edit.addEventListener('click', () => setTool(editing ? { kind: 'idle' } : { kind: 'edit', i }))
 
+      const round = document.createElement('button')
+      round.type = 'button'
+      round.textContent = 'Arrondi'
+      round.title = 'Contour arrondi : une courbe qui passe par les points'
+      round.setAttribute('aria-pressed', String(!!m.curve))
+      round.setAttribute('aria-label', `Zone ${i + 1} rounded`)
+      round.addEventListener('click', () => editMasks(ms.map((z, j) => j === i ? { ...z, curve: !z.curve || undefined } : z)))
+
       const del = document.createElement('button')
       del.type = 'button'
       del.textContent = '×'
@@ -1043,11 +1195,34 @@ for (const post of await getCollection('writing')) {
           tool = { kind: 'idle' }
         editMasks(ms.filter((_, j) => j !== i))
       })
-      item.append(on, name, type, edit, del)
+      item.append(on, name, type, round, edit, del)
       list.appendChild(item)
       if (m.mode === 'dither')
         list.appendChild(zoneScreen(s, ms, i))
     })
+  }
+
+  /* Free colours: ink and paper picked by hand, past the presets. Only a pick changes
+     anything: a recipe that was never touched keeps its values. `live` repaints while
+     the picker moves; otherwise the pick lands when it closes (a zone's list is rebuilt
+     on each change, which would close the picker under the cursor). */
+  function colorPair(label: string, pair: Duo, pick: (pair: Duo) => void, live: boolean): HTMLElement {
+    const row = document.createElement('div')
+    row.className = 'tw-pick'
+    ;(['Encre', 'Papier'] as const).forEach((name, i) => {
+      const l = document.createElement('label')
+      const inp = document.createElement('input')
+      inp.type = 'color'
+      inp.value = pair[i]
+      inp.dataset.side = String(i)
+      inp.setAttribute('aria-label', `${label} ${name.toLowerCase()}`)
+      // the pair is read from both inputs at pick time: the panel keeps them in step with the state
+      inp.addEventListener(live ? 'input' : 'change', () =>
+        pick([...row.querySelectorAll('input')].map(x => x.value) as Duo))
+      l.append(inp, name)
+      row.appendChild(l)
+    })
+    return row
   }
 
   /** the controls of a `dither` zone's own screen; unset fields read the global ones */
@@ -1073,6 +1248,7 @@ for (const post of await getCollection('writing')) {
       duo.appendChild(b)
     }
     box.appendChild(duo)
+    box.appendChild(colorPair(`Zone ${i + 1}`, cur.split(',') as Duo, p => set({ ink: hexToRgb(p[0]), paper: hexToRgb(p[1]) }), false))
 
     const ranges: [keyof SpotMask & ('contrast' | 'brightness' | 'cell'), string, number, number, number, number][] = [
       ['contrast', 'Contrast', 0.8, 2.4, 0.02, s.contrast],
@@ -1113,6 +1289,7 @@ for (const post of await getCollection('writing')) {
 
   function setTool(t: Tool) {
     tool = t
+    wandMsg = ''
     draft = []
     cursor = null
     drag = null
@@ -1137,6 +1314,375 @@ for (const post of await getCollection('writing')) {
       return
     }
     drawOverlay()
+  }
+
+  /* ---- baguette : une zone par couleur ----
+     Le clic remplit, sur la photo source réduite, les pixels voisins de couleur proche :
+     écart Lab (celui que l'œil voit) à la couleur cliquée ≤ tolérance, et jamais à travers
+     un bord net (un saut fort entre deux voisins). Maj+clic ajoute une région à la dernière
+     zone, Alt+clic en retire une ; leur contour extérieur, simplifié, devient une zone Photo
+     ordinaire, à éditer comme les autres. */
+  /* coarse on purpose: a zone is a broad shape, and grain at this size is only noise */
+  const WAND_SIDE = 360
+  /** px of the clean-up: thinner bridges and spikes are cut, smaller gaps closed */
+  const WAND_CLEAN = 2
+  const WAND_MAX_PTS = 80
+  /** a step between neighbours sharper than this share of the tolerance is an edge the fill does not cross */
+  const WAND_EDGE = 1 / 3
+
+  async function wandPixels() {
+    const src = heroImg?.currentSrc || heroImg?.src
+    if (!heroImg || !src)
+      return null
+    if (wandPx?.src === src)
+      return wandPx
+    await heroImg.decode().catch(() => {})
+    const k = Math.min(1, WAND_SIDE / Math.max(heroImg.naturalWidth, heroImg.naturalHeight))
+    const w = Math.max(1, Math.round(heroImg.naturalWidth * k))
+    const h = Math.max(1, Math.round(heroImg.naturalHeight * k))
+    const c = document.createElement('canvas')
+    c.width = w
+    c.height = h
+    const g = c.getContext('2d', { willReadFrequently: true })
+    if (!g)
+      return null
+    g.drawImage(heroImg, 0, 0, w, h)
+    let data: Uint8ClampedArray
+    try {
+      data = g.getImageData(0, 0, w, h).data
+    }
+    catch {
+      // a photo from another origin (or a file:// page) cannot be read
+      return null
+    }
+    wandPx = { src, w, h, lab: toLab(blur(data, w, h)) }
+    return wandPx
+  }
+
+  /** sRGB pixels to CIE Lab (D65), three floats a pixel */
+  function toLab(px: Uint8ClampedArray): Float32Array {
+    const out = new Float32Array(px.length / 4 * 3)
+    const lin = (c: number) => c / 255 <= 0.04045 ? c / 255 / 12.92 : ((c / 255 + 0.055) / 1.055) ** 2.4
+    const f = (t: number) => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116
+    for (let k = 0; k < px.length / 4; k++) {
+      const r = lin(px[k * 4])
+      const g = lin(px[k * 4 + 1])
+      const b = lin(px[k * 4 + 2])
+      const fx = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047)
+      const fy = f(0.2126 * r + 0.7152 * g + 0.0722 * b)
+      const fz = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883)
+      out[k * 3] = 116 * fy - 16
+      out[k * 3 + 1] = 500 * (fx - fy)
+      out[k * 3 + 2] = 200 * (fy - fz)
+    }
+    return out
+  }
+
+  /** a 3×3 box blur of RGBA pixels: the colour compared is the area's, not the grain's */
+  function blur(src: Uint8ClampedArray, w: number, h: number): Uint8ClampedArray {
+    const out = new Uint8ClampedArray(src.length)
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        for (let c = 0; c < 3; c++) {
+          let sum = 0
+          let n = 0
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const xx = x + dx
+              const yy = y + dy
+              if (xx >= 0 && yy >= 0 && xx < w && yy < h) {
+                sum += src[(yy * w + xx) * 4 + c]
+                n++
+              }
+            }
+          }
+          out[(y * w + x) * 4 + c] = sum / n
+        }
+        out[(y * w + x) * 4 + 3] = 255
+      }
+    }
+    return out
+  }
+
+  /** one 3×3 step of dilation (`grow`) or erosion of a binary mask; past the image edge counts as inside, so a region on the edge keeps it */
+  function morph(m: Uint8Array, w: number, h: number, grow: boolean): Uint8Array {
+    const out = new Uint8Array(m.length)
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        let hit = !grow
+        for (let dy = -1; dy <= 1 && hit !== grow; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const xx = x + dx
+            const yy = y + dy
+            const v = xx >= 0 && yy >= 0 && xx < w && yy < h ? m[yy * w + xx] : (grow ? 0 : 1)
+            if (grow ? v : !v) {
+              hit = grow
+              break
+            }
+          }
+        }
+        out[y * w + x] = hit ? 1 : 0
+      }
+    }
+    return out
+  }
+
+  /** the pixels of `m` connected to `seed` (4-neighbours) */
+  function connected(m: Uint8Array, w: number, h: number, seed: number): Uint8Array {
+    const out = new Uint8Array(m.length)
+    if (!m[seed])
+      return out
+    const stack = [seed]
+    out[seed] = 1
+    while (stack.length) {
+      const k = stack.pop()!
+      const x = k % w
+      for (const n of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, k - w, k + w]) {
+        if (n >= 0 && n < w * h && m[n] && !out[n]) {
+          out[n] = 1
+          stack.push(n)
+        }
+      }
+    }
+    return out
+  }
+
+  /** the region cleaned: gaps closed, then thin bridges and spikes cut, the piece under the click kept */
+  function cleanRegion(m: Uint8Array, w: number, h: number, seed: number): Uint8Array {
+    let r = m
+    for (let i = 0; i < WAND_CLEAN; i++)
+      r = morph(r, w, h, true)
+    for (let i = 0; i < 2 * WAND_CLEAN; i++)
+      r = morph(r, w, h, false)
+    for (let i = 0; i < WAND_CLEAN; i++)
+      r = morph(r, w, h, true)
+    const kept = connected(r, w, h, seed)
+    return kept.includes(1) ? kept : connected(m, w, h, seed) // a region thinner than the clean-up: kept as it was found
+  }
+
+  /** the region with its holes filled (the empty pixels the border cannot reach): the outline only follows the outside */
+  function fillHoles(kept: Uint8Array, w: number, h: number): Uint8Array {
+    const outside = new Uint8Array(kept.length)
+    const stack: number[] = []
+    for (let k = 0; k < w * h; k++) {
+      const x = k % w
+      const y = (k - x) / w
+      if ((x === 0 || y === 0 || x === w - 1 || y === h - 1) && !kept[k]) {
+        outside[k] = 1
+        stack.push(k)
+      }
+    }
+    while (stack.length) {
+      const k = stack.pop()!
+      const x = k % w
+      for (const n of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, k - w, k + w]) {
+        if (n >= 0 && n < w * h && !kept[n] && !outside[n]) {
+          outside[n] = 1
+          stack.push(n)
+        }
+      }
+    }
+    return outside.map(v => v ? 0 : 1)
+  }
+
+  /** the connected pixels within `tol` of the seed's colour, never across a step sharper than an edge */
+  function floodFill(px: NonNullable<typeof wandPx>, seed: number, tol: number): Uint8Array {
+    const { w, h, lab } = px
+    const inside = new Uint8Array(w * h)
+    const step = tol * WAND_EDGE
+    const dist = (i: number, j: number) => Math.hypot(lab[i * 3] - lab[j * 3], lab[i * 3 + 1] - lab[j * 3 + 1], lab[i * 3 + 2] - lab[j * 3 + 2])
+    const stack = [seed]
+    inside[seed] = 1
+    while (stack.length) {
+      const k = stack.pop()!
+      const x = k % w
+      for (const n of [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, k - w, k + w]) {
+        if (n >= 0 && n < w * h && !inside[n] && dist(n, k) <= step && dist(n, seed) <= tol) {
+          inside[n] = 1
+          stack.push(n)
+        }
+      }
+    }
+    return inside
+  }
+
+  /* the 8 neighbours, clockwise on screen (y down), from the west */
+  const RING: [number, number][] = [[-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1]]
+
+  /** the outer contour of a region (Moore neighbour tracing), as pixel coordinates */
+  function outline(inside: Uint8Array, w: number, h: number): [number, number][] {
+    const at = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h && inside[y * w + x] === 1
+    const first = inside.indexOf(1)
+    if (first < 0)
+      return []
+    const start: [number, number] = [first % w, Math.floor(first / w)]
+    const pts: [number, number][] = [start]
+    let [cx, cy] = start
+    let back = 0 // the west neighbour of the first pixel met in reading order is outside
+    for (let step = 0; step < 4 * w * h; step++) {
+      let next = -1
+      for (let k = 1; k <= 8; k++) {
+        const d = (back + k) % 8
+        if (at(cx + RING[d][0], cy + RING[d][1])) {
+          next = d
+          break
+        }
+      }
+      if (next < 0)
+        return pts // a single pixel
+      const [bx, by] = [cx + RING[(next + 7) % 8][0], cy + RING[(next + 7) % 8][1]]
+      const [nx, ny] = [cx + RING[next][0], cy + RING[next][1]]
+      if (cx === start[0] && cy === start[1] && pts.length > 2 && nx === pts[1][0] && ny === pts[1][1])
+        break
+      cx = nx
+      cy = ny
+      back = RING.findIndex(([dx, dy]) => dx === bx - cx && dy === by - cy)
+      pts.push([cx, cy])
+    }
+    if (pts.length > 1 && pts.at(-1)![0] === start[0] && pts.at(-1)![1] === start[1])
+      pts.pop()
+    return pts
+  }
+
+  /** Douglas-Peucker on an open run of points */
+  function simplify(pts: [number, number][], eps: number): [number, number][] {
+    if (pts.length < 3)
+      return pts
+    const [a, b] = [pts[0], pts.at(-1)!]
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1])
+    let far = 0
+    let farD = -1
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [px, py] = pts[i]
+      const d = len ? Math.abs((b[0] - a[0]) * (a[1] - py) - (a[0] - px) * (b[1] - a[1])) / len : Math.hypot(px - a[0], py - a[1])
+      if (d > farD) {
+        farD = d
+        far = i
+      }
+    }
+    if (farD <= eps)
+      return [a, b]
+    return [...simplify(pts.slice(0, far + 1), eps).slice(0, -1), ...simplify(pts.slice(far), eps)]
+  }
+
+  /** a closed contour simplified to at most WAND_MAX_PTS points, cut at its two farthest-apart ends */
+  function simplifyClosed(pts: [number, number][]): [number, number][] {
+    if (pts.length <= 3)
+      return pts
+    let far = 0
+    pts.forEach((p, i) => {
+      if (Math.hypot(p[0] - pts[0][0], p[1] - pts[0][1]) > Math.hypot(pts[far][0] - pts[0][0], pts[far][1] - pts[0][1]))
+        far = i
+    })
+    for (let eps = 1; ; eps *= 1.5) {
+      const out = [...simplify(pts.slice(0, far + 1), eps).slice(0, -1), ...simplify([...pts.slice(far), pts[0]], eps).slice(0, -1)]
+      if (out.length <= WAND_MAX_PTS || eps > 64)
+        return out
+    }
+  }
+
+  /**
+   * The zone the wand's clicks make (image points, normalised), with a note on what it left out,
+   * or the reason it made none. Each click's region is cleaned on its own, then added or cut;
+   * a zone is one shape, so only the biggest piece is kept, its holes filled.
+   */
+  async function wandZone(clicks: WandClick[]): Promise<{ pts: [number, number][], note: string } | string> {
+    const px = await wandPixels()
+    if (!px)
+      return 'Baguette : la photo n\'est pas lisible.'
+    const { w, h } = px
+    const mask = new Uint8Array(w * h)
+    for (const c of clicks) {
+      const sx = Math.min(w - 1, Math.floor(c.at[0] * w))
+      const sy = Math.min(h - 1, Math.floor(c.at[1] * h))
+      const r = cleanRegion(floodFill(px, sy * w + sx, wandTol), w, h, sy * w + sx)
+      for (let k = 0; k < mask.length; k++) {
+        if (r[k])
+          mask[k] = c.op === 'add' ? 1 : 0
+      }
+    }
+    // the piece of the first click, or the biggest one if that click was cut away
+    const first = clicks[0]
+    const firstK = Math.min(h - 1, Math.floor(first.at[1] * h)) * w + Math.min(w - 1, Math.floor(first.at[0] * w))
+    let best: Uint8Array | null = null
+    let bestN = 0
+    let pieces = 0
+    const seen = new Uint8Array(w * h)
+    for (let k = 0; k < mask.length; k++) {
+      if (!mask[k] || seen[k])
+        continue
+      const piece = connected(mask, w, h, k)
+      let n = 0
+      for (let j = 0; j < piece.length; j++) {
+        if (piece[j]) {
+          seen[j] = 1
+          n++
+        }
+      }
+      pieces++
+      if (n > bestN || piece[firstK]) {
+        if (best && best[firstK])
+          continue
+        best = piece
+        bestN = n
+      }
+    }
+    if (!best)
+      return 'Baguette : il ne reste rien de la zone, elle est gardée telle quelle.'
+    const region = fillHoles(best, w, h)
+    const holed = clicks.some(c => c.op === 'cut') && region.reduce((n, v) => n + v, 0) > bestN
+    const pts = simplifyClosed(outline(region, w, h))
+    if (pts.length < 3)
+      return 'Baguette : zone trop petite, monte la tolérance.'
+    const note = pieces > 1
+      ? 'Baguette : un morceau qui ne touche pas la zone est laissé de côté ; une zone est d\'un seul tenant, fais-en une autre par un clic simple.'
+      : holed ? 'Baguette : un trou au milieu de la zone ne se retire pas, la zone garde son contour extérieur.' : ''
+    return { pts: pts.map(([x, y]) => [+num((x + 0.5) / w), +num((y + 0.5) / h)]), note }
+  }
+
+  /** the last wand zone in the list, if it is still as the wand made it */
+  function lastWandIndex() {
+    return lastWand ? currentMasks(state).findLastIndex(z => JSON.stringify(z.pts) === lastWand!.made) : -1
+  }
+
+  /** a click of the wand: a new zone, or (Maj / Alt) a region added to or cut from the last one */
+  let wandQueue: Promise<void> = Promise.resolve()
+
+  /** clicks run one after another: a Maj or Alt click waits for the zone of the click before it */
+  function wandAt(at: [number, number], op: 'new' | 'add' | 'cut') {
+    wandQueue = wandQueue.then(() => wandClick(at, op), () => wandClick(at, op))
+    return wandQueue
+  }
+
+  async function wandClick(at: [number, number], op: 'new' | 'add' | 'cut') {
+    const i = lastWandIndex()
+    if (op === 'cut' && i < 0) {
+      wandMsg = 'Baguette : Alt+clic retire de la dernière zone faite à la baguette ; il n\'y en a pas (ou elle a été retouchée).'
+      paintZones(state)
+      return
+    }
+    const clicks: WandClick[] = op === 'new' || i < 0 ? [{ at, op: 'add' }] : [...lastWand!.clicks, { at, op }]
+    await makeWand(clicks, op === 'new' || i < 0 ? -1 : i)
+  }
+
+  /** the tolerance moved: the last zone is redone, every click of it, if it is still as the wand made it */
+  async function rewand() {
+    const i = lastWandIndex()
+    if (lastWand && i >= 0)
+      await makeWand(lastWand.clicks, i)
+  }
+
+  /** the zone of these clicks, added to the list (`i` < 0) or in place of zone `i` */
+  async function makeWand(clicks: WandClick[], i: number) {
+    const r = await wandZone(clicks)
+    wandMsg = typeof r === 'string' ? r : r.note
+    if (typeof r === 'string') {
+      paintZones(state)
+      return
+    }
+    lastWand = { clicks, made: JSON.stringify(r.pts) }
+    const ms = currentMasks(state)
+    editMasks(i < 0 ? [...ms, { mode: 'photo', pts: r.pts }] : ms.map((z, j) => j === i ? { ...z, pts: r.pts } : z))
   }
 
   function overlayPoint(e: PointerEvent, f: NonNullable<ReturnType<typeof coverFit>>): [number, number] {
@@ -1178,6 +1724,10 @@ for (const post of await getCollection('writing')) {
     if (document.activeElement instanceof HTMLElement)
       document.activeElement.blur()
     const [x, y] = overlayPoint(e, f)
+    if (tool.kind === 'wand') {
+      void wandAt(toImg(f, x, y), e.altKey ? 'cut' : e.shiftKey ? 'add' : 'new')
+      return
+    }
     if (tool.kind === 'edit') {
       const z = currentMasks(state)[tool.i]
       if (!z)
@@ -1351,6 +1901,133 @@ for (const post of await getCollection('writing')) {
     flash('Select + ⌘C')
   })
 
+  /* ---- Save (dev only): write the recipe into a post's `cover:` block ----
+       The endpoint is the dev server's (scripts/cover-save.mjs); in a build this whole block
+       is dead code and the controls are not rendered. The recipe sent is recipeOf(), the very
+       one Copy prints. A dropped photo can only be saved if the repo has it under the same
+       name in public/photos/source/: the editor never moves a file. */
+  interface SavePost { slug: string, lang: string, translation?: string, src?: string, hasAlt: boolean }
+  const saveBox = import.meta.env.DEV ? document.getElementById('tw-save') : null
+  const savePosts: SavePost[] = JSON.parse(saveBox?.dataset.posts ?? '[]')
+  const REOPEN_KEY = 'tweaks-ds-hero-pop-color.reopen'
+  /** dropped file name → its repo path, or null when the repo does not have it */
+  const repoPhotos = new Map<string, string | null>()
+  let savedFor: string | null = null
+
+  /** the repo path of the photo on screen, `undefined` while a dropped file is being looked up */
+  function photoSrc(): string | null | undefined {
+    if (loadedPreset?.startsWith('/photos/source/'))
+      return loadedPreset
+    if (loadedPreset)
+      return null
+    return repoPhotos.get(loadedName)
+  }
+
+  function syncSave() {
+    if (!saveBox)
+      return
+    const select = document.querySelector<HTMLSelectElement>('#tw-save-post')!
+    const btn = document.querySelector<HTMLButtonElement>('#tw-save-btn')!
+    const msg = document.getElementById('tw-save-msg')!
+    const say = (text: string, bad = false) => {
+      msg.textContent = text
+      if (bad)
+        msg.dataset.tone = 'bad'
+      else
+        delete msg.dataset.tone
+    }
+
+    if (!select.options.length) {
+      select.add(new Option('Choisir l\'article…', ''))
+      for (const p of savePosts)
+        select.add(new Option(`${p.slug} · ${p.lang}`, p.slug))
+    }
+    let src = photoSrc()
+    const looking = src === undefined
+    if (looking) {
+      // a dropped file: is it a photo of the repo, under the same name?
+      const name = loadedName
+      const path = `/photos/source/${name}`
+      repoPhotos.set(name, null)
+      fetch(path, { method: 'HEAD' })
+        .then(r => repoPhotos.set(name, r.ok && (r.headers.get('content-type') ?? '').startsWith('image/') ? path : null))
+        .catch(() => {})
+        .finally(() => {
+          if (loadedName === name)
+            syncSave()
+        })
+      src = null
+    }
+    // a new photo selects the post whose cover it is
+    if (src !== savedFor) {
+      savedFor = src
+      const owner = src ? (savePosts.find(p => p.src === src && p.lang === 'en') ?? savePosts.find(p => p.src === src)) : undefined
+      // no owner: no guess, the post is picked by hand
+      select.value = owner ? owner.slug : ''
+    }
+
+    const post = savePosts.find(p => p.slug === select.value)
+    const other = post?.translation ? savePosts.find(p => p.slug === post.translation) : undefined
+    const both = document.querySelector<HTMLInputElement>('#tw-save-both')!
+    document.getElementById('tw-save-both-row')!.hidden = !other
+    document.getElementById('tw-save-both-label')!.textContent = other ? `+ traduction (${other.slug} · ${other.lang})` : ''
+    const needsAlt = !!post && (!post.hasAlt || (!!other && both.checked && !other.hasAlt))
+    document.getElementById('tw-save-alt-row')!.hidden = !needsAlt
+
+    if (!src) {
+      btn.disabled = true
+      say(!looking
+        ? `Photo hors du repo : ${loadedName} n'est pas dans public/photos/source/. Copie-la là sous ce nom, puis redépose-la ; l'éditeur ne déplace aucun fichier.`
+        : `Recherche de ${loadedName} dans le repo…`, true)
+      return
+    }
+    btn.disabled = !post
+    say(post ? `${src} → cover de ${post.slug}${other && both.checked ? ` et de ${other.slug}` : ''}` : `${src} : choisis l'article où l'écrire.`)
+  }
+
+  if (saveBox) {
+    const select = document.querySelector<HTMLSelectElement>('#tw-save-post')!
+    const both = document.querySelector<HTMLInputElement>('#tw-save-both')!
+    const alt = document.querySelector<HTMLInputElement>('#tw-save-alt')!
+    const btn = document.querySelector<HTMLButtonElement>('#tw-save-btn')!
+    const msg = document.getElementById('tw-save-msg')!
+    select.addEventListener('change', syncSave)
+    both.addEventListener('change', syncSave)
+    btn.addEventListener('click', async () => {
+      const src = photoSrc()
+      const post = savePosts.find(p => p.slug === select.value)
+      if (!src || !post)
+        return
+      const translation = !document.getElementById('tw-save-both-row')!.hidden && both.checked
+      btn.disabled = true
+      msg.textContent = 'Écriture…'
+      delete msg.dataset.tone
+      try {
+        const res = await fetch('/__cover-save', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ slug: post.slug, translation, src, alt: alt.value.trim() || undefined, recipe: recipeOf(state) }),
+        })
+        const data = await res.json() as { files?: string[], error?: string }
+        if (!res.ok || !data.files)
+          throw new Error(data.error ?? `HTTP ${res.status}`)
+          // the file is now the reference: its draft goes, and the editor reopens this photo
+          // if the dev server reloads the page for the content change
+        dropDraft()
+        const done = `Écrit : ${data.files.join(', ')}`
+        sessionStorage.setItem(REOPEN_KEY, JSON.stringify({ src, done, at: Date.now() }))
+        msg.textContent = done
+      }
+      catch (e) {
+        msg.textContent = `Pas écrit : ${e instanceof Error ? e.message : String(e)}`
+        msg.dataset.tone = 'bad'
+      }
+      finally {
+        btn.disabled = false
+      }
+    })
+  }
+
   /* ---- raccourcis ---- */
   addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey)
@@ -1421,6 +2098,27 @@ for (const post of await getCollection('writing')) {
     }
     apply(state)
     status()
+    if (import.meta.env.DEV)
+      reopenSaved()
+  }
+
+  /* after a Save, the dev server reloads the page: the photo that was saved comes back,
+     with the confirmation (kept a few seconds: a content change can reload more than once) */
+  function reopenSaved() {
+    const raw = sessionStorage.getItem(REOPEN_KEY)
+    const saved: { src?: string, done?: string, at?: number } = raw ? JSON.parse(raw) : {}
+    if (!saved.at || Date.now() - saved.at > 10_000) {
+      sessionStorage.removeItem(REOPEN_KEY)
+      syncSave()
+      return
+    }
+    const p = PRESETS.find(x => x.src === saved.src)
+    if (p)
+      loadPreset(p)
+    syncSave()
+    const msg = document.getElementById('tw-save-msg')
+    if (msg && saved.done)
+      msg.textContent = saved.done
   }
   if (hero?.spotHero)
     start()
@@ -1760,6 +2458,54 @@ for (const post of await getCollection('writing')) {
   }
 
   /* pied collant : à 16 réglages le contenu défile — la sortie doit rester atteignable */
+    /* Save (dev only): the article to write into, under the recipe */
+    .tw-save {
+      display: grid;
+      gap: 6px;
+      padding: 10px 16px;
+      border-top: 1px solid var(--line-soft);
+      font-family: var(--mono);
+      font-size: var(--fs-micro);
+      letter-spacing: var(--tr-micro);
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .tw-save-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tw-save-row[hidden] {
+      display: none;
+    }
+    .tw-save select,
+    .tw-save input[type='text'] {
+      flex: 1;
+      min-width: 0;
+      padding: 3px 5px;
+      border: 1px solid var(--line);
+      border-radius: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: inherit;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .tw-save-msg {
+      flex: 1;
+      margin: 0;
+      font-size: 9px;
+      line-height: 1.5;
+      text-transform: none;
+      letter-spacing: 0.04em;
+    }
+    .tw-save-msg[data-tone='bad'] {
+      color: var(--ink);
+    }
+    .tw-save button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
   .tw-foot {
     position: sticky;
     bottom: 0;
@@ -1897,6 +2643,31 @@ for (const post of await getCollection('writing')) {
     font-size: 10px;
   }
 
+  .tw-body :global(.tw-pick) {
+    display: flex;
+    gap: 12px;
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .tw-body :global(.tw-pick label) {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+  }
+  .tw-body :global(.tw-pick input) {
+    width: 22px;
+    height: 16px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    background: none;
+    cursor: pointer;
+  }
   .tw-body :global(.tw-zonerange) {
     display: grid;
     gap: 2px;
@@ -1908,6 +2679,9 @@ for (const post of await getCollection('writing')) {
     cursor: pointer;
     font: inherit;
     padding: 0 4px;
+  }
+  .tw-body :global(.tw-zone button[aria-pressed='true']) {
+    text-decoration: underline;
   }
 
   /* bouton de rappel — la seule trace visible du panneau quand il est replié */

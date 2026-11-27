@@ -39,6 +39,44 @@ export interface SpotMask {
   brightness?: number
   /** px; rounded to a whole multiple of the global `cell` (the zone can only be coarser) */
   cell?: number
+  /** a smooth outline through the points (a closed Catmull-Rom curve) instead of straight edges */
+  curve?: boolean
+}
+
+/** what a zone's outline is drawn with: a canvas context, or the editor's SVG path builder */
+export interface ZonePen {
+  moveTo: (x: number, y: number) => void
+  lineTo: (x: number, y: number) => void
+  bezierCurveTo: (c1x: number, c1y: number, c2x: number, c2y: number, x: number, y: number) => void
+  closePath: () => void
+}
+
+/**
+ * Traces a zone's outline, its points already in pen coordinates. Straight edges by default;
+ * with `curve`, a closed uniform Catmull-Rom curve through every point, as cubic Béziers.
+ * The engine and the editor's overlay both draw through here, so they draw the same shape.
+ */
+export function traceZone(pen: ZonePen, pts: [number, number][], curve = false): void {
+  const n = pts.length
+  if (!curve || n < 3) {
+    pts.forEach(([x, y], j) => j ? pen.lineTo(x, y) : pen.moveTo(x, y))
+    pen.closePath()
+    return
+  }
+  const at = (j: number) => pts[(j + n) % n]
+  pen.moveTo(pts[0][0], pts[0][1])
+  for (let j = 0; j < n; j++) {
+    const [p0, p1, p2, p3] = [at(j - 1), at(j), at(j + 1), at(j + 2)]
+    pen.bezierCurveTo(
+      p1[0] + (p2[0] - p0[0]) / 6,
+      p1[1] + (p2[1] - p0[1]) / 6,
+      p2[0] - (p3[0] - p1[0]) / 6,
+      p2[1] - (p3[1] - p1[1]) / 6,
+      p2[0],
+      p2[1],
+    )
+  }
+  pen.closePath()
 }
 
 /** Ce que devient une cellule « éteinte » du dither (voir `SpotHeroOptions.ground`). */
@@ -367,14 +405,7 @@ export function mount(container: HTMLElement, opts: Partial<SpotHeroOptions> = {
       return
     const path = (m: SpotMask): void => {
       o.beginPath()
-      m.pts.forEach(([px, py], j) => {
-        const gx = fit!.dx + px * fit!.dw
-        const gy = fit!.dy + py * fit!.dh
-        if (j)
-          o.lineTo(gx, gy)
-        else o.moveTo(gx, gy)
-      })
-      o.closePath()
+      traceZone(o, m.pts.map(([px, py]) => [fit!.dx + px * fit!.dw, fit!.dy + py * fit!.dh]), m.curve)
       o.fill()
     }
 

@@ -17,6 +17,8 @@ const spotMask = z.object({
   contrast: z.number().optional(),
   brightness: z.number().optional(),
   cell: z.number().optional(),
+  /** un contour lissé qui passe par les points, au lieu de segments droits */
+  curve: z.boolean().optional(),
 })
 
 const spotRecipe = z.object({
