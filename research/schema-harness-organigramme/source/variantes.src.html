@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Organigramme du harness : la DA exhale, trois variantes</title>
+<style>
+/*FONTS*/
+  /* tokens: src/styles/tokens/colors.css, type.css, space.css (values copied as-is) */
+  :root {
+    --paper: #f6f5f1;
+    --paper-2: #edebe4;
+    --ink: #1b1a16;
+    --ink-2: #4c483d;
+    --ink-3: #696551;
+    --line: rgba(27, 26, 22, 0.2);
+    --sepia: #9a7838;
+    --sepia-ink: #7d6129;
+    --line-strong: color-mix(in srgb, var(--ink) 55%, transparent);
+    --plate-grid-major: color-mix(in srgb, var(--ink) 5%, transparent);
+    --plate-grid-minor: color-mix(in srgb, var(--ink) 2.2%, transparent);
+    --cell: 24px;
+    --plate-overshoot: 13px;
+    --rule-frame: 1.2px;
+    --mono: 'Space Mono', ui-monospace, monospace;
+    --sans: 'Archivo Variable', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 var(--sans); }
+  main { padding: 40px 32px 80px; }
+  header { max-width: 1900px; margin: 0 auto 36px; border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+  h1 { font-family: var(--sans); font-weight: 700; font-size: 26px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--ink-2); max-width: 78ch; }
+
+  .row { display: flex; gap: 56px; flex-wrap: wrap; justify-content: center; max-width: 1900px; margin: 0 auto; }
+  .variant { width: 600px; flex: none; }
+  .variant h2 { font-family: var(--sans); font-weight: 700; font-size: 20px; margin: 0 0 4px; }
+  .variant .idee { color: var(--ink-2); margin: 0 0 12px; font-size: 14px; }
+  .reprend { font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--ink-2);
+             margin: 0 0 28px; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+  .reprend li { padding: 4px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 150px 1fr; gap: 10px; }
+  .reprend b { color: var(--ink); font-weight: 700; }
+  .reprend code { font-family: inherit; color: var(--ink-3); }
+
+  /* the schema slot: 600px wide, svg at width=100% (diagram.js) */
+  .slot { position: relative; width: 600px; }
+  .slot svg { display: block; width: 100%; height: auto; }
+  /* the plate adds its padding around the 600px schema, so its text stays at 11px minimum */
+  .slot.plate { width: calc(600px + 2 * var(--cell)); }
+  #planche { width: 648px; }
+
+  /* Plate B6, copied from src/components/print/Plate.astro */
+  .plate { position: relative; padding: var(--cell); background-color: var(--paper); }
+  .plate::before, .plate::after { content: ''; position: absolute; pointer-events: none; }
+  .plate::before { inset: 0 calc(-1 * var(--plate-overshoot));
+    border-top: var(--rule-frame) solid var(--line-strong); border-bottom: var(--rule-frame) solid var(--line-strong); }
+  .plate::after { inset: calc(-1 * var(--plate-overshoot)) 0;
+    border-left: var(--rule-frame) solid var(--line-strong); border-right: var(--rule-frame) solid var(--line-strong); }
+  .plate[data-grid='on'] {
+    --cell-major: calc(var(--cell) * 4);
+    background-image:
+      linear-gradient(var(--plate-grid-major) 1px, transparent 1px),
+      linear-gradient(90deg, var(--plate-grid-major) 1px, transparent 1px),
+      linear-gradient(var(--plate-grid-minor) 1px, transparent 1px),
+      linear-gradient(90deg, var(--plate-grid-minor) 1px, transparent 1px);
+    background-size: var(--cell-major) var(--cell-major), var(--cell-major) var(--cell-major), var(--cell) var(--cell), var(--cell) var(--cell);
+  }
+
+  .ref { max-width: 1900px; margin: 56px auto 0; border-top: 1px solid var(--line); padding-top: 20px; }
+  .ref h2 { font-family: var(--sans); font-weight: 700; font-size: 17px; margin: 0 0 4px; }
+  .ref p { color: var(--ink-2); margin: 0 0 14px; font-size: 14px; max-width: 78ch; }
+
+  /* one variant alone (?v=<id>), for the 720px captures */
+  body.solo main { padding: 40px 36px; }
+  body.solo header, body.solo .ref, body.solo .variant:not(.on) { display: none; }
+  body.solo .row { justify-content: flex-start; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>L'organigramme du harness, habillé en exhale</h1>
+  <p>Même structure que le schéma A de l'agent neuf (boîtes, places, flèches, textes). Seule la matière change. Chaque schéma est dessiné dans un viewBox de 1060 de large, comme <code>diagram.js</code>, et affiché ici à 600 px, la largeur d'une colonne d'article.</p>
+</header>
+
+<div class="row">
+
+  <section class="variant" id="trait">
+    <h2>Trait sur papier pointé</h2>
+    <p class="idee">La sobre : la typo et le trait exhale, la couleur seulement sur le chemin de la tâche.</p>
+    <ul class="reprend">
+      <li><b>papier pointé</b><span>grille de points 16, r 1, encre 18 % · <code>assets/diagram.js</code> gridDef</span></li>
+      <li><b>texte</b><span>Space Mono de <code>diagram.js</code>, monté à 23 gras / 20 (11 px au moins à 600) ; encres <code>tokens/colors.css</code></span></li>
+      <li><b>boîtes</b><span>trait 1.3 de <code>diagram.js</code> (badges), angles nets · <code>AGENTS.md</code>, « zéro arrondi »</span></li>
+      <li><b>éphémère</b><span>pointillé 1.6, 7 / 6 · <code>diagram.js</code> dp-tri</span></li>
+      <li><b>accent</b><span>sépia, l'encre des articles · <code>tokens/colors.css</code> --sepia, --sepia-ink</span></li>
+      <li><b>mémoire</b><span>fond --paper-2, le panneau en retrait · <code>tokens/colors.css</code></span></li>
+    </ul>
+    <div class="slot" data-variant="trait"></div>
+  </section>
+
+  <section class="variant" id="trame">
+    <h2>Trame éphémère</h2>
+    <p class="idee">La marquée : la zone de la tâche est tramée, les boîtes permanentes sont plantées sur des points de la grille.</p>
+    <ul class="reprend">
+      <li><b>papier pointé</b><span>grille de points 16 · <code>diagram.js</code> gridDef</span></li>
+      <li><b>trame</b><span>Bayer 4×4, cellule 4, motif 16, opacité .7, palier 2 · <code>diagram.js</code> ditherDefs, en sépia</span></li>
+      <li><b>ancres</b><span>points plus sombres que la grille, à deux angles opposés · <code>diagram.js</code> dp-anchor (r 4 ramené à 3)</span></li>
+      <li><b>texte, boîtes</b><span>comme « Trait sur papier pointé »</span></li>
+      <li><b>éphémère</b><span>pointillé 1.6, 7 / 6 · <code>diagram.js</code> dp-tri ; la zone en sépia</span></li>
+      <li><b>mémoire</b><span>--paper-2 · <code>tokens/colors.css</code></span></li>
+    </ul>
+    <div class="slot" data-variant="trame"></div>
+  </section>
+
+  <section class="variant" id="planche">
+    <h2>Planche</h2>
+    <p class="idee">Le schéma posé dans la plate du blog : cadre à grille empruntée, carreau de cahier, angles qui dépassent.</p>
+    <ul class="reprend">
+      <li><b>cadre, carreau</b><span>plate B6, trait 1.2, débord 13 px, carreau 24 / 96 · <code>src/components/print/Plate.astro</code></span></li>
+      <li><b>boîtes permanentes</b><span>les lignes du cadre qui filent aux angles, le motif B6 ramené à un débord de 5, même pour toutes les boîtes · <code>Plate.astro</code></span></li>
+      <li><b>trame</b><span>Bayer 4×4, palier 1, la plus légère · <code>diagram.js</code> ditherDefs, en sépia</span></li>
+      <li><b>texte</b><span>Space Mono de <code>diagram.js</code>, monté à 23 gras / 20 (11 px au moins à 600)</span></li>
+      <li><b>éphémère</b><span>pointillé 1.6, 7 / 6 · <code>diagram.js</code> dp-tri</span></li>
+      <li><b>accent</b><span>sépia sur le chemin de la tâche · <code>tokens/colors.css</code></span></li>
+    </ul>
+    <div class="slot plate" data-grid="on"><div data-variant="planche"></div></div>
+  </section>
+
+</div>
+
+<section class="ref">
+  <h2>Référence : la Pâte graphique, à la même largeur</h2>
+  <p>La pyramide « Dithering » de <code>design/claude-design/Pierrick Blog/Pâte graphique.html</code>, rendue par son <code>diagram.js</code> recopié tel quel (avec son vert d'origine), à 600 px. Les variantes reprennent son échelle de trait et de trame ; leur texte est monté pour ne pas descendre sous 11 px.</p>
+  <div class="slot" id="ref-dither"></div>
+</section>
+</main>
+
+<script>
+/*DIAGRAMJS*/
+</script>
+<script>
+/* Organigramme du harness. Geometry: schema A of
+ * "2026-11-27 - Schéma du harness, quatre structures.html" (viewBox 660x490),
+ * scaled x1.6 and snapped to the diagram.js dot grid (G=16, dots at 8+16k).
+ * Stroke widths and dither: assets/diagram.js, unchanged. Type: 20 units minimum (11px at 600). */
+(() => {
+  'use strict';
+  const PAPER = '#f6f5f1', PAPER2 = '#edebe4';
+  const INK = '#1b1a16', INK2 = '#4c483d', INK3 = '#696551';
+  const SEPIA = '#9a7838', SEPIA_INK = '#7d6129';
+  const VBW = 1060, VBH = 816, G = 16;
+  const MONO = "'Space Mono',monospace";
+  const BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+  let dithered = false;
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  // ---- the structure (do not move) ---------------------------------------
+  const BOX = {
+    pierrick: { x: 408, y: 24, w: 240, h: 64, t: 'Pierrick', bold: true, kind: 'perm' },
+    blog: { x: 120, y: 168, w: 240, h: 64, t: 'Le blog', bold: true, kind: 'perm' },
+    domo: { x: 472, y: 168, w: 240, h: 64, t: 'La domotique', kind: 'perm' },
+    autres: { x: 760, y: 168, w: 240, h: 64, t: 'Autres…', kind: 'perm' },
+    agent: { x: 120, y: 344, w: 240, h: 64, t: 'Agent de tâche', bold: true, kind: 'eph' },
+    codeur: { x: 48, y: 456, w: 192, h: 72, t: 'Codeur', s: 'écrit le code', bold: true, kind: 'eph' },
+    relecteur: { x: 280, y: 456, w: 192, h: 72, t: 'Relecteur', s: 'le relit', bold: true, kind: 'eph' },
+    site: { x: 704, y: 328, w: 288, h: 64, t: 'Le site, en ligne', kind: 'perm' },
+    mem: { x: 24, y: 664, w: 1008, h: 88, t: 'Mémoire partagée : mes notes (Obsidian)', s: 'lues et écrites par tous les agents', bold: true, kind: 'mem' }
+  };
+  // text sizes: 20 units = 11.3px at 600 (calliope, 27/11: 11px minimum), box titles one step up
+  const FS_TITLE = 23, FS_TEXT = 20;
+  const ZONE = { x: 24, y: 296, w: 480, h: 336 };
+  // flow: the task's path (accent). other: the requests that are not this task.
+  const ARROWS = [
+    { pts: [[472, 88], [272, 168]], flow: true },
+    { pts: [[552, 88], [589, 168]] },
+    { pts: [[616, 88], [848, 168]] },
+    { pts: [[220, 232], [220, 344]], flow: true },
+    { pts: [[260, 344], [260, 232]], flow: true },
+    { pts: [[192, 408], [147, 456]], flow: true },
+    { pts: [[288, 408], [349, 456]], flow: true },
+    { pts: [[240, 492], [280, 492]], flow: true },
+    { pts: [[360, 360], [704, 360]], flow: true },
+    { pts: [[360, 392], [576, 392], [576, 664]], flow: true }
+  ];
+  const LABELS = [
+    { x: 360, y: 126, t: 'demande', a: 'end', flow: true },
+    { x: 208, y: 272, t: 'lance', a: 'end', flow: true },
+    { x: 272, y: 272, t: 'rend compte', flow: true },
+    { x: 608, y: 312, t: 'publie', a: 'middle', flow: true },
+    { x: 608, y: 338, t: 'la modif', a: 'middle', flow: true },
+    { x: 592, y: 512, t: 'note ce qui', flow: true },
+    { x: 592, y: 538, t: 'a été décidé', flow: true },
+    { x: 992, y: 268, t: 'chefs de projet : toujours là', a: 'end', note: true }
+  ];
+  const ZONE_CAPTION = ['naissent pour la tâche', 'disparaissent quand elle est faite'];
+
+  // ---- variants: only the matter changes ---------------------------------
+  const VARIANTS = {
+    trait: { grid: 'dots', zone: 'line', ephStroke: INK, anchors: false, corners: false },
+    trame: { grid: 'dots', zone: 'dither2', ephStroke: INK, anchors: true, corners: false },
+    planche: { grid: 'none', zone: 'dither1', ephStroke: INK, anchors: false, corners: true }
+  };
+
+  // ---- defs (diagram.js) --------------------------------------------------
+  const gridDef = (id) => `<pattern id="${id}-grid" width="${G}" height="${G}" patternUnits="userSpaceOnUse">`
+    + `<circle cx="8" cy="8" r="1" fill="${INK}" opacity="0.18"/></pattern>`;
+  function ditherDef(id, k, color) {
+    const cov = 0.16 + k * 0.095, thr = cov * 16, cell = 4, tile = cell * 4;
+    let rects = '';
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+      if (BAYER4[y][x] < thr) rects += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}" fill="${color}"/>`;
+    }
+    return `<pattern id="${id}-dt${k}" width="${tile}" height="${tile}" patternUnits="userSpaceOnUse">${rects}</pattern>`;
+  }
+  const marker = (id, color, m = 10) => `<marker id="${id}" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="${m}" markerHeight="${m}" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,1 L10,5 L0,9 z" fill="${color}"/></marker>`;
+
+  // ---- pieces --------------------------------------------------------------
+  function boxText(b) {
+    const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    const w = b.bold ? 700 : 400;
+    if (b.s) {
+      return `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-family="${MONO}" font-size="${FS_TITLE}" font-weight="${w}" fill="${INK}">${esc(b.t)}</text>`
+        + `<text x="${cx}" y="${cy + 22}" text-anchor="middle" font-family="${MONO}" font-size="${FS_TEXT}" fill="${INK2}">${esc(b.s)}</text>`;
+    }
+    return `<text x="${cx}" y="${cy + 8}" text-anchor="middle" font-family="${MONO}" font-size="${FS_TITLE}" font-weight="${w}" fill="${INK}">${esc(b.t)}</text>`;
+  }
+  // the B6 "borrowed grid": the four frame lines run past the corners
+  function cornerFrame(b, o, sw, color) {
+    const { x, y, w, h } = b;
+    return `<g stroke="${color}" stroke-width="${sw}" fill="none">`
+      + `<line x1="${x - o}" y1="${y}" x2="${x + w + o}" y2="${y}"/>`
+      + `<line x1="${x - o}" y1="${y + h}" x2="${x + w + o}" y2="${y + h}"/>`
+      + `<line x1="${x}" y1="${y - o}" x2="${x}" y2="${y + h + o}"/>`
+      + `<line x1="${x + w}" y1="${y - o}" x2="${x + w}" y2="${y + h + o}"/></g>`;
+  }
+  function box(b, v) {
+    let s = '';
+    if (b.kind === 'eph') {
+      s += `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="${PAPER}" stroke="${v.ephStroke}" stroke-width="1.6" stroke-dasharray="7 6"/>`;
+    } else if (b.kind === 'mem') {
+      s += `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="${PAPER2}" stroke="${INK}" stroke-width="1.3"/>`;
+      if (v.corners) s += cornerFrame(b, 5, 1.3, INK);
+    } else {
+      s += `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="${PAPER}" stroke="${INK}" stroke-width="1.3"/>`;
+      if (v.corners) s += cornerFrame(b, 5, 1.3, INK);
+    }
+    // anchors: grid dots rendered darker (diagram.js dp-anchor), two opposite corners only
+    if (v.anchors && b.kind !== 'eph') {
+      [[b.x, b.y], [b.x + b.w, b.y + b.h]].forEach(([x, y]) => {
+        s += `<circle cx="${x}" cy="${y}" r="3" fill="${INK2}"/>`;
+      });
+    }
+    return s + boxText(b);
+  }
+  function arrow(a, id) {
+    const color = a.flow ? SEPIA : INK3, sw = a.flow ? (dithered ? 2.4 : 1.3) : 1;
+    // stop 1 unit short of the box edge so the tip sits on the stroke
+    const pts = a.pts.map((p) => p.slice());
+    const n = pts.length, [x1, y1] = pts[n - 2], [x2, y2] = pts[n - 1];
+    const L = Math.hypot(x2 - x1, y2 - y1);
+    pts[n - 1] = [x2 - (x2 - x1) / L * 1.5, y2 - (y2 - y1) / L * 1.5];
+    const d = pts.map((p) => p.map((q) => +q.toFixed(1)).join(',')).join(' ');
+    // over the dither, a paper halo keeps the line readable
+    const halo = a.flow && dithered ? `<polyline points="${d}" fill="none" stroke="${PAPER}" stroke-width="24"/>` : '';
+    return halo + `<polyline points="${d}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linejoin="miter" marker-end="url(#${id}-${a.flow ? 'mf' : 'mo'})"/>`;
+  }
+  function label(l) {
+    const fill = l.flow ? SEPIA_INK : INK3;
+    return `<text x="${l.x}" y="${l.y}" text-anchor="${l.a || 'start'}" font-family="${MONO}" font-size="${FS_TEXT}" fill="${fill}">${esc(l.t)}</text>`;
+  }
+  function zone(v, id) {
+    const { x, y, w, h } = ZONE;
+    let s = '';
+    if (v.zone === 'line') {
+      s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${INK3}" stroke-width="1.3" stroke-dasharray="7 6"/>`;
+    } else {
+      const k = v.zone === 'dither2' ? 2 : 1;
+      // paper under the dither, so the plate's carreau does not show through
+      s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${PAPER}"/>`;
+      s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#${id}-dt${k})" fill-opacity="0.7"/>`;
+      s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${SEPIA}" stroke-width="1.3" stroke-dasharray="7 6"/>`;
+    }
+    return s;
+  }
+  function zoneCaption(v) {
+    const cx = ZONE.x + ZONE.w / 2, lh = 26, fs = FS_TEXT;
+    const y0 = ZONE.y + ZONE.h - 30 - lh * (ZONE_CAPTION.length - 1);
+    let s = '';
+    if (v.zone !== 'line') {
+      // the caption sits on a paper chip, fully inside the zone, so it reads over the dither
+      const tw = Math.max(...ZONE_CAPTION.map((t) => t.length)) * fs * 0.6 + 56;
+      s += `<rect x="${cx - tw / 2}" y="${y0 - 28}" width="${tw}" height="${lh * (ZONE_CAPTION.length - 1) + 46}" fill="${PAPER}"/>`;
+    }
+    ZONE_CAPTION.forEach((t, i) => {
+      s += `<text x="${cx}" y="${y0 + i * lh}" text-anchor="middle" font-family="${MONO}" font-size="${fs}" fill="${INK2}">${esc(t)}</text>`;
+    });
+    return s;
+  }
+  function legend(v) {
+    const y = 778;
+    let s = `<rect x="296" y="${y}" width="40" height="24" fill="${PAPER}" stroke="${INK}" stroke-width="1.3"/>`;
+    if (v.corners) s += cornerFrame({ x: 296, y, w: 40, h: 24 }, 5, 1.3, INK);
+    s += `<text x="350" y="${y + 18}" font-family="${MONO}" font-size="${FS_TEXT}" fill="${INK2}">permanent</text>`;
+    s += `<rect x="536" y="${y}" width="40" height="24" fill="${PAPER}" stroke="${v.ephStroke}" stroke-width="1.6" stroke-dasharray="7 6"/>`;
+    s += `<text x="590" y="${y + 18}" font-family="${MONO}" font-size="${FS_TEXT}" fill="${INK2}">éphémère</text>`;
+    return s;
+  }
+
+  function organigramme(container, name) {
+    const v = VARIANTS[name], id = 'og-' + name;
+    dithered = v.zone !== 'line';
+    const defs = gridDef(id) + ditherDef(id, 1, SEPIA) + ditherDef(id, 2, SEPIA)
+      + marker(`${id}-mf`, SEPIA, dithered ? 13 : 10) + marker(`${id}-mo`, INK3);
+    let body = '';
+    if (v.grid === 'dots') body += `<rect x="0" y="0" width="${VBW}" height="${VBH}" fill="url(#${id}-grid)"/>`;
+    body += zone(v, id);
+    body += ARROWS.map((a) => arrow(a, id)).join('');
+    body += Object.values(BOX).map((b) => box(b, v)).join('');
+    body += LABELS.map(label).join('');
+    body += zoneCaption(v) + legend(v);
+    container.innerHTML = `<svg viewBox="0 0 ${VBW} ${VBH}" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" `
+      + `aria-label="Organigramme : Pierrick au sommet, trois chefs de projet permanents, sous Le blog une zone pointillée avec l'agent de tâche, le codeur et le relecteur, qui publient sur le site et écrivent dans les notes partagées.">`
+      + `<defs>${defs}</defs>${body}</svg>`;
+  }
+
+  document.querySelectorAll('[data-variant]').forEach((el) => organigramme(el, el.dataset.variant));
+  if (window.Diagram) Diagram.pyramid(document.getElementById('ref-dither'), { style: 'dither' });
+
+  const solo = new URLSearchParams(location.search).get('v');
+  if (solo && document.getElementById(solo)) {
+    document.body.classList.add('solo');
+    document.getElementById(solo).classList.add('on');
+  }
+})();
+</script>
+</body>
+</html>
