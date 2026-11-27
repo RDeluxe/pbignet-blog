@@ -1,0 +1,131 @@
+---
+/**
+ * HarnessSchema — l’organigramme du harness : Pierrick, les chefs de projet permanents, la
+ * zone pointillée des agents éphémères, la mémoire partagée. SVG en ligne, non animé.
+ *
+ * Source : `research/schema-harness-organigramme/final/schema-harness.svg` (branche
+ * schema-harness-organigramme). Les couleurs sont les tokens du blog et le texte prend la
+ * police de la page (Space Mono, déjà chargée) : rien n’est embarqué en base64. La couleur
+ * suit donc l’encre de la page.
+ */
+interface Props {
+  /** description du schéma, pour les lecteurs d’écran */
+  label?: string
+}
+const {
+  label = 'Organigramme : Pierrick au sommet, trois chefs de projet permanents, sous Le blog une zone pointillée avec l\'agent de tâche, le codeur et le relecteur, qui publient sur le site et écrivent dans les notes partagées.',
+} = Astro.props
+---
+
+<figure class="schema" role="img" aria-label={label}>
+  <div class="scroll">
+    <svg viewBox="0 0 1060 816" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <defs>
+    <pattern id="schema-grid" width="16" height="16" patternUnits="userSpaceOnUse">
+    <circle cx="8" cy="8" r="1" fill="var(--ink)" opacity="0.18" />
+    </pattern>
+    <pattern id="schema-dt1" width="16" height="16" patternUnits="userSpaceOnUse">
+    <rect x="0" y="0" width="4" height="4" fill="var(--sepia)" />
+    <rect x="8" y="0" width="4" height="4" fill="var(--sepia)" />
+    <rect x="4" y="4" width="4" height="4" fill="var(--sepia)" />
+    <rect x="0" y="8" width="4" height="4" fill="var(--sepia)" />
+    <rect x="8" y="8" width="4" height="4" fill="var(--sepia)" />
+    </pattern>
+    <pattern id="schema-dt2" width="16" height="16" patternUnits="userSpaceOnUse">
+    <rect x="0" y="0" width="4" height="4" fill="var(--sepia)" />
+    <rect x="8" y="0" width="4" height="4" fill="var(--sepia)" />
+    <rect x="4" y="4" width="4" height="4" fill="var(--sepia)" />
+    <rect x="0" y="8" width="4" height="4" fill="var(--sepia)" />
+    <rect x="8" y="8" width="4" height="4" fill="var(--sepia)" />
+    <rect x="12" y="12" width="4" height="4" fill="var(--sepia)" />
+    </pattern>
+    <marker id="schema-mf" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+    <path d="M0,1 L10,5 L0,9 z" fill="var(--sepia)" />
+    </marker>
+    <marker id="schema-mo" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+    <path d="M0,1 L10,5 L0,9 z" fill="var(--ink-3)" />
+    </marker>
+    </defs>
+    <rect width="1060" height="816" fill="var(--paper)" />
+    <rect x="0" y="0" width="1060" height="816" fill="url(#schema-grid)" />
+    <rect x="24" y="296" width="480" height="336" fill="none" stroke="var(--ink-3)" stroke-width="1.3" stroke-dasharray="7 6" />
+    <polyline points="472,88 273.4,167.4" fill="none" stroke="var(--sepia)" stroke-width="1.3" stroke-linejoin="miter" marker-end="url(#schema-mf)" />
+    <polyline points="552,88 588.4,166.6" fill="none" stroke="var(--ink-3)" stroke-width="1" stroke-linejoin="miter" marker-end="url(#schema-mo)" />
+    <polyline points="616,88 846.6,167.5" fill="none" stroke="var(--ink-3)" stroke-width="1" stroke-linejoin="miter" marker-end="url(#schema-mo)" />
+    <polyline points="220,232 220,342.5" fill="none" stroke="var(--sepia)" stroke-width="1.3" stroke-linejoin="miter" marker-end="url(#schema-mf)" />
+    <polyline points="260,344 260,233.5" fill="none" stroke="var(--sepia)" stroke-width="1.3" stroke-linejoin="miter" marker-end="url(#schema-mf)" />
+    <polyline points="192,408 148,454.9" fill="none" stroke="var(--sepia)" stroke-width="1.3" stroke-linejoin="miter" marker-end="url(#schema-mf)" />
+    <polyline points="288,408 347.8,455.1" fill="none" stroke="var(--sepia)" stroke-width="1.3" stroke-linejoin="miter" marker-end="url(#schema-mf)" />
+    <polyline points="240,492 278.5,492" fill="none" stroke="var(--sepia)" stroke-width="1.3" stroke-linejoin="miter" marker-end="url(#schema-mf)" />
+    <polyline points="360,360 702.5,360" fill="none" stroke="var(--sepia)" stroke-width="1.3" stroke-linejoin="miter" marker-end="url(#schema-mf)" />
+    <polyline points="360,392 576,392 576,662.5" fill="none" stroke="var(--sepia)" stroke-width="1.3" stroke-linejoin="miter" marker-end="url(#schema-mf)" />
+    <rect x="408" y="24" width="240" height="64" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.3" />
+    <text x="528" y="64" text-anchor="middle" font-family="var(--mono)" font-size="23" font-weight="700" fill="var(--ink)">Pierrick
+    </text>
+    <rect x="120" y="168" width="240" height="64" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.3" />
+    <text x="240" y="208" text-anchor="middle" font-family="var(--mono)" font-size="23" font-weight="700" fill="var(--ink)">Le blog
+    </text>
+    <rect x="472" y="168" width="240" height="64" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.3" />
+    <text x="592" y="208" text-anchor="middle" font-family="var(--mono)" font-size="23" font-weight="400" fill="var(--ink)">La domotique
+    </text>
+    <rect x="760" y="168" width="240" height="64" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.3" />
+    <text x="880" y="208" text-anchor="middle" font-family="var(--mono)" font-size="23" font-weight="400" fill="var(--ink)">Autres…
+    </text>
+    <rect x="120" y="344" width="240" height="64" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="7 6" />
+    <text x="240" y="384" text-anchor="middle" font-family="var(--mono)" font-size="23" font-weight="700" fill="var(--ink)">Agent de tâche
+    </text>
+    <rect x="48" y="456" width="192" height="72" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="7 6" />
+    <text x="144" y="488" text-anchor="middle" font-family="var(--mono)" font-size="23" font-weight="700" fill="var(--ink)">Codeur
+    </text>
+    <text x="144" y="514" text-anchor="middle" font-family="var(--mono)" font-size="20" fill="var(--ink-2)">écrit le code
+    </text>
+    <rect x="280" y="456" width="192" height="72" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="7 6" />
+    <text x="376" y="488" text-anchor="middle" font-family="var(--mono)" font-size="23" font-weight="700" fill="var(--ink)">Relecteur
+    </text>
+    <text x="376" y="514" text-anchor="middle" font-family="var(--mono)" font-size="20" fill="var(--ink-2)">le relit
+    </text>
+    <rect x="704" y="328" width="288" height="64" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.3" />
+    <text x="848" y="368" text-anchor="middle" font-family="var(--mono)" font-size="23" font-weight="400" fill="var(--ink)">Le site, en ligne
+    </text>
+    <rect x="24" y="664" width="1008" height="88" fill="var(--paper-2)" stroke="var(--ink)" stroke-width="1.3" />
+    <text x="528" y="704" text-anchor="middle" font-family="var(--mono)" font-size="23" font-weight="700" fill="var(--ink)">Mémoire partagée : mes notes (Obsidian)
+    </text>
+    <text x="528" y="730" text-anchor="middle" font-family="var(--mono)" font-size="20" fill="var(--ink-2)">lues et écrites par tous les agents
+    </text>
+    <text x="360" y="126" text-anchor="end" font-family="var(--mono)" font-size="20" fill="var(--sepia-ink)">demande
+    </text>
+    <text x="208" y="272" text-anchor="end" font-family="var(--mono)" font-size="20" fill="var(--sepia-ink)">lance
+    </text>
+    <text x="272" y="272" text-anchor="start" font-family="var(--mono)" font-size="20" fill="var(--sepia-ink)">rend compte
+    </text>
+    <text x="608" y="312" text-anchor="middle" font-family="var(--mono)" font-size="20" fill="var(--sepia-ink)">publie
+    </text>
+    <text x="608" y="338" text-anchor="middle" font-family="var(--mono)" font-size="20" fill="var(--sepia-ink)">la modif
+    </text>
+    <text x="592" y="512" text-anchor="start" font-family="var(--mono)" font-size="20" fill="var(--sepia-ink)">note ce qui
+    </text>
+    <text x="592" y="538" text-anchor="start" font-family="var(--mono)" font-size="20" fill="var(--sepia-ink)">a été décidé
+    </text>
+    <text x="992" y="268" text-anchor="end" font-family="var(--mono)" font-size="20" fill="var(--ink-3)">chefs de projet : toujours là
+    </text>
+    <text x="264" y="576" text-anchor="middle" font-family="var(--mono)" font-size="20" fill="var(--ink-2)">naissent pour la tâche
+    </text>
+    <text x="264" y="602" text-anchor="middle" font-family="var(--mono)" font-size="20" fill="var(--ink-2)">disparaissent quand elle est faite
+    </text>
+    <rect x="296" y="778" width="40" height="24" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.3" />
+    <text x="350" y="796" font-family="var(--mono)" font-size="20" fill="var(--ink-2)">permanent
+    </text>
+    <rect x="536" y="778" width="40" height="24" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="7 6" />
+    <text x="590" y="796" font-family="var(--mono)" font-size="20" fill="var(--ink-2)">éphémère
+    </text>
+    </svg>
+
+  </div>
+</figure>
+
+<style>
+  .schema { margin: 2em 0; }
+  /* sur un écran étroit, le schéma garde sa taille lisible et défile plutôt que de rétrécir */
+  .scroll { overflow-x: auto; }
+  .scroll :global(svg) { display: block; width: 100%; min-width: 560px; height: auto; }
+</style>

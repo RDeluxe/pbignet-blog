@@ -47,7 +47,7 @@ Globalement, les symptômes étaient les suivants :
 
 J'en reparlerai certainement en détail, mais pour la faire courte : mon *harness* est structuré autour d'agents « chefs de projet » : chacun tient un "domaine" (ensemble de projets), découpe le travail et lance d'autres agents qui codent. 
 
-{% figure src="/writing/c-est-le-moment-de-perdre-du-temps/dents-de-scie-schema-harness.png" alt="Schéma du harness : Pierrick parle au chef de projet « Le blog » (à côté de « La domotique » et d’autres), qui lance un agent de tâche éphémère avec un codeur et un relecteur ; le site est publié et les décisions notées dans les notes Obsidian partagées." kind="capture" /%}
+{% harnessschema label="Schéma du harness : Pierrick parle au chef de projet « Le blog » (à côté de « La domotique » et d’autres), qui lance un agent de tâche éphémère avec un codeur et un relecteur ; le site est publié et les décisions notées dans les notes Obsidian partagées." /%}
 
 ## Pourquoi ça casse ? Parce que ça marche !
 
@@ -99,7 +99,7 @@ Mais cet empilement remplit le contexte des agents et devient rapidement contre-
 
 Dans mon cas, les agents m'avaient tellement cité dans les règles ("Pierrick a dit que ... le ...") que **ma parole est devenue parole d'Évangile**. Aucun de mes chefs de projets ne la remettait en question, et ils se contentaient d'exécuter sans réfléchir.
 
-{% figure src="/writing/c-est-le-moment-de-perdre-du-temps/dents-de-scie-graphe-documents.png" alt="Deux graphes en barres, en tokens, du 15/10 au 22/11 : harness.md passe de 8 040 à 13 864 puis 8 669, role-secondmate.md de 3 144 à 8 469 puis 4 972 après le refactoring du 21/11." kind="capture" /%}
+{% barchart label="Deux graphes en barres, en tokens, du 15/10 au 22/11 : harness.md passe de 8 040 à 13 864 puis 8 669, role-secondmate.md de 3 144 à 8 469 puis 4 972 après le refactoring du 21/11." panels=[{"title":"harness.md","subtitle":"la référence","unit":"en tokens","rows":[{"label":"15/10","value":8040},{"label":"1/11","value":10004},{"label":"15/11","value":13148},{"label":"20/11","value":13864},{"label":"22/11","value":8669,"highlight":true,"note":"refactoring du 21/11"}]},{"title":"role-secondmate.md","subtitle":"le métier de chef de projet","unit":"en tokens","rows":[{"label":"15/10","value":3144},{"label":"1/11","value":5912},{"label":"15/11","value":7842},{"label":"20/11","value":8469},{"label":"22/11","value":4972,"highlight":true,"note":"refactoring du 21/11"}]}] /%}
 
 ### Les limites de l'interface
 
@@ -139,10 +139,10 @@ Ainsi, créer mon harness me donne les clés pour **connaître ses limites et se
 
 Ça veut dire **faire et défaire, faire et refaire**. Passer des week-ends et des soirées à être frustré par des systèmes qui ne marchent pas, tout en sachant que les devs qui m'entourent produisent certainement plus vite, parce qu'ils ne « perdent » pas ce temps-là.
 
-Accepter d'aller plus lentement aujourd'hui, pour aller beaucoup plus vite demain.
-
-{% figure src="/writing/c-est-le-moment-de-perdre-du-temps/dents-de-scie-gaines-rangees.jpg" alt="Le même recoin, rangé : les gaines noires forment un seul faisceau fixé sur des supports métalliques le long de la pente du plafond, les câbles orange sont enroulés en haut à droite, et au sol traînent un escabeau, un niveau, un marteau et une perceuse." kind="capture" /%}
-
 > « Gas Town is also expensive as hell. »
 > « AI does actually make you more 10x productive, once you learn how. »
 > Steve Yegge
+
+Accepter d'aller plus lentement aujourd'hui, pour aller beaucoup plus vite demain.
+
+{% figure src="/writing/c-est-le-moment-de-perdre-du-temps/dents-de-scie-gaines-rangees.jpg" alt="Le même recoin, rangé : les gaines noires forment un seul faisceau fixé sur des supports métalliques le long de la pente du plafond, les câbles orange sont enroulés en haut à droite, et au sol traînent un escabeau, un niveau, un marteau et une perceuse." kind="capture" /%}

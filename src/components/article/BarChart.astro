@@ -1,0 +1,276 @@
+---
+/**
+ * BarChart — des barres dithérées qui poussent quand le graphe entre à l'écran.
+ *
+ * Reprend l'aspect du graphe d'origine (Atlas) : un panneau par série, une date par ligne,
+ * la barre en trame dither (ink, la ligne mise en avant en sépia), la valeur en gras mono
+ * après la barre, une annotation pointillée sur la ligne mise en avant. Les données vivent
+ * dans l'article : `{% barchart panels=[…] %}`.
+ *
+ * Le mouvement est celui du blog (courbe `cubic-bezier(0.2, 0.8, 0.2, 1)` des plates). La
+ * durée de la pousse et le délai entre barres sont des props. Sous `prefers-reduced-motion`,
+ * rien n'est armé : le graphe est là, fini. Sans JS aussi.
+ *
+ * Une table lisible par les lecteurs d'écran double le graphe (le dessin est `aria-hidden`).
+ */
+interface Row {
+  label: string
+  value: number
+  /** la barre en sépia, comme une valeur à regarder */
+  highlight?: boolean
+  /** texte relié à la valeur par un trait pointillé (sur la ligne mise en avant) */
+  note?: string
+}
+interface Panel {
+  title: string
+  /** précision en regard du titre, plus discrète */
+  subtitle?: string
+  /** l'unité, en mono à droite du titre */
+  unit?: string
+  rows: Row[]
+}
+interface Props {
+  panels: Panel[]
+  /** description du graphe, pour les lecteurs d'écran */
+  label: string
+  /** durée de la pousse d'une barre, en secondes */
+  duration?: number
+  /** délai entre deux barres, en secondes */
+  stagger?: number
+}
+
+const { panels, label, duration = 0.7, stagger = 0.12 } = Astro.props
+
+// une seule échelle pour tous les panneaux : deux barres de même longueur valent autant
+const max = Math.max(...panels.flatMap(p => p.rows.map(r => r.value)))
+// la barre la plus longue prend cette part de sa piste : le reste est pour la valeur
+const FILL = 0.7
+const nf = new Intl.NumberFormat('fr-FR')
+// espace fine insécable entre les milliers, comme dans le reste du blog
+const fmt = (n: number) => nf.format(n).replaceAll(/[\u202F\xA0]/g, ' ')
+---
+
+<figure
+  class="chart"
+  data-chart
+  style={`--bar-dur-base: ${duration}s; --bar-stagger-base: ${stagger}s`}
+>
+  <div class="panels" aria-hidden="true">
+    {panels.map(panel => (
+      <div class="panel">
+        <div class="head">
+          <p class="title">
+            {panel.title}
+            {panel.subtitle && <span class="sub"> ({panel.subtitle})</span>}
+          </p>
+          {panel.unit && <p class="unit">{panel.unit}</p>}
+        </div>
+        <ol class="rows">
+          {panel.rows.map((row, i) => (
+            <li class="row" data-hl={row.highlight ? 'on' : 'off'} style={`--i: ${i}`}>
+              <span class="date">{row.label}</span>
+              <span class="track">
+                <span class="bar" style={`--w: ${(row.value / max) * FILL * 100}%`} />
+                <span class="val">{fmt(row.value)}</span>
+                {row.note && <span class="note">{row.note}</span>}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    ))}
+  </div>
+
+  <table class="sr-only">
+    <caption>{label}</caption>
+    {panels.map(panel => (
+      <>
+        <thead>
+          <tr>
+            <th colspan="2">
+              {panel.title}{panel.subtitle ? ` (${panel.subtitle})` : ''}{panel.unit ? `, ${panel.unit}` : ''}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {panel.rows.map(row => (
+            <tr>
+              <th scope="row">{row.label}</th>
+              <td>{fmt(row.value)}{row.note ? `, ${row.note}` : ''}</td>
+            </tr>
+          ))}
+        </tbody>
+      </>
+    ))}
+  </table>
+</figure>
+
+<script>
+// Arme le graphe (barres à zéro), puis le joue quand il entre à l'écran. Rien n'est armé
+// sous prefers-reduced-motion : le graphe reste fini. L'évènement `chart:replay` (page de
+// démo) le rejoue à la demande.
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches
+
+document.querySelectorAll<HTMLElement>('[data-chart]').forEach((chart) => {
+  if (still)
+    return
+  chart.dataset.state = 'armed'
+  chart.addEventListener('chart:replay', () => {
+    chart.dataset.state = 'armed'
+    void chart.offsetWidth // le navigateur enregistre l'état à zéro avant de le lever
+    chart.dataset.state = 'in'
+  })
+  new IntersectionObserver(
+    (entries, io) => {
+      if (!entries.some(e => e.isIntersecting))
+        return
+      chart.dataset.state = 'in'
+      io.disconnect()
+    },
+    { threshold: 0.35 },
+  ).observe(chart)
+})
+</script>
+
+<style>
+  .chart {
+    --bar-dur: var(--bar-dur-base, 0.7s);
+    --bar-stagger: var(--bar-stagger-base, 0.12s);
+    --bar-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+    /* la trame du graphe d'origine : carrés de 2px sur 16px. Le masque ne garde que l'alpha,
+       la couleur vient des tokens. */
+    --mask-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M0 0h2v2h-2zM2 0h2v2h-2zM4 0h2v2h-2zM8 0h2v2h-2zM10 0h2v2h-2zM12 0h2v2h-2zM2 2h2v2h-2zM6 2h2v2h-2zM10 2h2v2h-2zM14 2h2v2h-2zM0 4h2v2h-2zM4 4h2v2h-2zM6 4h2v2h-2zM8 4h2v2h-2zM12 4h2v2h-2zM14 4h2v2h-2zM2 6h2v2h-2zM6 6h2v2h-2zM10 6h2v2h-2zM14 6h2v2h-2zM0 8h2v2h-2zM2 8h2v2h-2zM4 8h2v2h-2zM8 8h2v2h-2zM10 8h2v2h-2zM12 8h2v2h-2zM2 10h2v2h-2zM6 10h2v2h-2zM10 10h2v2h-2zM14 10h2v2h-2zM0 12h2v2h-2zM4 12h2v2h-2zM6 12h2v2h-2zM8 12h2v2h-2zM12 12h2v2h-2zM14 12h2v2h-2zM2 14h2v2h-2zM6 14h2v2h-2zM10 14h2v2h-2zM14 14h2v2h-2z'/%3E%3C/svg%3E");
+    --mask-acc: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M0 0h2v2h-2zM2 0h2v2h-2zM4 0h2v2h-2zM8 0h2v2h-2zM12 0h2v2h-2zM2 2h2v2h-2zM6 2h2v2h-2zM10 2h2v2h-2zM14 2h2v2h-2zM0 4h2v2h-2zM4 4h2v2h-2zM8 4h2v2h-2zM12 4h2v2h-2zM2 6h2v2h-2zM6 6h2v2h-2zM10 6h2v2h-2zM14 6h2v2h-2zM0 8h2v2h-2zM4 8h2v2h-2zM8 8h2v2h-2zM10 8h2v2h-2zM12 8h2v2h-2zM2 10h2v2h-2zM6 10h2v2h-2zM10 10h2v2h-2zM14 10h2v2h-2zM0 12h2v2h-2zM4 12h2v2h-2zM8 12h2v2h-2zM12 12h2v2h-2zM2 14h2v2h-2zM6 14h2v2h-2zM10 14h2v2h-2zM14 14h2v2h-2z'/%3E%3C/svg%3E");
+    position: relative;
+    margin: 2em 0;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: var(--space-xl);
+  }
+
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-s);
+    margin-bottom: var(--space-s);
+  }
+  .title {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--w-semibold);
+    line-height: 1.25;
+    color: var(--ink);
+  }
+  .sub { font-weight: var(--w-regular); color: var(--ink-3); }
+  .unit {
+    margin: 0;
+    flex: none;
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    color: var(--ink-3);
+  }
+
+  .rows { list-style: none; margin: 0; padding: 0; }
+  .row {
+    display: grid;
+    grid-template-columns: 3.2rem 1fr;
+    align-items: stretch;
+    column-gap: var(--space-xs);
+    margin: 0;
+  }
+  .date {
+    align-self: center;
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    text-align: right;
+    color: var(--ink-3);
+  }
+  /* l'axe vertical, à la naissance des barres */
+  .track {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 5px 0 5px 1px;
+    border-left: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  }
+
+  /* le cadre est plein, la trame est dessous, masquée : la bordure ne se tramera pas */
+  .bar {
+    position: relative;
+    flex: none;
+    box-sizing: border-box;
+    width: var(--w);
+    height: 22px;
+    border: 1px solid var(--ink);
+  }
+  .bar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    -webkit-mask-image: var(--mask-ink);
+    mask-image: var(--mask-ink);
+  }
+  .row[data-hl='on'] .bar { border-color: var(--sepia); }
+  .row[data-hl='on'] .bar::before {
+    background: var(--sepia);
+    -webkit-mask-image: var(--mask-acc);
+    mask-image: var(--mask-acc);
+  }
+
+  .val {
+    margin-left: var(--space-xs);
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    font-weight: var(--w-bold);
+    color: var(--ink);
+  }
+  .note {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-left: var(--space-xs);
+    font-family: var(--mono);
+    font-size: var(--fs-data);
+    color: var(--sepia-ink);
+  }
+  /* le trait pointillé qui relie la valeur à son annotation */
+  .note::before {
+    content: '';
+    width: 26px;
+    border-top: 1.5px dotted var(--sepia);
+  }
+  @media (max-width: 520px) {
+    .note { flex-basis: 100%; margin-left: 0; padding-top: 2px; }
+    .note::before { display: none; }
+  }
+
+  /* le mouvement : armé = à zéro, in = joué. Hors JS ou sous reduced-motion, jamais armé. */
+  .chart[data-state='armed'] .bar { clip-path: inset(0 100% 0 0); }
+  .chart[data-state='armed'] :is(.val, .note) { opacity: 0; }
+  .chart[data-state='in'] .bar {
+    clip-path: inset(0);
+    transition: clip-path var(--bar-dur) var(--bar-ease);
+    transition-delay: calc(var(--i) * var(--bar-stagger));
+  }
+  .chart[data-state='in'] :is(.val, .note) {
+    transition: opacity var(--dur-slow) ease;
+    transition-delay: calc(var(--i) * var(--bar-stagger) + var(--bar-dur) * 0.8);
+  }
+
+  .sr-only {
+    display: block;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>
