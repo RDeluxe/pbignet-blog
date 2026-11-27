@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Travailler avec des agents — formation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/deck.css">
+<style>
+/* slide-specific bits */
+.title-slide{justify-content:space-between}
+.title-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;border-top:2px solid var(--ink);padding-top:18px}
+.title-meta .k{font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.title-meta .v{font-family:var(--mono);font-size:22px;margin-top:6px}
+.bigword{font-family:var(--display);font-size:196px;line-height:1.04;text-transform:uppercase;letter-spacing:.01em;margin:0}
+.bigword .dot{color:var(--accent)}
+.pred{display:grid;grid-template-columns:auto 1fr;gap:14px 22px;align-items:center;width:900px}
+.pred .w{font-family:var(--mono);font-size:26px}
+.pred .pb{height:34px;background:color-mix(in srgb,var(--ink) 13%,transparent);position:relative}
+.pred .pb i{position:absolute;inset:0 auto 0 0;background:color-mix(in srgb,var(--accent) 35%,transparent);display:block}
+.pred .pb.win i{background:var(--accent)}
+.pred .p{font-family:var(--mono);font-size:22px;position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--ink-2)}
+.pred .pb.win .p{color:var(--paper)}
+.sentence{font-family:var(--serif);font-size:52px;line-height:1.2}
+.sentence u{text-decoration:none;border-bottom:3px solid var(--accent);padding:0 44px}
+.colhead{font-family:var(--display);font-size:40px;text-transform:uppercase;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:20px}
+.colhead.a{color:var(--accent);border-color:var(--accent)}
+.tokline{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+.tokline span{font-family:var(--mono);font-size:44px;padding:8px 14px;border:1.4px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.counter{font-family:var(--display);font-size:96px;color:var(--accent);line-height:1}
+.head{width:420px;height:270px;border:2.5px solid var(--ink);border-radius:26px;position:relative;display:flex;align-items:center;justify-content:center;padding:0 26px;background:var(--paper)}
+.head::before{content:"";position:absolute;top:-38px;left:50%;width:2.5px;height:38px;background:var(--ink)}
+.head::after{content:"";position:absolute;top:-52px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:var(--accent)}
+.head .eye{position:absolute;top:44px;width:16px;height:16px;border-radius:50%;background:var(--ink)}
+.head .eye.l{left:120px}.head .eye.r{right:120px}
+.gauge{width:100%;height:52px;border:2px solid var(--ink);padding:4px;margin-top:44px;display:flex;gap:4px}
+.rowbar{display:grid;grid-template-columns:130px 1fr 140px;align-items:center;gap:24px;width:100%}
+.rowbar .n{font-family:var(--mono);font-size:22px;letter-spacing:.1em;color:var(--ink-2)}
+.rowbar .t{font-family:var(--display);font-size:44px;text-align:right;color:var(--accent)}
+.zonebar{width:100%;height:96px;border:2px solid var(--ink);background:linear-gradient(90deg,var(--olive) 0%,var(--sepia-ink) 48%,var(--riso-red-ink) 80%,var(--riso-red-deep) 100%);position:relative;display:flex;align-items:center;justify-content:space-between;padding:0 26px;color:var(--paper);font-family:var(--mono);font-size:22px;letter-spacing:.16em;text-transform:uppercase}
+.blur{filter:blur(2.4px);opacity:.72}
+.shelf{display:flex;gap:16px;align-items:flex-end}
+.card{width:220px;border:1.6px solid var(--ink);background:var(--paper);padding:18px 22px;font-family:var(--mono);font-size:22px}
+.card b{display:block;font-size:22px;margin-bottom:6px}
+.card small{color:var(--ink-2);font-size:22px;line-height:1.4;display:block}
+.card.big{font-size:24px;padding:22px 26px}.card.big b{font-size:26px}.card.big small{font-size:23px;color:var(--ink-2)}
+.card.open{width:330px;border-color:var(--accent)}
+.card.open ol{margin:10px 0 0;padding-left:36px;font-size:22px;line-height:1.6;color:var(--ink-2)}
+.layer{width:100%;border:2px solid var(--ink);padding:20px 26px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.layer .h{font-family:var(--display);font-size:34px;text-transform:uppercase;min-width:360px}
+.layer.b-own{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.layer.b-own .h{color:var(--accent)}
+.steps{font-family:var(--mono);font-size:26px;line-height:2;counter-reset:s}
+.steps li{margin-bottom:2px}
+.steps li::marker{color:var(--accent);font-weight:700}
+.qtree{font-family:var(--mono);font-size:22px;line-height:1.9;color:var(--ink-2);border-left:2px dashed var(--accent);padding-left:22px;margin-left:14px}
+.bins{display:grid;grid-template-columns:repeat(3,1fr);gap:34px;width:1080px}
+.bin{border:2px solid var(--ink);border-top:none;padding:20px;min-height:210px;display:flex;flex-direction:column;gap:12px}
+.bin .bh{font-family:var(--display);font-size:34px;text-transform:uppercase;margin:-2px -20px 8px;padding:10px 20px;background:var(--ink);color:var(--paper)}
+.bin.a .bh{background:var(--accent)}
+.bin.h .bh{background:var(--hot)}
+.flowline{display:flex;align-items:center;gap:0;width:100%}
+.flowline .seg{flex:1;height:12px;background:color-mix(in srgb,var(--accent) 55%,transparent)}
+.flowline .seg.off{background:color-mix(in srgb,var(--ink) 14%,transparent)}
+.gatebox{border:2px solid var(--hot);padding:14px 20px;font-family:var(--mono);font-size:22px;color:var(--hot);text-align:center;background:color-mix(in srgb,var(--hot) 7%,transparent)}
+.split4{display:grid;grid-template-columns:repeat(2,240px);gap:16px}
+.split4 .q{border:1.6px solid var(--line);padding:22px;font-family:var(--mono);font-size:22px;text-align:center;color:var(--ink-2)}
+.split4 .q.on{border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--ink);font-weight:700}
+.path{display:grid;grid-template-columns:190px 1fr 150px;align-items:center;gap:24px;width:1140px}
+.path .lab{font-family:var(--mono);font-size:22px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.path .cost{font-family:var(--display);font-size:38px;text-align:right}
+.path .cost.a{color:var(--accent)}.path .cost.h{color:var(--hot)}
+.lane{border:1.6px solid var(--line);padding:24px;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center}
+.lane h3{font-family:var(--display);font-size:44px;text-transform:uppercase;margin:0}
+.warn{font-family:var(--mono);font-size:22px;color:var(--hot);border:1.4px solid var(--hot);padding:8px 12px;line-height:1.4}
+.chan{border:1.6px solid var(--ink);padding:20px;display:flex;flex-direction:column;gap:14px;text-align:center;font-family:var(--mono);font-size:22px}
+.chan .ch{font-family:var(--display);font-size:30px;text-transform:uppercase}
+.chan .verdict{font-family:var(--mono);font-size:22px;padding:8px;letter-spacing:.08em}
+.chan .verdict.no{background:color-mix(in srgb,var(--hot) 12%,transparent);color:var(--hot)}
+.chan .verdict.yes{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--ink);box-shadow:inset 0 -3px 0 var(--accent)}
+.scene{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;width:100%;align-items:stretch}
+.scene .el{border:1.6px solid var(--line);padding:18px;display:flex;flex-direction:column;gap:10px;justify-content:space-between}
+.scene .el .t{font-family:var(--display);font-size:26px;text-transform:uppercase;color:var(--accent)}
+.scene .el .d{font-family:var(--mono);font-size:22px;line-height:1.45;color:var(--ink-2)}
+</style>
+</head>
+<body>
+<deck-stage width="1920" height="1080" no-rail>
+<section data-label="Le harness" data-screen-label="13"><div class="slide">
+<div class="rail"><span class="act">Acte 4 <span class="dot">·</span> La machine autour</span><span class="idx">13 / 37</span></div>
+<h1 class="st b b1">Le harness, ou ce qui rend Claude « magique ».</h1>
+<div class="stage" style="gap:18px">
+<svg viewBox="136 30 968 480" width="1080" class="b b2" aria-label="Schéma du harness">
+<rect x="140" y="66" width="960" height="430" rx="14" fill="none" stroke="#3d491d" stroke-width="2.2" stroke-dasharray="12 9"/>
+<rect x="170" y="44" width="170" height="44" fill="#3d491d"/><text x="255" y="74" text-anchor="middle" font-family="Anton" font-size="30" letter-spacing="2" fill="#f6f5f1">HARNESS</text>
+<g class="b b2"><rect x="530" y="236" width="180" height="90" fill="#3d491d"/><text x="620" y="291" text-anchor="middle" font-family="Anton" font-size="36" letter-spacing="1.5" fill="#f6f5f1">MODÈLE</text></g>
+<g class="b b3"><rect x="170" y="130" width="270" height="66" fill="#f6f5f1" stroke="#1b1a16" stroke-width="1.8"/><text x="305" y="170" text-anchor="middle" font-family="Space Mono" font-size="30" fill="#1b1a16">Prompt système</text><path d="M305 196 L325 265 L530 265" fill="none" stroke="#4c483d" stroke-width="2.2"/><circle cx="530" cy="265" r="5.5" fill="#3d491d"/></g>
+<g class="b b4"><rect x="800" y="130" width="270" height="66" fill="#f6f5f1" stroke="#1b1a16" stroke-width="1.8"/><text x="935" y="170" text-anchor="middle" font-family="Space Mono" font-size="30" fill="#1b1a16">Outils</text><path d="M935 196 L915 265 L710 265" fill="none" stroke="#4c483d" stroke-width="2.2"/><circle cx="710" cy="265" r="5.5" fill="#3d491d"/></g>
+<g class="b b5"><rect x="170" y="366" width="270" height="66" fill="#f6f5f1" stroke="#1b1a16" stroke-width="1.8"/><text x="305" y="406" text-anchor="middle" font-family="Space Mono" font-size="30" fill="#1b1a16">Accès fichiers</text><path d="M305 366 L325 297 L530 297" fill="none" stroke="#4c483d" stroke-width="2.2"/><circle cx="530" cy="297" r="5.5" fill="#3d491d"/></g>
+<g class="b b6"><rect x="800" y="366" width="270" height="66" fill="#f6f5f1" stroke="#1b1a16" stroke-width="1.8"/><text x="935" y="406" text-anchor="middle" font-family="Space Mono" font-size="30" fill="#1b1a16">Mémoire</text><path d="M935 366 L915 297 L710 297" fill="none" stroke="#4c483d" stroke-width="2.2"/><circle cx="710" cy="297" r="5.5" fill="#3d491d"/></g>
+</svg>
+<div class="rowh b b7"><span class="lbl">des harness :</span><span class="chip a">Claude</span><span class="chip a">Claude Code</span><span class="chip a">Cowork</span></div>
+<p class="sub b b8" style="text-align:center;max-width:72ch">Quand Claude « se souvient » d'un truc que vous ne lui avez jamais redit, ce n'est pas le modèle qui se souvient. Le harness a rangé l'information quelque part et la réinjecte dans le contexte au bon moment.</p>
+</div>
+</div></section>
+</deck-stage>
+
+<script src="assets/texture.js"></script>
+<script>(()=>{Grain.apply(16);
+const s=[...document.querySelectorAll('deck-stage>section')];
+s.forEach((sec,i)=>{const e=sec.querySelector('.rail .idx');if(e)e.textContent=String(i+1).padStart(2,'0')+' / '+s.length;
+const f=document.createElement('div');f.className='sfurn';f.innerHTML='<div class="regmark tl"></div><div class="regmark tr"></div><div class="regmark bl"></div><div class="regmark br"></div><div class="slide-vig"></div>';sec.appendChild(f);
+const sl=sec.querySelector('.slide');if(!sl)return;const big=!!sl.querySelector('.bigword');
+if(!big){const ft=document.createElement('div');ft.className='foot';ft.innerHTML='<span>Formation · travailler avec des agents</span><span>exhale</span>';sl.appendChild(ft);}
+const st=sl.querySelector('.stage');
+if(st&&!big){st.classList.add('figplate');const pt=document.createElement('span');pt.className='ptag';pt.textContent='FIG. '+String(i+1).padStart(2,'0');st.appendChild(pt);['tl','tr','bl','br'].forEach(p=>{const c=document.createElement('span');c.className='fcorner '+p;st.appendChild(c);});}
+});
+/* a canvas does not resolve var() nor color-mix(var()): an invalid colour falls back to black, which made the topo far too strong (Pierrick, 17/11) */
+const pr=document.createElement('i');pr.style.color='var(--accent)';document.body.appendChild(pr);const topoCol=getComputedStyle(pr).color.replace('rgb(','rgba(').replace(')',',0.12)');pr.remove();
+document.querySelectorAll('.slide-topo').forEach(c=>Topo.draw(c,{width:1920,height:1080,color:topoCol,levels:15,cell:26,scale:0.0020,seed:14,emphasizeEvery:5}));
+const g=document.createElement('div');g.style.cssText='position:fixed;inset:0;z-index:2147483000;pointer-events:none;mix-blend-mode:multiply;background-image:var(--grain);background-repeat:repeat;opacity:.45';document.body.appendChild(g);
+})();</script>
+<script src="assets/deck-stage.js"></script>
+<script src="assets/notes.js"></script>
+</body>
+</html>

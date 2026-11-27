@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API du Harness — inventaire et proposition</title>
+<style>
+  :root { --bg:#fbfaf7; --fg:#1d1d1b; --mut:#6b6862; --card:#fff; --line:#e6e2da; --soft:#f1eee8;
+          --acc:#2f5d8a; --acc-bg:#e3ecf5; --warn:#a33a2c; --warn-bg:#f7e4e1; --ok:#2e7d4f; --ok-bg:#e1f0e6; --file:#8a6d1f; --file-bg:#f5edd8; --cli:#5a5f66; --cli-bg:#e9eaec; --node:#6a4c93; --node-bg:#ece5f5; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#17181a; --fg:#ecebe8; --mut:#9a978f; --card:#1f2124; --line:#33363a; --soft:#25272b;
+            --acc:#7fb0e0; --acc-bg:#1e2d3d; --warn:#e58a7d; --warn-bg:#3a2320; --ok:#6cc391; --ok-bg:#1d3326; --file:#d8b65c; --file-bg:#3a3220; --cli:#b4b8be; --cli-bg:#2c2f33; --node:#c3a6ea; --node-bg:#2e2540; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 -apple-system, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 1120px; margin: 0 auto; padding: 28px 18px 80px; }
+  .prose { max-width: 760px; }
+  h1 { font-size: 24px; margin: 0 0 6px; line-height: 1.25; }
+  h2 { font-size: 19px; margin: 40px 0 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+  h3 { font-size: 16px; margin: 22px 0 8px; }
+  p, li { margin: 6px 0; }
+  .lede { color: var(--mut); margin: 0 0 18px; max-width: 760px; }
+  .reco { background: var(--acc-bg); border: 1px solid var(--acc); border-radius: 10px; padding: 14px 18px; margin: 18px 0 8px; max-width: 760px; }
+  .reco p { margin: 6px 0; }
+  .reco b { color: var(--acc); }
+  .dec { background: var(--ok-bg); border: 1px solid var(--ok); border-radius: 8px; padding: 12px 16px; margin: 0 0 12px; max-width: 760px; }
+  .dec h3 { margin: 0 0 6px; color: var(--ok); }
+  code { overflow-wrap: anywhere; font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+  .mut { color: var(--mut); }
+  small { font-size: 13px; }
+  .q { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 0 0 14px; max-width: 760px; }
+  .q > .said { margin: 0 0 8px; color: var(--mut); font-style: italic; }
+  .q h3 { margin: 0 0 6px; }
+  /* tables */
+  .tw { overflow-x: auto; margin: 10px 0 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; background: var(--soft); }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { min-width: 130px; font-weight: 600; }
+  table.files td:first-child { white-space: normal; min-width: 200px; }
+  table.setups td { min-width: 210px; }
+  table.setups td:first-child { min-width: 0; }
+  .t { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .t-api { color: var(--acc); background: var(--acc-bg); }
+  .t-node { color: var(--node); background: var(--node-bg); }
+  .t-file { color: var(--file); background: var(--file-bg); }
+  .t-relay { color: var(--ok); background: var(--ok-bg); }
+  .t-out { color: var(--warn); background: var(--warn-bg); }
+  .slow { color: var(--warn); font-weight: 600; }
+  /* figures */
+  figure { margin: 16px 0 8px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .fw { overflow-x: auto; }
+  figure svg { display: block; width: 100%; min-width: 820px; height: auto; color: var(--fg); }
+  figcaption { font-size: 13.5px; color: var(--mut); margin-top: 8px; max-width: 760px; }
+  svg text { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; fill: currentColor; }
+  svg .mach { fill: none; stroke: var(--line); stroke-width: 1.5; }
+  svg .mach-t { font-size: 14px; font-weight: 700; }
+  svg .box { fill: var(--card); stroke: currentColor; stroke-width: 1.2; }
+  svg .box-data { fill: var(--file-bg); stroke: var(--file); stroke-width: 1.2; }
+  svg .box-api { fill: var(--acc-bg); stroke: var(--acc); stroke-width: 2; }
+  svg .box-node { fill: var(--node-bg); stroke: var(--node); stroke-width: 1.6; }
+  svg .box-relay { fill: var(--ok-bg); stroke: var(--ok); stroke-width: 1.2; }
+  svg .box-slow { fill: var(--warn-bg); stroke: var(--warn); stroke-width: 1.5; }
+  svg .l { font-size: 12.5px; font-weight: 600; }
+  svg .s { font-size: 12px; fill: var(--mut); }
+  svg .e { font-size: 12px; }
+  svg .e-slow { font-size: 12px; fill: var(--warn); font-weight: 600; }
+  svg .e-acc { font-size: 12px; fill: var(--acc); font-weight: 600; }
+  svg .e-node { font-size: 12px; fill: var(--node); font-weight: 600; }
+  svg .ar { stroke: currentColor; stroke-width: 1.3; fill: none; }
+  svg .ar-slow { stroke: var(--warn); stroke-width: 1.8; fill: none; }
+  svg .ar-acc { stroke: var(--acc); stroke-width: 1.8; fill: none; }
+  svg .ar-node { stroke: var(--node); stroke-width: 1.8; fill: none; }
+  svg .ar-relay { stroke: var(--ok); stroke-width: 1.3; fill: none; }
+  svg .dash { stroke-dasharray: 5 4; }
+  svg .hd { fill: currentColor; }
+  svg .hd-slow { fill: var(--warn); }
+  svg .hd-acc { fill: var(--acc); }
+  svg .hd-node { fill: var(--node); }
+  svg .hd-relay { fill: var(--ok); }
+  /* steps & choices */
+  ol.steps { padding-left: 0; list-style: none; counter-reset: s; max-width: 760px; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 10px 14px 10px 50px; margin: 0 0 10px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+  ol.steps > li::before { content: counter(s); position: absolute; left: 14px; top: 10px; width: 24px; height: 24px; border-radius: 50%; background: var(--acc); color: var(--bg); font-weight: 700; font-size: 13px; text-align: center; line-height: 24px; }
+  ol.steps > li.zero { counter-increment: none; }
+  ol.steps > li.zero::before { content: "0"; background: var(--mut); }
+  ol.steps .k { font-weight: 700; }
+  .choice { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 0 0 12px; max-width: 760px; }
+  .choice.wide { max-width: none; }
+  .choice.wide > p, .choice.wide > ul { max-width: 760px; }
+  .choice h3 { margin: 0 0 6px; }
+  .choice .r { color: var(--acc); font-weight: 600; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 10px 0; }
+  .col { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .col h3 { margin: 0 0 6px; font-size: 15px; }
+  .col ul { margin: 0; padding-left: 18px; }
+  .legend { font-size: 13px; color: var(--mut); margin: 6px 0 0; }
+  .legend .t { margin-right: 4px; }
+</style>
+<body><main>
+<figure>
+<div class="fw">
+<svg viewBox="0 0 960 590" role="img" aria-label="Le harness : Pierrick envoie un message au chef de projet du blog, qui lance un crewmate, qui lance un maçon, qui lance un reviewer ; chacun remonte à celui qui l'a lancé. Chaque chef de projet écrit dans le vault.">
+  <defs>
+    <marker id="b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+    <marker id="b1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd-acc"/></marker>
+    <marker id="b1n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd-node"/></marker>
+  </defs>
+
+  <!-- Pierrick -->
+  <rect class="box" x="380" y="10" width="200" height="52" rx="6"/>
+  <text class="l" x="480" y="32" text-anchor="middle">Pierrick</text>
+  <text class="s" x="480" y="49" text-anchor="middle">donne les tâches</text>
+  <path class="ar-acc" d="M430,62 V74 H120 V132" marker-end="url(#b1a)"/>
+  <text class="e-acc" x="150" y="64">un message</text>
+  <path class="ar-acc" d="M530,62 V74 H660 V132" marker-end="url(#b1a)"/>
+  <path class="ar-acc dash" d="M580,36 H845 V132" marker-end="url(#b1a)"/>
+
+  <!-- domains -->
+  <rect class="mach" x="10" y="84" width="470" height="420" rx="10"/>
+  <text class="mach-t" x="24" y="108">Le blog</text>
+  <rect class="mach" x="490" y="84" width="230" height="420" rx="10"/>
+  <text class="mach-t" x="504" y="108">La domotique</text>
+  <rect class="mach dash" x="740" y="84" width="210" height="420" rx="10"/>
+  <text class="mach-t" x="754" y="108">+ d'autres</text>
+
+  <!-- blog: project lead and its sub-agents -->
+  <rect class="box" x="30" y="134" width="180" height="52" rx="6"/>
+  <text class="l" x="120" y="156" text-anchor="middle">Chef de projet</text>
+  <text class="s" x="120" y="173" text-anchor="middle">reçoit, lance, intègre</text>
+
+  <rect class="box-node" x="260" y="134" width="190" height="52" rx="6"/>
+  <text class="l" x="355" y="156" text-anchor="middle">Crewmate</text>
+  <text class="s" x="355" y="173" text-anchor="middle">une tâche, une session</text>
+  <path class="ar-node" d="M210,150 H258" marker-end="url(#b1n)"/>
+  <text class="e-node" x="216" y="142">lance</text>
+  <path class="ar-node dash" d="M258,172 H212" marker-end="url(#b1n)"/>
+
+  <rect class="box-node" x="260" y="238" width="190" height="52" rx="6"/>
+  <text class="l" x="355" y="260" text-anchor="middle">Maçon</text>
+  <text class="s" x="355" y="277" text-anchor="middle">construit</text>
+  <path class="ar-node" d="M320,186 V236" marker-end="url(#b1n)"/>
+  <text class="e-node" x="326" y="215">lance</text>
+  <path class="ar-node dash" d="M400,236 V188" marker-end="url(#b1n)"/>
+  <text class="e-node" x="406" y="215">remonte</text>
+
+  <rect class="box-node" x="260" y="342" width="190" height="52" rx="6"/>
+  <text class="l" x="355" y="364" text-anchor="middle">Reviewer</text>
+  <text class="s" x="355" y="381" text-anchor="middle">relit</text>
+  <path class="ar-node" d="M320,290 V340" marker-end="url(#b1n)"/>
+  <text class="e-node" x="326" y="319">lance</text>
+  <path class="ar-node dash" d="M400,340 V292" marker-end="url(#b1n)"/>
+  <text class="e-node" x="406" y="319">remonte</text>
+
+  <text class="e-node" x="260" y="428">le temps d'une tâche :</text>
+  <text class="e-node" x="260" y="442">ils apparaissent, puis disparaissent</text>
+
+  <path class="ar" d="M120,186 V528" marker-end="url(#b1)"/>
+  <text class="e" x="130" y="470">écrit ce qui</text>
+  <text class="e" x="130" y="484">est fait</text>
+
+  <!-- home automation -->
+  <rect class="box" x="510" y="134" width="190" height="52" rx="6"/>
+  <text class="l" x="605" y="156" text-anchor="middle">Chef de projet</text>
+  <text class="s" x="605" y="173" text-anchor="middle">même rôle</text>
+  <path class="ar" d="M605,186 V528" marker-end="url(#b1)"/>
+
+  <!-- others -->
+  <rect class="box dash" x="760" y="134" width="170" height="52" rx="6"/>
+  <text class="l" x="845" y="156" text-anchor="middle">Chef de projet</text>
+  <text class="s" x="845" y="173" text-anchor="middle">un par domaine</text>
+  <path class="ar dash" d="M845,186 V528" marker-end="url(#b1)"/>
+
+  <!-- vault band -->
+  <rect class="box-data" x="10" y="530" width="940" height="44" rx="8"/>
+  <text class="l" x="480" y="550" text-anchor="middle">Le vault, la mémoire de tous</text>
+  <text class="s" x="480" y="566" text-anchor="middle">règles, fiches de projet, journal : chaque agent y lit, le chef de projet y écrit</text>
+</svg>
+</div>
+<figcaption>En bleu, le message de Pierrick. En violet, les sous-agents lancés pour une tâche : chacun lance le suivant, chacun remonte à celui qui l'a lancé, puis ils disparaissent. En jaune, le vault, où chaque chef de projet écrit ce qui est fait.</figcaption>
+</figure>
+</main></body></html>

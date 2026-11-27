@@ -1,0 +1,198 @@
+/* deck.css — exhale slide system (1920×1080), the "prez" variant of the exhale DA.
+ *
+ * The DA is the brand page, "Brand exhale.html" (23.16 Exhale, section Déclinaisons > Prez).
+ * This file follows it; when a value here and the page disagree, the page wins.
+ *
+ * Two layers:
+ *  1. tokens.css — the blog's colour tokens, copied verbatim (see its header). Never edit a
+ *     value there: a design decision belongs to the blog, the deck only carries it.
+ *  2. this file — what a projected slide needs on top: the 1920 canvas scale and the
+ *     legibility floor. Transparencies are color-mix() of the tokens: no RGB triplet to keep.
+ *
+ * Legibility floor (brand page, "Le plancher de lisibilité"): content >= 26px (serif 30-34
+ * preferred), mono furniture >= 22px, titles 54-66px, statement 96px. Mono uppercase labels keep
+ * a small letter-spacing (.06-.1em): wide tracking at small sizes is what made them unreadable.
+ */
+@import url('tokens.css');
+
+:root{
+  /* alert, cost, forbidden. The blog's riso red is 4.0:1 on paper, too light for small text:
+     its "-ink" variant (5.9:1) carries text, as in Atlas (--bad) */
+  --hot:var(--riso-red-ink);
+  /* the deck loads Google Fonts (no build), whose family names differ from the blog's
+     Fontsource ones ('Archivo Variable', 'Newsreader Variable') */
+  --display:'Anton','Archivo',sans-serif;
+  --sans:'Archivo',system-ui,sans-serif;
+  --mono:'Space Mono',ui-monospace,monospace;
+  --serif:'Newsreader',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+/* the ground around the slides is the blog's recessed paper (brand page, Q5) */
+html,body{margin:0;padding:0;background:var(--paper-2)}
+a{color:var(--accent)}a:hover{color:var(--hot)}
+deck-stage:not(:defined){visibility:hidden}
+deck-stage>section{background:var(--paper);color:var(--ink);font-family:var(--sans);overflow:hidden;position:relative}
+/* paper tooth: dots at 9%, 1.5px. History: 1.2px at 10% was invisible once projected, 1.8px at 16% showed
+   too much behind small text (Pierrick, 10/11 then 16/11) */
+deck-stage>section::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(circle at 10px 10px,color-mix(in srgb,var(--ink) 9%,transparent) 1.5px,transparent 2.1px);background-size:20px 20px}
+.slide{position:relative;z-index:1;height:100%;padding:56px 88px 64px;display:flex;flex-direction:column}
+.rail{display:flex;align-items:baseline;justify-content:space-between;font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--line);padding-bottom:12px}
+.rail .act{color:var(--ink-2)}
+.rail .idx{color:var(--ink-3)}
+.rail .dot{color:var(--accent)}
+/* the width is set here, not by an override in the deck: a rule on .st alone loses to h1.st. Slide titles are Anton capitals, like the blog's section titles (brand page, Q5); the line-height
+   stays >= 1.04 so the accents of the capitals do not bite the line above */
+h1.st{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:66px;line-height:1.16;letter-spacing:.005em;margin:34px 0 0;max-width:40ch;text-wrap:balance}
+h1.st.sm{font-size:54px}
+.sub{font-family:var(--serif);font-size:30px;line-height:1.38;color:var(--ink-2);margin:16px 0 0;max-width:74ch;text-wrap:pretty}
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:26px 0 0;min-height:0}
+.stage.left{align-items:flex-start}
+.cp{margin-top:auto;border-top:2px solid var(--ink);padding-top:20px;font-family:var(--display);font-size:52px;line-height:1.02;text-transform:uppercase;letter-spacing:.005em;color:var(--accent);text-wrap:balance}
+.cp.sm{font-size:42px}
+/* progressive build */
+@media (prefers-reduced-motion:no-preference){
+ [data-deck-active] .b{animation:bfade .55s cubic-bezier(.2,.8,.2,1) both}
+ .b1{animation-delay:.15s}.b2{animation-delay:.45s}.b3{animation-delay:.75s}.b4{animation-delay:1.05s}.b5{animation-delay:1.35s}.b6{animation-delay:1.65s}.b7{animation-delay:1.95s}.b8{animation-delay:2.25s}.b9{animation-delay:2.55s}.b10{animation-delay:2.85s}.b11{animation-delay:3.15s}.b12{animation-delay:3.45s}
+}
+@keyframes bfade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+/* ---- primitives ---- */
+.box{border:1.6px solid var(--ink);background:var(--paper);padding:16px 22px;font-family:var(--mono);font-size:22px;letter-spacing:.03em;line-height:1.3;text-align:center}
+.box.on{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.box.on,.cell.proj,.cell.sys,.bin .bh{background-image:radial-gradient(circle at 1.5px 1.5px,color-mix(in srgb,var(--paper) 22%,transparent) 1px,transparent 1.5px);background-size:5px 5px}
+.box.mute{border-color:var(--line);color:var(--ink-2)}
+.box.hot{border-color:var(--hot);color:var(--hot)}
+.box small{display:block;font-size:22px;color:inherit;opacity:.85;margin-top:5px;letter-spacing:.04em}
+.lbl{font-family:var(--mono);font-size:22px;text-wrap:balance;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.lbl.a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:3px;text-underline-offset:6px}
+.arrow{font-family:var(--mono);font-size:30px;color:var(--ink-3)}
+.chip{font-family:var(--mono);font-size:22px;padding:9px 16px;border:1.4px solid var(--line);background:var(--paper);white-space:nowrap}
+.chip.a{border:2px solid var(--accent);color:var(--ink)}
+.chip.h{border-color:var(--hot);color:var(--hot)}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:64px;width:100%}
+.stackv{display:flex;flex-direction:column;gap:14px}
+.rowh{display:flex;align-items:center;gap:22px}
+/* ---- context bar (fil rouge) ---- */
+.ctxbar{display:flex;gap:4px;width:100%;height:96px;border:2px solid var(--ink);padding:5px;background:var(--paper)}
+.ctxbar.sm{height:66px}
+.cell{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:23px;line-height:1.15;letter-spacing:.04em;text-align:center;padding:0 10px;overflow:hidden}
+.convrow{border:2px solid var(--ink);background:var(--paper);height:50px;display:flex;align-items:center;padding:0 16px;font-family:var(--mono);font-size:22px;white-space:nowrap}
+.cell.sys{background:var(--ink);color:var(--paper)}
+.cell.tool{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--accent) 95%,transparent) 0 6px,color-mix(in srgb,var(--accent) 80%,transparent) 6px 12px);color:var(--paper);font-weight:700}
+/* the stripes were .85/.35: paper text on them was unreadable */
+/* .55 alpha left paper text at ~3:1; .8 brings it over 4.5:1 */
+.cell.proj{background:color-mix(in srgb,var(--accent) 80%,transparent);color:var(--paper)}
+.cell.msg{background:color-mix(in srgb,var(--ink) 11%,transparent);color:var(--ink-2)}
+.cell.free{background:transparent;border:1px dashed var(--line);color:var(--ink-2)}
+.cell.q{background:color-mix(in srgb,var(--ink) 11%,transparent);color:var(--ink-2);font-size:22px}
+.ctxlegend{display:flex;width:100%;font-family:var(--mono);font-size:23px;line-height:1.25;text-wrap:balance;color:var(--ink-2);letter-spacing:.04em;margin-top:8px;gap:4px}
+.ctxlegend>span{padding:0 8px;text-align:center}
+/* ---- plane (2 axes) ---- */
+.plane{position:relative;width:1080px;height:520px;border-left:2px solid var(--ink);border-bottom:2px solid var(--ink);background:linear-gradient(color-mix(in srgb,var(--ink) 5%,transparent) 1px,transparent 1px) 0 0/100% 65px,linear-gradient(90deg,color-mix(in srgb,var(--ink) 5%,transparent) 1px,transparent 1px) 0 0/90px 100%}
+.plane .zone{position:absolute;display:flex;align-items:flex-end;justify-content:flex-end;padding:16px 20px;font-family:var(--mono);font-size:22px;letter-spacing:.08em;text-transform:uppercase}
+.plane .zone.tl{align-items:flex-start;justify-content:flex-start}
+.plane .zone.good{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--ink);font-weight:700;border:1.4px dashed color-mix(in srgb,var(--accent) 50%,transparent)}
+.plane .zone.bad{background:color-mix(in srgb,var(--hot) 8%,transparent);color:var(--hot);border:1.4px dashed color-mix(in srgb,var(--hot) 45%,transparent)}
+.plane .ax{position:absolute;font-family:var(--mono);font-size:22px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.plane .ax.y{writing-mode:vertical-rl;transform:rotate(180deg);left:-42px;bottom:0}
+.plane .ax.x{left:0;bottom:-38px}
+.plane .pt{position:absolute;transform:translate(-50%,-50%)}
+/* ---- misc ---- */
+.hl{color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:4px;text-underline-offset:6px;text-decoration-skip-ink:none}
+/* option 1 (Pierrick, 10/11): the olive is as dark as --ink-2, so small text in olive reads grey once
+   projected. Olive carries fills, rules and large type (>= 40px); small accent text is ink + olive underline. */
+/* Pierrick's own sentences: a pull quote, like the blog's PullQuote (two rules, no left bar) */
+.quote{margin:auto 0 0;padding:22px 0 18px;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+.quote blockquote{margin:0;font-family:var(--serif);font-style:italic;font-weight:500;font-size:50px;line-height:1.2;color:var(--ink);text-wrap:balance}
+.quote figcaption{margin-top:12px;font-family:var(--mono);font-size:22px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.tag{font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.bar-h{height:14px;background:var(--accent)}
+/* an accent tab above the block, like a file folder: no left bar (brand page, Q2). The tab is 38% wide */
+.file{position:relative;margin-top:14px;font-family:var(--mono);font-size:22px;border:1.6px solid var(--ink);background:var(--paper);padding:10px 16px}
+.file::before{content:"";position:absolute;left:-1.6px;top:-15px;width:38%;height:14px;background:var(--accent)}
+.note{position:relative;margin-top:10px;font-family:var(--mono);font-size:22px;line-height:1.4;background:var(--paper-2);border:1px solid var(--line);padding:14px 16px;width:240px}
+.note::before{content:"";position:absolute;left:-1px;top:-9px;width:38%;height:8px;background:var(--accent)}
+.bubble{position:relative;border:1.6px solid var(--ink);background:var(--paper);padding:22px 24px;font-family:var(--serif);font-size:26px;line-height:1.4;max-width:520px}
+.bubble::after{content:"";position:absolute;left:34px;bottom:-13px;width:22px;height:22px;background:var(--paper);border-right:1.6px solid var(--ink);border-bottom:1.6px solid var(--ink);transform:rotate(45deg)}
+/* upright stamp (brand page, Q5) */
+.stamp{font-family:var(--display);font-size:34px;text-transform:uppercase;border:3px solid currentColor;padding:4px 16px;letter-spacing:.04em}
+.stamp.ok{color:var(--accent)}.stamp.no{color:var(--hot)}
+.tree{font-family:var(--mono);font-size:22px;line-height:1.85;color:var(--ink-2)}
+.tree b{color:var(--ink);font-weight:700}
+.tree .a{color:var(--ink);font-weight:700;text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:3px;text-underline-offset:5px}
+svg .st-ink{stroke:var(--ink)}svg .st-a{stroke:var(--accent)}svg .f-a{fill:var(--accent)}
+/* ---- paper furniture (injected per slide) ---- */
+.sfurn{display:contents}
+.regmark{position:absolute;width:22px;height:22px;pointer-events:none;z-index:4;opacity:.6}
+.regmark::before,.regmark::after{content:"";position:absolute;background:var(--ink)}
+.regmark::before{left:50%;top:0;width:1px;height:100%;transform:translateX(-50%)}
+.regmark::after{top:50%;left:0;height:1px;width:100%;transform:translateY(-50%)}
+.regmark.tl{top:22px;left:22px}.regmark.tr{top:22px;right:22px}.regmark.bl{bottom:22px;left:22px}.regmark.br{bottom:22px;right:22px}
+/* grain: .85 multiply darkened the paper under small text; .45 keeps the tooth */
+.slide-grain{position:absolute;inset:0;z-index:0;pointer-events:none;background-image:var(--grain);background-repeat:repeat;mix-blend-mode:multiply;opacity:.45}
+.slide-vig{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(120% 100% at 50% 0%,transparent 58%,color-mix(in srgb,var(--ink) 6%,transparent) 100%)}
+.slide-topo{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.foot{position:absolute;left:88px;right:88px;bottom:14px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:22px;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase;z-index:1;pointer-events:none}
+.foot .dot{color:var(--accent)}
+.ghost{position:absolute;right:30px;bottom:-90px;font-family:var(--display);font-size:620px;line-height:1;color:color-mix(in srgb,var(--ink) 5%,transparent);z-index:0;pointer-events:none}
+.figplate{position:relative;border:1px solid var(--line);background:color-mix(in srgb,var(--ink) 1.5%,transparent);margin-top:22px;margin-bottom:30px;padding:38px 40px 30px}
+.fcorner{position:absolute;width:13px;height:13px;border:1.6px solid var(--ink-2);pointer-events:none}
+.fcorner.tl{top:-1px;left:-1px;border-right:none;border-bottom:none}.fcorner.tr{top:-1px;right:-1px;border-left:none;border-bottom:none}.fcorner.bl{bottom:-1px;left:-1px;border-right:none;border-top:none}.fcorner.br{bottom:-1px;right:-1px;border-left:none;border-top:none}
+.ptag{position:absolute;top:10px;right:14px;font-family:var(--mono);font-size:22px;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase}
+.barcode{height:38px;width:180px;background-image:repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 3px,var(--ink) 3px 5px,transparent 5px 6px,var(--ink) 6px 9px,transparent 9px 12px,var(--ink) 12px 13px,transparent 13px 16px,var(--ink) 16px 19px,transparent 19px 20px);background-size:20px 100%}
+.barcode-num{font-family:var(--mono);font-size:22px;letter-spacing:.14em;color:var(--ink-2);margin-top:4px;text-align:right}
+
+/* ── Animations d'entrée (reprises du deck Ynov, 17/11) ── .grow : une barre qui pousse depuis la gauche · .pop : un élément qui apparaît ·
+   .draw : un tracé SVG qui se dessine (le <path> porte pathLength="1"). Tout est coupé sous prefers-reduced-motion. */
+@media (prefers-reduced-motion:no-preference){
+[data-deck-active] .grow{animation:grow .9s cubic-bezier(.2,.8,.2,1) both;transform-origin:left}
+[data-deck-active] .pop{animation:pop .4s cubic-bezier(.2,.8,.2,1) both}
+[data-deck-active] .draw{stroke-dasharray:1;animation:draw 1.6s .6s ease both}
+}
+@keyframes grow{from{transform:scaleX(0)}to{transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.5)}to{opacity:1}}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+
+/* ── .cmp : deux colonnes face à face autour d'un « vs » ── (les colonnes s'appellent .col : `.side` n'existe plus) */
+.cmp{display:grid;grid-template-columns:1fr auto 1fr;gap:44px;width:100%;max-width:1560px;align-items:center}
+.cmp .col{display:flex;flex-direction:column;gap:20px}
+.cmp .vs{font-family:var(--display);font-size:64px;color:var(--ink-3)}
+
+/* ── .range : deux bornes reliées par une barre qui pousse ── */
+.range{display:flex;align-items:center;gap:30px;width:100%;max-width:1500px}
+.range .end{font-family:var(--display);font-size:56px;line-height:1;color:var(--accent);white-space:nowrap}
+.range .end small{display:block;font-family:var(--mono);font-size:24px;color:var(--ink-2);margin-top:8px;letter-spacing:.04em}
+.range .end.r{text-align:right}
+.range .track{flex:1;height:14px;background:var(--line-soft);position:relative}
+.range .track i{position:absolute;inset:0;background:var(--accent);transform-origin:left}
+
+/* ── Notes d'orateur (notes.js) : N panneau sous la slide · O plein cadre. Pas d'ombre portée (doctrine). ── */
+#notes-panel{position:fixed;left:0;right:0;bottom:0;z-index:2147483600;max-height:34vh;overflow:auto;background:var(--paper);color:var(--ink);border-top:3px solid var(--ink);padding:14px 28px 16px;font-family:var(--serif);font-size:20px;line-height:1.45}
+#notes-panel[hidden]{display:none}
+#notes-panel .np-h{font-family:var(--mono);font-size:15px;margin-bottom:8px;display:flex;gap:10px;align-items:baseline}
+#notes-panel .np-h span{margin-left:auto;color:var(--ink-2)}
+#notes-panel .np-n{font-family:var(--mono);font-size:15px;color:var(--ink-2);margin-top:8px}
+#notes-panel .np-b b{color:var(--hot)}
+#orateur{position:fixed;inset:0;z-index:2147483601;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;padding:3vh 4vw;font-family:var(--serif)}
+#orateur[hidden]{display:none}
+#orateur .or-top{display:flex;gap:18px;align-items:baseline;font-family:var(--mono);font-size:clamp(15px,1.5vw,24px);border-bottom:3px solid var(--ink);padding-bottom:1.4vh}
+#orateur .or-top b{font-size:1.3em}
+#orateur #or-clock{margin-left:auto;color:var(--olive);font-weight:700;white-space:nowrap}
+#orateur #or-body{flex:1;overflow:auto;padding:2.4vh 0;font-size:clamp(20px,2.3vw,38px);line-height:1.42}
+#orateur #or-body b{color:var(--hot)}
+#orateur .or-next{font-family:var(--mono);font-size:clamp(15px,1.5vw,24px);color:var(--ink-2);border-top:1px solid var(--line);padding-top:1.4vh}
+#orateur .or-help{font-family:var(--mono);font-size:clamp(12px,1vw,16px);color:var(--ink-2);margin-top:.8vh}
+@media print{#notes-panel,#orateur{display:none}}
+
+/* ── Variantes de taille nommées : plus de font-size en ligne dans les slides ── */
+.sub.lead{font-size:29px;max-width:50ch}
+.sub.lg{font-size:34px}
+.sub.in{font-size:26px;margin:0}
+.bigword.md{font-size:126px}
+.bigword.lg{font-size:168px}
+.box.lg{font-size:30px;padding:26px 60px}
+.arrow.a{color:var(--accent);font-size:38px}
+.plus{font-family:var(--display);font-size:56px;color:var(--accent);line-height:1}
+.zlab{display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:42px;letter-spacing:.04em}
+.zlab.hot{color:var(--hot)}.zlab.acc{color:var(--accent)}
+.file small{font-size:22px;color:var(--ink-2)}
+.lane h3.sm{font-size:28px}

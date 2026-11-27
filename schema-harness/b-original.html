@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API du Harness — inventaire et proposition</title>
+<style>
+  :root { --bg:#fbfaf7; --fg:#1d1d1b; --mut:#6b6862; --card:#fff; --line:#e6e2da; --soft:#f1eee8;
+          --acc:#2f5d8a; --acc-bg:#e3ecf5; --warn:#a33a2c; --warn-bg:#f7e4e1; --ok:#2e7d4f; --ok-bg:#e1f0e6; --file:#8a6d1f; --file-bg:#f5edd8; --cli:#5a5f66; --cli-bg:#e9eaec; --node:#6a4c93; --node-bg:#ece5f5; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#17181a; --fg:#ecebe8; --mut:#9a978f; --card:#1f2124; --line:#33363a; --soft:#25272b;
+            --acc:#7fb0e0; --acc-bg:#1e2d3d; --warn:#e58a7d; --warn-bg:#3a2320; --ok:#6cc391; --ok-bg:#1d3326; --file:#d8b65c; --file-bg:#3a3220; --cli:#b4b8be; --cli-bg:#2c2f33; --node:#c3a6ea; --node-bg:#2e2540; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 -apple-system, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 1120px; margin: 0 auto; padding: 28px 18px 80px; }
+  .prose { max-width: 760px; }
+  h1 { font-size: 24px; margin: 0 0 6px; line-height: 1.25; }
+  h2 { font-size: 19px; margin: 40px 0 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+  h3 { font-size: 16px; margin: 22px 0 8px; }
+  p, li { margin: 6px 0; }
+  .lede { color: var(--mut); margin: 0 0 18px; max-width: 760px; }
+  .reco { background: var(--acc-bg); border: 1px solid var(--acc); border-radius: 10px; padding: 14px 18px; margin: 18px 0 8px; max-width: 760px; }
+  .reco p { margin: 6px 0; }
+  .reco b { color: var(--acc); }
+  .dec { background: var(--ok-bg); border: 1px solid var(--ok); border-radius: 8px; padding: 12px 16px; margin: 0 0 12px; max-width: 760px; }
+  .dec h3 { margin: 0 0 6px; color: var(--ok); }
+  code { overflow-wrap: anywhere; font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+  .mut { color: var(--mut); }
+  small { font-size: 13px; }
+  .q { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 0 0 14px; max-width: 760px; }
+  .q > .said { margin: 0 0 8px; color: var(--mut); font-style: italic; }
+  .q h3 { margin: 0 0 6px; }
+  /* tables */
+  .tw { overflow-x: auto; margin: 10px 0 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; background: var(--soft); }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { min-width: 130px; font-weight: 600; }
+  table.files td:first-child { white-space: normal; min-width: 200px; }
+  table.setups td { min-width: 210px; }
+  table.setups td:first-child { min-width: 0; }
+  .t { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .t-api { color: var(--acc); background: var(--acc-bg); }
+  .t-node { color: var(--node); background: var(--node-bg); }
+  .t-file { color: var(--file); background: var(--file-bg); }
+  .t-relay { color: var(--ok); background: var(--ok-bg); }
+  .t-out { color: var(--warn); background: var(--warn-bg); }
+  .slow { color: var(--warn); font-weight: 600; }
+  /* figures */
+  figure { margin: 16px 0 8px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .fw { overflow-x: auto; }
+  figure svg { display: block; width: 100%; min-width: 820px; height: auto; color: var(--fg); }
+  figcaption { font-size: 13.5px; color: var(--mut); margin-top: 8px; max-width: 760px; }
+  svg text { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; fill: currentColor; }
+  svg .mach { fill: none; stroke: var(--line); stroke-width: 1.5; }
+  svg .mach-t { font-size: 14px; font-weight: 700; }
+  svg .box { fill: var(--card); stroke: currentColor; stroke-width: 1.2; }
+  svg .box-data { fill: var(--file-bg); stroke: var(--file); stroke-width: 1.2; }
+  svg .box-api { fill: var(--acc-bg); stroke: var(--acc); stroke-width: 2; }
+  svg .box-node { fill: var(--node-bg); stroke: var(--node); stroke-width: 1.6; }
+  svg .box-relay { fill: var(--ok-bg); stroke: var(--ok); stroke-width: 1.2; }
+  svg .box-slow { fill: var(--warn-bg); stroke: var(--warn); stroke-width: 1.5; }
+  svg .l { font-size: 12.5px; font-weight: 600; }
+  svg .s { font-size: 12px; fill: var(--mut); }
+  svg .e { font-size: 12px; }
+  svg .e-slow { font-size: 12px; fill: var(--warn); font-weight: 600; }
+  svg .e-acc { font-size: 12px; fill: var(--acc); font-weight: 600; }
+  svg .e-node { font-size: 12px; fill: var(--node); font-weight: 600; }
+  svg .ar { stroke: currentColor; stroke-width: 1.3; fill: none; }
+  svg .ar-slow { stroke: var(--warn); stroke-width: 1.8; fill: none; }
+  svg .ar-acc { stroke: var(--acc); stroke-width: 1.8; fill: none; }
+  svg .ar-node { stroke: var(--node); stroke-width: 1.8; fill: none; }
+  svg .ar-relay { stroke: var(--ok); stroke-width: 1.3; fill: none; }
+  svg .dash { stroke-dasharray: 5 4; }
+  svg .hd { fill: currentColor; }
+  svg .hd-slow { fill: var(--warn); }
+  svg .hd-acc { fill: var(--acc); }
+  svg .hd-node { fill: var(--node); }
+  svg .hd-relay { fill: var(--ok); }
+  /* steps & choices */
+  ol.steps { padding-left: 0; list-style: none; counter-reset: s; max-width: 760px; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 10px 14px 10px 50px; margin: 0 0 10px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+  ol.steps > li::before { content: counter(s); position: absolute; left: 14px; top: 10px; width: 24px; height: 24px; border-radius: 50%; background: var(--acc); color: var(--bg); font-weight: 700; font-size: 13px; text-align: center; line-height: 24px; }
+  ol.steps > li.zero { counter-increment: none; }
+  ol.steps > li.zero::before { content: "0"; background: var(--mut); }
+  ol.steps .k { font-weight: 700; }
+  .choice { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 0 0 12px; max-width: 760px; }
+  .choice.wide { max-width: none; }
+  .choice.wide > p, .choice.wide > ul { max-width: 760px; }
+  .choice h3 { margin: 0 0 6px; }
+  .choice .r { color: var(--acc); font-weight: 600; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 10px 0; }
+  .col { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .col h3 { margin: 0 0 6px; font-size: 15px; }
+  .col ul { margin: 0; padding-left: 18px; }
+  .legend { font-size: 13px; color: var(--mut); margin: 6px 0 0; }
+  .legend .t { margin-right: 4px; }
+</style>
+<body><main>
+<figure>
+<div class="fw">
+<svg viewBox="0 0 960 590" role="img" aria-label="Proposition : l'API du Harness au centre, sur le serveur. Les interfaces (la commande harness, l'écran, les crons) l'appellent avec un jeton d'agent. Sur chaque machine, un service de nœud fait les gestes locaux et appelle l'API, jamais l'inverse. La messagerie reste à côté.">
+  <defs>
+    <marker id="b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+    <marker id="b1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd-acc"/></marker>
+    <marker id="b1n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd-node"/></marker>
+    <marker id="b1r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd-relay"/></marker>
+  </defs>
+
+  <rect class="mach" x="10" y="10" width="220" height="490" rx="10"/>
+  <text class="mach-t" x="24" y="34">Mac</text>
+  <rect class="mach" x="250" y="10" width="470" height="490" rx="10"/>
+  <text class="mach-t" x="264" y="34">Serveur</text>
+  <rect class="mach" x="740" y="10" width="210" height="490" rx="10"/>
+  <text class="mach-t" x="754" y="34">crewbox</text>
+
+  <!-- server row 1: interfaces -->
+  <rect class="box" x="270" y="56" width="135" height="52" rx="6"/>
+  <text class="l" x="337" y="78" text-anchor="middle">Dieux, crewmates</text>
+  <text class="s" x="337" y="95" text-anchor="middle">tapent harness …</text>
+  <rect class="box" x="420" y="56" width="135" height="52" rx="6"/>
+  <text class="l" x="487" y="78" text-anchor="middle">L'écran</text>
+  <text class="s" x="487" y="95" text-anchor="middle">Olympe</text>
+  <rect class="box" x="570" y="56" width="135" height="52" rx="6"/>
+  <text class="l" x="637" y="78" text-anchor="middle">Crons</text>
+  <text class="s" x="637" y="95" text-anchor="middle">nuit, rétros</text>
+
+  <path class="ar-acc" d="M337,108 V168" marker-end="url(#b1a)"/>
+  <text class="e-acc" x="343" y="134">HTTP, jeton</text>
+  <text class="e-acc" x="343" y="148">d'agent</text>
+  <path class="ar-acc" d="M487,108 V168" marker-end="url(#b1a)"/>
+  <path class="ar-acc" d="M637,108 V168" marker-end="url(#b1a)"/>
+
+  <!-- API -->
+  <rect class="box-api" x="270" y="170" width="435" height="72" rx="8"/>
+  <text class="l" x="487" y="193" text-anchor="middle">API du Harness</text>
+  <text class="s" x="487" y="211" text-anchor="middle">journal, board, questions, audiences, améliorations,</text>
+  <text class="s" x="487" y="227" text-anchor="middle">coûts, machines, comptes · ordres aux nœuds · veille</text>
+
+  <!-- data -->
+  <rect class="box-data" x="500" y="290" width="95" height="52" rx="6"/>
+  <text class="l" x="547" y="312" text-anchor="middle">Postgres</text>
+  <text class="s" x="547" y="329" text-anchor="middle">le Harness</text>
+  <rect class="box-data" x="610" y="290" width="95" height="52" rx="6"/>
+  <text class="l" x="657" y="312" text-anchor="middle">GreptimeDB</text>
+  <text class="s" x="657" y="329" text-anchor="middle">télémétrie</text>
+  <path class="ar-acc" d="M547,242 V288" marker-end="url(#b1a)"/>
+  <path class="ar-acc" d="M657,242 V288" marker-end="url(#b1a)"/>
+
+  <!-- server node service -->
+  <rect class="box-node" x="270" y="380" width="200" height="70" rx="6"/>
+  <text class="l" x="370" y="402" text-anchor="middle">Service de nœud</text>
+  <text class="s" x="370" y="419" text-anchor="middle">herdr, cswap, /proc,</text>
+  <text class="s" x="370" y="435" text-anchor="middle">git, lancements</text>
+  <path class="ar-node" d="M370,378 V244" marker-end="url(#b1n)"/>
+  <text class="e-node" x="378" y="300">pousse l'état,</text>
+  <text class="e-node" x="378" y="314">prend les ordres</text>
+  <text class="e-node" x="378" y="328">jeton du nœud</text>
+
+  <rect class="box-data" x="500" y="380" width="205" height="70" rx="6"/>
+  <text class="l" x="602" y="402" text-anchor="middle">Vault, à toi</text>
+  <text class="s" x="602" y="419" text-anchor="middle">chartes, fiches, briefs</text>
+  <text class="s" x="602" y="435" text-anchor="middle">lu en direct, sans l'API</text>
+
+  <rect class="box-relay" x="270" y="464" width="200" height="26" rx="6"/>
+  <text class="l" x="370" y="482" text-anchor="middle">relais du serveur</text>
+
+  <!-- Mac -->
+  <rect class="box" x="30" y="56" width="180" height="52" rx="6"/>
+  <text class="l" x="120" y="78" text-anchor="middle">Hermes, crewmates</text>
+  <text class="s" x="120" y="95" text-anchor="middle">dans herdr du Mac</text>
+  <rect class="box" x="30" y="170" width="180" height="46" rx="6"/>
+  <text class="l" x="120" y="190" text-anchor="middle">harness …</text>
+  <text class="s" x="120" y="206" text-anchor="middle">une interface de l'API</text>
+  <path class="ar" d="M120,108 V168" marker-end="url(#b1)"/>
+  <path class="ar-acc" d="M210,190 H268" marker-end="url(#b1a)"/>
+
+  <rect class="box-node" x="30" y="290" width="180" height="70" rx="6"/>
+  <text class="l" x="120" y="312" text-anchor="middle">Service de nœud</text>
+  <text class="s" x="120" y="329" text-anchor="middle">herdr du Mac, cswap,</text>
+  <text class="s" x="120" y="345" text-anchor="middle">/proc, sessions Desktop</text>
+  <path class="ar-node" d="M210,325 H240 V226 H268" marker-end="url(#b1n)"/>
+  <text class="e-node" x="38" y="384">appel sortant :</text>
+  <text class="e-node" x="38" y="398">le serveur n'appelle</text>
+  <text class="e-node" x="38" y="412">jamais le Mac</text>
+
+  <rect class="box-relay" x="30" y="464" width="180" height="26" rx="6"/>
+  <text class="l" x="120" y="482" text-anchor="middle">relais du Mac</text>
+
+  <!-- crewbox -->
+  <rect class="box" x="760" y="56" width="170" height="52" rx="6"/>
+  <text class="l" x="845" y="78" text-anchor="middle">microVM</text>
+  <text class="s" x="845" y="95" text-anchor="middle">un crewmate</text>
+  <path class="ar-relay" d="M912,108 V528" marker-end="url(#b1r)"/>
+
+  <rect class="box-node" x="758" y="290" width="144" height="70" rx="6"/>
+  <text class="l" x="830" y="312" text-anchor="middle">Service de nœud</text>
+  <text class="s" x="830" y="329" text-anchor="middle">msb, herdr,</text>
+  <text class="s" x="830" y="345" text-anchor="middle">/proc</text>
+  <path class="ar-node dash" d="M758,325 H730 V226 H707" marker-end="url(#b1n)"/>
+  <text class="e-node" x="758" y="384">plus tard : le port</text>
+  <text class="e-node" x="758" y="398">de l'API ouvert à</text>
+  <text class="e-node" x="758" y="412">crewbox (ton geste)</text>
+
+  <!-- Relaycast band -->
+  <rect class="box-relay" x="10" y="530" width="940" height="44" rx="8"/>
+  <text class="l" x="480" y="550" text-anchor="middle">Relaycast, la messagerie : à côté, inchangée pour l'instant</text>
+  <text class="s" x="480" y="566" text-anchor="middle">send, inbox, réveils tapés dans herdr ; aucune machine ne se connecte à une autre</text>
+  <path class="ar-relay" d="M120,490 V528" marker-end="url(#b1r)"/>
+  <path class="ar-relay" d="M370,490 V528" marker-end="url(#b1r)"/>
+</svg>
+</div>
+<figcaption>En bleu, l'API et ceux qui l'appellent pour lire ou écrire une donnée : les agents par la commande <code>harness</code>, l'écran, les crons. En violet, le service de nœud de chaque machine : il fait les gestes locaux et appelle l'API pour lui pousser l'état de sa machine et prendre ses ordres. Le serveur n'appelle jamais le Mac (ADR 0006). En vert, la messagerie, qui reste à côté. Pour crewbox, en pointillé : en attendant que tu ouvres le port de l'API, c'est le service du serveur qui la lit par ssh, comme aujourd'hui.</figcaption>
+</figure>
+</main></body></html>

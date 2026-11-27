@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Schéma du harness, brouillons A et B</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<style>
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Newsreader',Georgia,serif;font-size:19px;line-height:1.5}
+  main{max-width:1820px;margin:0 auto;padding:36px 28px 80px}
+  h1{font-family:'Anton',sans-serif;font-weight:400;text-transform:uppercase;font-size:44px;margin:0 0 6px}
+  h2{font-family:'Anton',sans-serif;font-weight:400;text-transform:uppercase;font-size:30px;margin:44px 0 10px;border-top:2px solid var(--ink);padding-top:14px}
+  .mono{font-family:'Space Mono',monospace;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+  .fond{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;max-width:1500px}
+  .fond h3{font-family:'Space Mono',monospace;font-size:15px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 6px}
+  .fond ul,.fond ol{margin:0;padding-left:22px}
+  .fond li{margin:3px 0}
+  .pair{display:grid;grid-template-columns:880px 880px;gap:28px;align-items:start}
+  .pair figure{margin:0}
+  .pair figcaption{font-family:'Space Mono',monospace;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-bottom:8px}
+  .pair figcaption b{color:var(--olive)}
+  iframe{display:block;width:880px;border:1px solid var(--line);background:var(--paper)}
+  .slide{height:495px}
+  .doc{height:720px}
+  p.note{max-width:90ch;color:var(--ink-2)}
+</style>
+</head>
+<body>
+<main>
+<p class="mono">schema-harness · 23 novembre 2026 · étape 1, le schéma fixe</p>
+<h1>Le schéma du harness, deux brouillons</h1>
+<p class="note">Pour l'article « La productivité en dents de scie ». D'abord le fond, à valider à part ; puis deux brouillons du même fond, chacun copié d'un schéma que tu as déjà validé et posé à côté de lui, à la même échelle. Pas d'animation à ce stade.</p>
+
+<h2>Le fond</h2>
+<div class="fond">
+  <div>
+    <h3>Les boîtes</h3>
+    <ul>
+      <li>Pierrick, en haut.</li>
+      <li>Le harness, le cadre autour des agents.</li>
+      <li>Deux chefs de projet nommés par leur domaine : « Le blog », « La domotique ».</li>
+      <li>« + d'autres », en pointillé.</li>
+      <li>Le vault.</li>
+      <li>Les sous-agents du blog, le temps d'une tâche : crewmate, maçon, reviewer.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>Les liens</h3>
+    <ul>
+      <li>Pierrick → chaque chef de projet : un message.</li>
+      <li>Le blog → crewmate → maçon → reviewer : chacun lance le suivant.</li>
+      <li>Retour : chacun remonte à celui qui l'a lancé.</li>
+      <li>Chaque chef de projet → le vault : il y écrit ce qui est fait.</li>
+    </ul>
+    <p class="note" style="font-size:16px">Le fixe montre le moment où l'équipe est au complet ; le récit ci-contre, c'est l'animation de l'étape 2.</p>
+  </div>
+  <div>
+    <h3>Le récit (étape 2)</h3>
+    <ol>
+      <li>Au repos : Pierrick, Le blog, La domotique, + d'autres, le vault.</li>
+      <li>Un point part de Pierrick et arrive au blog.</li>
+      <li>Le blog lance un crewmate : il apparaît.</li>
+      <li>Le crewmate lance un maçon.</li>
+      <li>Le maçon lance un reviewer.</li>
+      <li>La relecture remonte au crewmate.</li>
+      <li>Le crewmate remonte au blog.</li>
+      <li>C'est mergé, mis en ligne.</li>
+      <li>Le blog l'écrit dans le vault.</li>
+      <li>Crewmate, maçon et reviewer disparaissent.</li>
+    </ol>
+  </div>
+</div>
+
+<h2>A · copié de la slide 13 du deck « Formation agents »</h2>
+<div class="pair">
+  <figure><figcaption>Original · slide 13, « Le harness »</figcaption><iframe class="slide" src="a-original.html" title="Slide 13 d'origine"></iframe></figure>
+  <figure><figcaption><b>Brouillon A</b> · même code, contenu changé</figcaption><iframe class="slide" src="a-brouillon.html" title="Brouillon A"></iframe></figure>
+</div>
+
+<h2>B · copié du schéma §3 de « API du Harness » (21/11)</h2>
+<div class="pair">
+  <figure><figcaption>Original · §3, « La proposition »</figcaption><iframe class="doc" src="b-original.html" title="Schéma d'origine, API du Harness"></iframe></figure>
+  <figure><figcaption><b>Brouillon B</b> · même code, contenu changé</figcaption><iframe class="doc" src="b-brouillon.html" title="Brouillon B"></iframe></figure>
+</div>
+<p class="note">B garde le style de son original tel quel (police système, bleu, violet, coins arrondis) : il n'est pas dans la DA exhale. S'il gagne, c'est sa structure qu'on garde, et il faudra le passer dans la DA.</p>
+</main>
+</body>
+</html>
