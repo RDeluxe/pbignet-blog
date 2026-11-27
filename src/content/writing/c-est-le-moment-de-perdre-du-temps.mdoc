@@ -1,0 +1,148 @@
+---
+title: C'est le moment de perdre du temps
+description: Un jour super productif, le lendemain à la ramasse. Avec un harness d'agents, c'est normal, et il n'y a pas de raccourci.
+pubDate: 2026-11-27
+tag: Essay
+readTime: 8
+lang: fr
+tags:
+  - AI
+  - reflexion
+---
+
+Il y a peu de choses plus frustrantes que d'avoir l'impression de répéter le même geste et de ne pas avoir le même résultat.
+
+Dans le [vrai monde réel de la réalité véritable](https://vimeo.com/117262221?share=copy&fl=cl&fe=ci#t=2.291), c'est rare. Vous prenez un fil électrique, vous le dénudez : si le geste est le même, le résultat sera le même (pas forcément le bon, mais le même).
+
+Pendant longtemps, c'était aussi vrai dans le monde du développement, jusqu'à un certain point : certains systèmes finissent par dérailler, comme une CI/CD qui ralentit de plus en plus, une dette technique qui rend chaque ticket plus pénible que le précédent, etc.
+
+Ces problèmes organisationnels se répandaient comme un poison lent : difficile à détecter au départ, et pas assez abrupt pour que qui que ce soit décide de s'y attaquer.
+
+Mais travailler avec des *agents* transforme ces "poisons lents" en coup de batte de baseball sur la nuque : une codebase qui grossit 10, 20 ou 100 fois plus vite rencontre les mêmes problèmes qu'avant, mais 10, 20 ou 100 fois plus tôt. 
+
+Résultat : les prompts et les workflows qui fonctionnaient parfaitement la veille produisent du mauvais code le lendemain. Les durées de CI s'allongent abruptement, les coûts en tokens explosent d'un coup. 
+
+Le dev (vous ?) très heureux le lundi finit en pleurs le vendredi sans avoir rien changé à sa façon de bosser.
+
+## Un weekend qui déraille
+
+J'avais prévu de passer le weekend dernier en alternant entre bricolage bien réel et nouvelles fonctionnalités sur mes projets en cours. 
+
+{% figure src="/writing/c-est-le-moment-de-perdre-du-temps/gaines-avant.png" alt="Recoin sous escalier en plaques de plâtre vertes : des gaines noires et des câbles orange partent en désordre d’une boîte de dérivation et pendent le long du mur." kind="capture" /%}
+
+Je partais confiant : mon *meta-harness* fonctionnait à merveille : vélocité, pertinence, qualité du code produit... les tâches s'enchaînaient avec fluidité. Je m'imaginais coffrer mes gaines électriques et revenir contempler les avancées de mes agents pendant mes pauses café.
+
+Au lieu de ça, j'ai passé deux jours à hurler dessus. 
+
+Je faisais pourtant (presque) pareil que les semaines passées. Comment le système a-t-il pu perdre les pédales ?
+
+Globalement, les symptômes étaient les suivants :
+
+1. Les agents oubliaient beaucoup, très vite
+2. Beaucoup de tâches "validées" n'arrivaient jamais en prod ou n'étaient pas terminées
+3. Les durées de développement d'une tâche s'étiraient sur des heures voire des jours
+4. Dans une moindre mesure, le niveau de qualité du code produit diminuait, ne respectant plus mes standards
+
+## Mon harness
+
+J'en reparlerai certainement en détail, mais pour la faire courte : mon *harness* est structuré autour d'agents « chefs de projet » : chacun tient un "domaine" (ensemble de projets), découpe le travail et lance d'autres agents qui codent. 
+
+{% harnessschema label="Schéma du harness : Pierrick parle au chef de projet « Le blog » (à côté de « La domotique » et d’autres), qui lance un agent de tâche éphémère avec un codeur et un relecteur ; le site est publié et les décisions notées dans les notes Obsidian partagées." /%}
+
+## Pourquoi ça casse ? Parce que ça marche !
+
+Dès qu'un système fonctionne bien, on augmente naturellement la quantité et la complexité de ce qu'on lui fait produire.
+
+Si au départ mes chefs de projet géraient une ou deux tâches en parallèle, j'ai commencé à leur en demander beaucoup plus : rétro journalière (avec points d'amélioration), plus de sous-tâches en parallèle, des brainstormings divers... bref, ils se sont vite trouvés très demandés.
+
+D'autant que la plupart de mes projets personnels étaient passés dans la [zone de confiance](a-venir) : une fois dans cette zone, mes code reviews se limitent généralement à une lecture en diagonale, voire pas de relecture du tout pour les sujets plus simples. Ce [*bottleneck* humain](https://martinfowler.com/rachels-ramblings/code-review.html) en moins, le nombre de fonctionnalités à produire augmente d'un coup.
+
+### Les limites hardware
+
+Sauf que, quand une vingtaine d'agents veulent coder sur la même machine — un vieux quad-core avec 16 Go de RAM — ça pose vite problème. J'ai ajouté un autre "nœud" dans mon architecture, mais cela n'a pas suffi.
+
+Il a fallu mettre en place un système de file d'attente afin de m'assurer que les machines n'arriveraient pas à saturation, ce qui entraînait des reset de la plupart des agents.
+
+### Les limites du contexte
+
+L'autre gros problème est venu de la gestion du contexte de mes "chefs de projets". J'avais commencé par une approche naïve : chacun tenait un `JOURNAL.md`, relativement structuré, contenant les informations importantes de nos échanges : nouvelle demande de ma part, suivi de tâche, clôture de sujet, etc.
+
+À chaque reprise, l'agent en lisait les dernières lignes, et ça se passait bien. Tant qu'il ne travaillait pas sur 50 sujets, le journal se remplissait assez lentement pour que ce système soit viable.
+
+Mais avec cinq sous-agents en parallèle, qui lui parlent par une messagerie, le journal se remplit à peu près cinq fois plus vite et le nombre de *turn* dans le chat est aussi multiplié par 5. 
+
+L'agent se retrouve beaucoup plus rapidement "compacté", ce qui n'est jamais bon, et surtout il a tendance à ne plus relire assez loin dans son journal : ce qui crée une forte dissonance entre l'humain, qui se souvient d'avoir géré un sujet, et le chef de projet, qui — sauf à lui demander explicitement — n'en a plus la moindre idée.
+
+Résultat : des demandes de ma part ne sont plus jamais relues, et des sujets commencés ne sont jamais terminés.
+
+### Les limites du file-based
+
+Pour résoudre ces problèmes de suivi, mais aussi de performance, j'ai finalement passé le cap et décidé de moins me reposer sur les fichiers, et plus sur de la donnée structurée. 
+
+Une API node est devenue le cœur de mon `cli` et j'ai transformé le journal markdown en une combinaison de donnée structurée dans une table PostgreSQL et Beads pour la gestion des tâches, servie par l'API.
+
+Mieux structurer m'a aussi permis de mieux traquer : les tâches et demandes portent maintenant un identifiant, passé dans la télémétrie, et me permettant de plus rapidement mesurer les coûts et les durées. 
+
+{% callout title="Il a souvent raison, l'ami Steve Yegge" %}
+En lisant [ses articles](https://steve-yegge.medium.com/) sur Gas Town et Beads l'année dernière, je le prenais certes un peu pour un fou, mais je dois avouer qu'il a souvent raison quand il dit être "un an en avance sur tout le monde"
+{% /callout %}
+
+### Les limites de l'auto-amélioration
+
+Un des principaux problèmes est que les agents ont tendance **à travailler par addition, pas par soustraction**. 
+
+Chaque semaine entraînait la création d'une centaine de petites améliorations dans le backlog. Chacune ajoutait quelques lignes aux documents qui décrivent le système, et ces documents ont grossi. Et grossi encore, petit ajout par petit ajout.
+
+Pris indépendamment, chaque ajout avait du sens : chacun était justifié par un incident, chacun répond à une vraie problématique. 
+
+Mais cet empilement remplit le contexte des agents et devient rapidement contre-productif : les règles importantes passent à la trappe, et — pire — l'absence de vision globale peut conduire à des comportements inverses de ceux souhaités.
+
+Dans mon cas, les agents m'avaient tellement cité dans les règles ("Pierrick a dit que ... le ...") que **ma parole est devenue parole d'Évangile**. Aucun de mes chefs de projets ne la remettait en question, et ils se contentaient d'exécuter sans réfléchir.
+
+{% barchart label="Deux graphes en barres, en tokens, du 15/10 au 22/11 : harness.md passe de 8 040 à 13 864 puis 8 669, role-secondmate.md de 3 144 à 8 469 puis 4 972 après le refactoring du 21/11." panels=[{"title":"harness.md","subtitle":"la référence","unit":"en tokens","rows":[{"label":"15/10","value":8040},{"label":"1/11","value":10004},{"label":"15/11","value":13148},{"label":"20/11","value":13864},{"label":"22/11","value":8669,"highlight":true,"note":"refactoring du 21/11"}]},{"title":"role-secondmate.md","subtitle":"le métier de chef de projet","unit":"en tokens","rows":[{"label":"15/10","value":3144},{"label":"1/11","value":5912},{"label":"15/11","value":7842},{"label":"20/11","value":8469},{"label":"22/11","value":4972,"highlight":true,"note":"refactoring du 21/11"}]}] /%}
+
+### Les limites de l'interface
+
+Je suis personnellement convaincu que la vue sous forme de chat est une des pires UX possibles pour gérer une multitude d'agents, voire même simplement un agent type chef de projet. 
+
+Et la multiplication des tâches qui a eu lieu ce week-end l'a confirmé puisqu'il était devenu impossible pour moi de suivre le travail d'un chef de projet dans le chat, (malgré des tentatives naïves comme séparer les sujets avec des tirets).
+
+J'ai donc amélioré mes interfaces afin de mieux suivre ce qui m'attendait et les questions ouvertes de mes agents. 
+
+{% figure src="/writing/c-est-le-moment-de-perdre-du-temps/dents-de-scie-olympe-attente.png" alt="Interface d’Olympe : la liste des blocages de chaque chef de projet." kind="capture" %}
+Chaque chef de projet me montre ses blocages
+{% /figure %}
+
+{% figure src="/writing/c-est-le-moment-de-perdre-du-temps/dents-de-scie-olympe-questions.png" alt="Interface d’Olympe : les questions ouvertes des agents, avec leur contexte, auxquelles répondre au clavier." kind="capture" %}
+J'ai travaillé sur une UX (entièrement compatible clavier) afin de pouvoir répondre à des dizaines de questions sans ouvrir une autre application, plusieurs jours après avoir bossé sur un sujet : tout le contexte nécessaire est présent (y compris des vidéos, captures d'écran)
+{% /figure %}
+
+Structurer les questions dans l'API a aussi eu l'effet de diminuer le nombre de tokens écrits dans les chats (auparavant les agents répétaient les questions en cours à chaque message pour me permettre de m'y retrouver).
+
+## Il n'y a pas de raccourci
+
+À la fin du weekend, mon clavier maculé de poussière de plâtre, j'ai poussé un long soupir de satisfaction quand mes agents ont enfin repris une cadence normale.
+
+À ce stade, vous vous demandez certainement pourquoi j'ai perdu un weekend à réparer un *harness* clairement loin de l'état de l'art (qui avance toutes les 2h) au lieu de produire de la valeur, alors que j'aurais pu choisir parmi la pléthore d'ADE (T3, Orca, etc.).
+
+C'est que je suis intimement convaincu que l'*agentic engineering*, le développement assisté par agents, n'est pas différent des autres technologies qu'on a dû apprendre dans nos carrières de développeurs.
+
+{% figure src="/writing/c-est-le-moment-de-perdre-du-temps/tweet.png" alt="Tweet de John Crickett (@johncrickett), 24 novembre 2026 : l’érosion des compétences due à l’IA est un choix, selon qu’on s’en sert pour progresser ou qu’on lui laisse tout faire." kind="capture" /%}
+
+Un bon développeur frontend connaît les tenants et aboutissants du HTML, CSS et JS, c'est pour ça qu'il peut comparer React, Solid et Vue. Et je n'ai jamais connu de bon développeur back-end qui ait fait l'impasse sur la modélisation de données.
+
+J'ai toujours fonctionné ainsi : je pense que comprendre comment une technologie fonctionne et comment s'en servir le mieux possible est une force et que cet apprentissage paiera dans les années à venir.
+
+Et pour comprendre, il faut faire.
+
+Ainsi, créer mon harness me donne les clés pour **connaître ses limites et ses avantages** face aux autres ADE, pouvoir les **critiquer et les améliorer**. Mais c'est aussi me confronter à du *context engineering* et du *prompt engineering*.
+
+Ça veut dire **faire et défaire, faire et refaire**. Passer des week-ends et des soirées à être frustré par des systèmes qui ne marchent pas, tout en sachant que les devs qui m'entourent produisent certainement plus vite, parce qu'ils ne « perdent » pas ce temps-là.
+
+> « Gas Town is also expensive as hell. »
+> « AI does actually make you more 10x productive, once you learn how. »
+> Steve Yegge
+
+Accepter d'aller plus lentement aujourd'hui, pour aller beaucoup plus vite demain.
+
+{% figure src="/writing/c-est-le-moment-de-perdre-du-temps/dents-de-scie-gaines-rangees.jpg" alt="Le même recoin, rangé : les gaines noires forment un seul faisceau fixé sur des supports métalliques le long de la pente du plafond, les câbles orange sont enroulés en haut à droite, et au sol traînent un escabeau, un niveau, un marteau et une perceuse." kind="capture" /%}

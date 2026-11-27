@@ -1,0 +1,118 @@
+---
+/**
+ * Preview du graphe en barres : la pousse des barres à l'entrée à l'écran, avec sa durée et
+ * le délai entre barres réglables. Dans un article, l'écriture est `{% barchart panels=[…] %}` ;
+ * `duration` et `stagger` sont ses props, en secondes. Les curseurs de cette page règlent les
+ * variables du composant à la volée, puis « Rejouer » relance la pousse.
+ * Page `ds/`, `noindex`, absente du build de prod.
+ */
+import BarChart from '../../components/article/BarChart.astro'
+import Prose from '../../components/primitives/Prose.astro'
+import Section from '../../components/primitives/Section.astro'
+import MonoLabel from '../../components/print/MonoLabel.astro'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+
+const panels = [
+  {
+    title: 'harness.md',
+    subtitle: 'la référence',
+    unit: 'en tokens',
+    rows: [
+      { label: '15/10', value: 8040 },
+      { label: '1/11', value: 10004 },
+      { label: '15/11', value: 13148 },
+      { label: '20/11', value: 13864 },
+      { label: '22/11', value: 8669, highlight: true, note: 'refactoring du 21/11' },
+    ],
+  },
+  {
+    title: 'role-secondmate.md',
+    subtitle: 'le métier de chef de projet',
+    unit: 'en tokens',
+    rows: [
+      { label: '15/10', value: 3144 },
+      { label: '1/11', value: 5912 },
+      { label: '15/11', value: 7842 },
+      { label: '20/11', value: 8469 },
+      { label: '22/11', value: 4972, highlight: true, note: 'refactoring du 21/11' },
+    ],
+  },
+]
+---
+
+<BaseLayout title="Graphe en barres — exhale DS" noindex ink="sepia">
+  <Section as="header" rhythm="none">
+    <MonoLabel>DS · Article · Graphe en barres</MonoLabel>
+  </Section>
+
+  <Section>
+    <Prose>
+      <p>
+        Les barres poussent quand le graphe entre à l’écran, l’une après l’autre. Règle la durée
+        et le délai, puis rejoue. Sous « réduire les animations », le graphe est fini d’emblée.
+      </p>
+    </Prose>
+    <form class="tune" data-tune>
+      <label>
+        <MonoLabel as="span">Durée</MonoLabel>
+        <input type="range" name="duration" min="0.1" max="2" step="0.05" value="0.7" />
+        <output data-out="duration">0,70 s</output>
+      </label>
+      <label>
+        <MonoLabel as="span">Délai entre barres</MonoLabel>
+        <input type="range" name="stagger" min="0" max="0.5" step="0.01" value="0.12" />
+        <output data-out="stagger">0,12 s</output>
+      </label>
+      <button type="button" data-replay>Rejouer</button>
+    </form>
+    <BarChart
+      panels={panels}
+      label="Taille de harness.md et de role-secondmate.md, en tokens, du 15/10 au 22/11, avec la baisse après le refactoring du 21/11."
+    />
+  </Section>
+</BaseLayout>
+
+<script>
+  const chart = document.querySelector<HTMLElement>('[data-chart]')
+  const form = document.querySelector<HTMLFormElement>('[data-tune]')
+  if (chart && form) {
+    const fmt = (n: number) => `${n.toFixed(2).replace('.', ',')} s`
+    const apply = () => {
+      const d = Number(form.duration.value)
+      const s = Number(form.stagger.value)
+      chart.style.setProperty('--bar-dur-base', `${d}s`)
+      chart.style.setProperty('--bar-stagger-base', `${s}s`)
+      form.querySelector('[data-out=duration]')!.textContent = fmt(d)
+      form.querySelector('[data-out=stagger]')!.textContent = fmt(s)
+    }
+    form.addEventListener('input', apply)
+    form.querySelector('[data-replay]')!.addEventListener('click', () => {
+      chart.dispatchEvent(new Event('chart:replay'))
+    })
+  }
+</script>
+
+<style>
+  .tune {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-xl);
+    margin-top: var(--space-xl);
+  }
+  .tune label { display: grid; gap: var(--space-xs); }
+  .tune input { accent-color: var(--accent); }
+  .tune output { font-family: var(--mono); font-size: var(--fs-data); color: var(--ink-2); }
+  .tune button {
+    padding: var(--space-xs) var(--space-m);
+    border: 1px solid var(--ink);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tr-label);
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .tune button:hover { background: var(--paper-2); }
+</style>

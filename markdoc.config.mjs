@@ -122,6 +122,23 @@ export default defineMarkdocConfig({
     },
 
     /** libellé mono — les lignes d'un registre de plate */
+    barchart: {
+      render: component('./src/components/article/BarChart.astro'),
+      attributes: {
+        panels: { type: Array, required: true },
+        label: { type: String, required: true },
+        duration: { type: Number },
+        stagger: { type: Number },
+      },
+    },
+
+    harnessschema: {
+      render: component('./src/components/article/HarnessSchema.astro'),
+      attributes: {
+        label: { type: String },
+      },
+    },
+
     monolabel: {
       render: component('./src/components/print/MonoLabel.astro'),
       attributes: {
